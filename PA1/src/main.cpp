@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "shader.h" // header file of shader loaders
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
@@ -10,10 +10,10 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp> //Makes passing matrices to shaders easier
+#include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
 //--Data types
-//This object will define the attributes of a vertex(position, color, etc...)
+// This object defines the attributes of a vertex(position, color, etc...)
 struct Vertex
 {
     GLfloat position[3];
@@ -21,23 +21,23 @@ struct Vertex
 };
 
 //--Evil Global variables
-//Just for this example!
+// Just for this example!
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 
-//uniform locations
+// uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
 
-//attribute locations
+// attribute locations
 GLint loc_position;
 GLint loc_color;
 
-//transform matrices
-glm::mat4 model;//obj->world each object should have its own model matrix
-glm::mat4 view;//world->eye
-glm::mat4 projection;//eye->clip
-glm::mat4 mvp;//premultiplied modelviewprojection
+// transform matrices
+glm::mat4 model;// obj->world each object should have its own model matrix
+glm::mat4 view;// world->eye
+glm::mat4 projection;// eye->clip
+glm::mat4 mvp;// premultiplied modelviewprojection
 
 //--GLUT Callbacks
 void render();
@@ -64,8 +64,9 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
+
     // Name and create the Window
-    glutCreateWindow("Matrix Example");
+    glutCreateWindow("Rotating Cube");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -104,6 +105,8 @@ void render()
     //clear the screen
     glClearColor(0.0, 0.0, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    //static float scale = 0.0f;
 
     //premultiply the matrix for this example
     mvp = projection * view * model;
@@ -150,8 +153,14 @@ void update()
     float dt = getDT();// if you have anything moving, use dt.
 
     angle += dt * M_PI/2; //move through 90 degrees a second
+
+    // move in a circle
     model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
-    // Update the state of the scene
+
+    // rotate around y axis
+    model = glm::rotate(model,angle,glm::vec3(0.0f,1.0f,0.0f));
+
+    // update the state of the scene
     glutPostRedisplay();//call the display callback
 }
 
@@ -231,74 +240,16 @@ bool initialize()
                           {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
                           {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}}
                         };
-    // Create a Vertex Buffer object to store this vertex info on the GPU
+    // create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
 
+    // loads shaders to program
     program = loadShader( vsFileName, fsFileName );
-/*
-    //--Geometry done
-    //.GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    //.GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    //Shader Sources
-    char *vs;
-    char *fs;
-
-    if (!readFile(vsFileName, vs)) {
-        std::cerr << "[F] FAILED TO READ VERTEX SHADER!" << std::endl;
-        return false;
-    }
-
-    if (!readFile(fsFileName, fs)) {
-        std::cerr << "[F] FAILED TO READ FRAGMENT SHADER!" << std::endl;
-        return false;
-    }
-
-    //compile the shaders
-    GLint shader_status;
-
-    // Vertex shader first
-    glShaderSource(vertex_shader, 1, (const char **)&vs, NULL);
-    glCompileShader(vertex_shader);
-    //check the compile status
-    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &shader_status);
-    if(!shader_status)
-    {
-        std::cerr << "[F] FAILED TO COMPILE VERTEX SHADER!" << std::endl;
-        return false;
-    }
-
-    // Now the Fragment shader
-    glShaderSource(fragment_shader, 1, (const char **)&fs, NULL);
-    glCompileShader(fragment_shader);
-    //check the compile status
-    glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &shader_status);
-    if(!shader_status)
-    {
-        std::cerr << "[F] FAILED TO COMPILE FRAGMENT SHADER!" << std::endl;
-        return false;
-    }
-
-    //Now we link the 2 shader objects into a program
-    //This program is what is run on the GPU
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-    //check if everything linked ok
-    glGetProgramiv(program, GL_LINK_STATUS, &shader_status);
-    if(!shader_status)
-    {
-        std::cerr << "[F] THE SHADER PROGRAM FAILED TO LINK" << std::endl;
-        return false;
-    }
-*/
-    //glUseProgram(program);
-
-    //Now we set the locations of the attributes and uniforms
-    //this allows us to access them easily while rendering
+    // now we set the locations of the attributes and uniforms
+    // this allows us to access them easily while rendering
     loc_position = glGetAttribLocation(program,
                     const_cast<const char*>("v_position"));
     if(loc_position == -1)
@@ -322,8 +273,6 @@ bool initialize()
         std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
         return false;
     }
-
-    std::cout << loc_position << ' ' << loc_color << ' ' << loc_mvpmat << std::endl;
     
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
@@ -363,25 +312,3 @@ float getDT()
     return ret;
 }
 
-/*
-bool readFile( const char* fileName, char* &str)
-{
-  std::ifstream ifs;
-  ifs.open( fileName, std::ifstream::in );
-
-  ifs.seekg (0, ifs.end);
-  int length = ifs.tellg();
-  ifs.seekg (0, ifs.beg);
-
-  ifs.read( str, length );
-
-  if( !ifs )
-  {
-    ifs.close();
-    return false;
-  }
-
-  ifs.close();
-  return true;
-}
-*/
