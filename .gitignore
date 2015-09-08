@@ -2,7 +2,8 @@
 *
 !*/
 !*.*
-!*/makefile
+!makefile
+!.gitignore
 
 # Compiled Object files
 *.slo
