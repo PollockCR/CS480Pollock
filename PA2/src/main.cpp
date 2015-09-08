@@ -20,11 +20,14 @@ struct Vertex
     GLfloat color[3];
 };
 
-//--Evil Global variables
-// Just for this example!
+// Global variables
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
+ShaderLoader programLoad; // Load shader class
+
+    // Initialize rotation of cube
+    bool rotateFlag = false;
 
 // uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -44,6 +47,8 @@ void render();
 void update();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
+void menu(int id);
+void mouse(int button, int state, int x_pos, int y_pos);
 
 //--Resource management
 bool initialize();
@@ -78,11 +83,19 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    // Create menu
+    glutCreateMenu(menu); // Call menu function
+    glutAddMenuEntry("Quit", 1);
+    glutAddMenuEntry("Start rotation", 2);
+    glutAddMenuEntry("Stop rotation", 3);
+    glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
+
     // Set all of the callbacks to GLUT that we need
     glutDisplayFunc(render);// Called when its time to display
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutMouseFunc(mouse);// Called if there is a mouse click (left)
 
     // Initialize all of our resources(shaders, geometry)
     bool init = initialize();
@@ -152,13 +165,27 @@ void update()
     static float angle = 0.0;
     float dt = getDT();// if you have anything moving, use dt.
 
-    angle += dt * M_PI/2; //move through 90 degrees a second
+    // check for reverse direction
+    if( rotateFlag == true )
+    {
+      // reverse angle
+      angle = angle - (dt * M_PI/2); //move through -90 degrees a second
 
-    // move in a circle
-    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+      // move in a circle
+      model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+      // rotate around y axis
+      model = glm::rotate(model,angle,glm::vec3(0.0f,1.0f,0.0f));
+    }
+    else 
+    {
+      // update angle
+      angle += dt * M_PI/2; //move through 90 degrees a second
 
-    // rotate around y axis
-    model = glm::rotate(model,angle,glm::vec3(0.0f,1.0f,0.0f));
+      // move in a circle
+      model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+      // rotate around y axis
+      model = glm::rotate(model,angle,glm::vec3(0.0f,1.0f,0.0f));
+    }
 
     // update the state of the scene
     glutPostRedisplay();//call the display callback
@@ -177,12 +204,25 @@ void reshape(int n_w, int n_h)
 
 }
 
-void keyboard(unsigned char key, int x_pos, int y_pos)
+void keyboard(unsigned char key, int x_pos, int y_pos )
 {
     // Handle keyboard input
-    if(key == 27)//ESC
+    // end program
+    if(key == 27) // esc
     {
-        exit(0);
+      exit(0);
+    }
+    // rotate cube
+    else
+    {
+      if( !rotateFlag ) 
+      {
+        rotateFlag = true;
+      }     
+      else
+      {
+        rotateFlag = false;
+      }
     }
 }
 
@@ -246,7 +286,7 @@ bool initialize()
     glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
 
     // loads shaders to program
-    program = loadShader( vsFileName, fsFileName );
+    programLoad.loadShader( vsFileName, fsFileName,  program );
 
     // now we set the locations of the attributes and uniforms
     // this allows us to access them easily while rendering
@@ -312,3 +352,44 @@ float getDT()
     return ret;
 }
 
+// menu choices 
+void menu(int id)
+{
+  // switch case for menu options
+  switch(id)
+  {
+    // exit the program
+    case 1:
+      cleanUp();
+      exit(1);
+      break;
+    // update display, start rotation
+    case 2:
+      glutIdleFunc(update);
+      break;
+      // stop rotation
+    case 3:
+      glutIdleFunc(NULL);
+      break;
+  }
+  glutPostRedisplay();
+}
+
+// actions for left mouse click
+void mouse(int button, int state, int x_pos, int y_pos)
+{
+  // check for correct button
+  if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+  {
+    // change rotation flag
+    if( !rotateFlag ) 
+    {
+      rotateFlag = true;
+    }     
+    else
+    {
+      rotateFlag = false;
+    }
+  }
+
+}

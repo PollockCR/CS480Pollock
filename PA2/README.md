@@ -4,8 +4,9 @@ An Interactive Rotating Cube in OpenGL
 Program Function
 ----------------
 The program will display a rainbow, rotating cube. A menu is available to start spinning,
-stop spinning, and to exit the program. Any mouse click or key press (except Esc or Ctrl-C)
-will reverse the rotation or the cube.
+stop spinning, and to exit the program. Any left mouse click or key press (except Esc or Ctrl-C)
+will reverse the rotation or the cube. A right mouse click will display a menu that allows to 
+start rotation, stop rotation, and quit the program.
 
 Building This Program
 ---------------------

@@ -1,4 +1,6 @@
 #include "shader.h"
+#include <GL/glew.h>
+#include <GL/glut.h> 
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -9,7 +11,7 @@
 // http://www.nexcius.net/2012/11/20/how-to-load-a-glsl-shader-in-opengl-using-c/
 
 // reads in file to a string
-std::string readFile(const char *filePath)
+std::string ShaderLoader::readFile(const char *filePath)
 {
     std::string content; // holds string to return
     std::ifstream ifs(filePath, std::ifstream::in); // input file stream
@@ -36,7 +38,7 @@ std::string readFile(const char *filePath)
 }
 
 // load shaders
-GLuint loadShader(const char *vertex_path, const char *fragment_path)
+bool ShaderLoader::loadShader(const char *vertex_path, const char *fragment_path, GLuint &program)
 {
     // create shaders
     GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
@@ -87,7 +89,7 @@ GLuint loadShader(const char *vertex_path, const char *fragment_path)
         }
 
     // create program and link with shaders
-    GLuint program = glCreateProgram();
+    program = glCreateProgram();
     glAttachShader(program, vertShader);
     glAttachShader(program, fragShader);
     glLinkProgram(program);
@@ -110,5 +112,5 @@ GLuint loadShader(const char *vertex_path, const char *fragment_path)
     glDeleteShader(fragShader);
 
     // return program with shaders
-    return program;
+    return true;
 }

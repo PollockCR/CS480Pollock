@@ -1,7 +1,17 @@
 #ifndef SHADER_H
 #define SHADER_H
-#include "GL/glew.h"
+#include <GL/glew.h>
+#include <GL/glut.h> 
+#include <string>
 
-GLuint loadShader(const char *vertex_path, const char *fragment_path);
+class ShaderLoader
+{
+public:
+   bool loadShader(const char *vertex_path, const char *fragment_path, GLuint &program);
+   std::string readFile(const char *filePath);
+private:
+
+};
+
 
 #endif
