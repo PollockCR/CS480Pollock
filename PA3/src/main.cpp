@@ -20,6 +20,11 @@ struct Vertex
     GLfloat color[3];
 };
 
+//--Global constants
+const char* vsFileName = "../bin/shader.vs";
+const char* fsFileName = "../bin/shader.fs";
+const int NUM_SHADERS = 2;
+
 // Global variables
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
@@ -51,13 +56,16 @@ GLint loc_color;
 
 // transform matrices
 glm::mat4 model;// obj->world each object should have its own model matrix
+glm::mat4 model_moon;
 glm::mat4 view;// world->eye
 glm::mat4 projection;// eye->clip
 glm::mat4 mvp;// premultiplied modelviewprojection
+glm::mat4 mvp_moon;
 
 //--GLUT Callbacks
 void render();
 void update();
+void updateMoon();
 void reshape(int n_w, int n_h);
 void keyboard(unsigned char key, int x_pos, int y_pos);
 void menu(int id);
@@ -72,10 +80,6 @@ void cleanUp();
 //--Random time things
 float getDT();
 std::chrono::time_point<std::chrono::high_resolution_clock> t1,t2;
-
-//--Global constants
-const char* vsFileName = "../bin/shader.vs";
-const char* fsFileName = "../bin/shader.fs";
 
 //--Main
 int main(int argc, char **argv)
@@ -149,35 +153,71 @@ void render()
 
     //static float scale = 0.0f;
 
-    //premultiply the matrix for this example
-    mvp = projection * view * model;
-
     //enable the shader program
     glUseProgram(program);
 
-    //upload the matrix to the shader
-    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    //set up the Vertex Buffer Object so it can be drawn
-    glEnableVertexAttribArray(loc_position);
-    glEnableVertexAttribArray(loc_color);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    //set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer( loc_position,//location of attribute
-                           3,//number of elements
-                           GL_FLOAT,//type
-                           GL_FALSE,//normalized?
-                           sizeof(Vertex),//stride
-                           0);//offset
+    // render first object
 
-    glVertexAttribPointer( loc_color,
-                           3,
-                           GL_FLOAT,
-                           GL_FALSE,
-                           sizeof(Vertex),
-                           (void*)offsetof(Vertex,color));
+      //premultiply the matrix for this example
+      mvp = projection * view * model;
+
+      //upload the matrix to the shader
+      glUniformMatrix4fv(loc_mvpmat, 2, GL_FALSE, glm::value_ptr(mvp));
+
+      //set up the Vertex Buffer Object so it can be drawn
+      glEnableVertexAttribArray(loc_position);
+      glEnableVertexAttribArray(loc_color);
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+
+        //set pointers into the vbo for each of the attributes(position and color)
+        glVertexAttribPointer( loc_position,//location of attribute
+                             3,//number of elements
+                             GL_FLOAT,//type
+                             GL_FALSE,//normalized?
+                             sizeof(Vertex),//stride
+                             0);//offset
+
+        glVertexAttribPointer( loc_color,
+                             3,
+                             GL_FLOAT,
+                             GL_FALSE,
+                             sizeof(Vertex),
+                             (void*)offsetof(Vertex,color));
 
     glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+
+    // render second object
+
+      //premultiply the matrix for this example
+      mvp_moon = projection * view * model_moon;
+
+      //upload the matrix to the shader
+      glUniformMatrix4fv(loc_mvpmat, 2, GL_FALSE, glm::value_ptr(mvp_moon));
+
+      //set up the Vertex Buffer Object so it can be drawn
+      glEnableVertexAttribArray(loc_position);
+      glEnableVertexAttribArray(loc_color);
+      glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+
+        //set pointers into the vbo for each of the attributes(position and color)
+        glVertexAttribPointer( loc_position,//location of attribute
+                             3,//number of elements
+                             GL_FLOAT,//type
+                             GL_FALSE,//normalized?
+                             sizeof(Vertex),//stride
+                             0);//offset
+
+        glVertexAttribPointer( loc_color,
+                             3,
+                             GL_FLOAT,
+                             GL_FALSE,
+                             sizeof(Vertex),
+                             (void*)offsetof(Vertex,color));
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+
+    // done rendering objects
 
     //clean up
     glDisableVertexAttribArray(loc_position);
@@ -244,8 +284,54 @@ void update()
       model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
     }
 
+    updateMoon();
+
     // update the state of the scene
     glutPostRedisplay();//call the display callback
+}
+
+void updateMoon()
+{
+    //total time
+    float dt = getDT();// if you have anything moving, use dt.
+
+    // check for reverse direction of rotation
+    if( rotateFlagMoon)
+    {
+      // reverse angle of planet
+      angleRotateMoon = angleRotateMoon - (dt * M_PI/2); //move through -90 degrees a second
+
+      // move in a circle
+      model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotateMoon), 0.0, 4.0 * cos(angleRotateMoon)));
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleRotateMoon += dt * M_PI/2; //move through 90 degrees a second
+
+      // move in a circle
+      model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotateMoon), 0.0, 4.0 * cos(angleRotateMoon)));
+    }
+
+    // check for reverse direction of orbit
+    if( orbitFlagMoon )
+    {
+      // reverse angle of planet
+      angleOrbitMoon = angleOrbitMoon - (dt * M_PI/2); //move through -90 degrees a second
+
+      // rotate around y axis
+      model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleOrbitMoon += dt * M_PI/2; //move through 90 degrees a second
+
+      // rotate around y axis
+      model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
+    }
 }
 
 void reshape(int n_w, int n_h)
