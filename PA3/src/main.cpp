@@ -36,10 +36,6 @@ ShaderLoader programLoad; // Load shader class
     bool orbitFlagPlanet = false;
     bool rotateFlagMoon = false;
     bool orbitFlagMoon = false;
-    float angleRotatePlanet = 0.0;
-    float angleOrbitPlanet = 0.0;
-    float angleRotateMoon = 0.0;
-    float angleOrbitMoon = 0.0;
 
     // Paused rotations
     bool paused = false;
@@ -116,7 +112,7 @@ int main(int argc, char **argv)
       glutAddMenuEntry("Reverse rotation of moon", 6);
       glutAddMenuEntry("Reverse orbit of moon", 7);      
 
-    glutCreateMenu(menu); // Call menu function
+    int main_menu = glutCreateMenu(menu); // Call menu function
     glutAddMenuEntry("Quit", 1);
     glutAddSubMenu("Start & stop rotations", startstop_menu);
     glutAddSubMenu("Reverse orbits & rotations", rotate_menu);
@@ -139,6 +135,9 @@ int main(int argc, char **argv)
 
     // Clean up after ourselves
     cleanUp();
+    glutDestroyMenu(rotate_menu);
+    glutDestroyMenu(startstop_menu);
+    glutDestroyMenu(main_menu);
     return 0;
 }
 
@@ -186,7 +185,7 @@ void render()
                              (void*)offsetof(Vertex,color));
 
     glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
-
+/*
     // render second object
 
       //premultiply the matrix for this example
@@ -218,7 +217,7 @@ void render()
     glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
 
     // done rendering objects
-
+*/
     //clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
@@ -229,74 +228,84 @@ void render()
 
 void update()
 {
-    //total time
-    float dt = getDT();// if you have anything moving, use dt.
+    float dt;
 
     // check for quit program
     if( quitCall )
     {
-      glutPostRedisplay();
-      cleanUp();
       exit(0);
     }
 
     // pause rotations
-    if( paused )
+    else if( paused )
     {
-      glutIdleFunc(NULL);
+      dt = 0.0;
     }
 
-    // check for reverse direction of rotation
-    if( rotateFlagPlanet )
-    {
-      // reverse angle of planet
-      angleRotatePlanet = angleRotatePlanet - (dt * M_PI/2); //move through -90 degrees a second
-
-      // move in a circle
-      model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
-    }
-    // normal direction
     else 
     {
-      // update angle of planet
-      angleRotatePlanet += dt * M_PI/2; //move through 90 degrees a second
+      //total time
+      dt = getDT();// if you have anything moving, use dt.
+      
+      static float angleRotatePlanet = 0.0;
+      static float angleOrbitPlanet = 0.0;
 
-      // move in a circle
-      model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
+      // check for reverse direction of rotation
+      if( rotateFlagPlanet )
+      {
+        // reverse angle of planet
+        angleRotatePlanet = angleRotatePlanet - (dt * M_PI/2); //move through -90 degrees a second
+
+        // move in a circle
+        model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
+      }
+      // normal direction
+      else 
+      {
+        // update angle of planet
+        angleRotatePlanet += dt * M_PI/2; //move through 90 degrees a second
+
+        // move in a circle
+        model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
+      }
+
+      // check for reverse direction of orbit
+      if( orbitFlagPlanet )
+      {
+        // reverse angle of planet
+        angleOrbitPlanet = angleOrbitPlanet - (dt * M_PI/2); //move through -90 degrees a second
+
+        // rotate around y axis
+        model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
+      }
+      // normal direction
+      else 
+      {
+        // update angle of planet
+        angleOrbitPlanet += dt * M_PI/2; //move through 90 degrees a second
+
+        // rotate around y axis
+        model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
+      }
+
+      updateMoon();
+
+      // update the state of the scene
+      glutPostRedisplay();//call the display callback
     }
-
-    // check for reverse direction of orbit
-    if( orbitFlagPlanet )
-    {
-      // reverse angle of planet
-      angleOrbitPlanet = angleOrbitPlanet - (dt * M_PI/2); //move through -90 degrees a second
-
-      // rotate around y axis
-      model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
-    }
-    // normal direction
-    else 
-    {
-      // update angle of planet
-      angleOrbitPlanet += dt * M_PI/2; //move through 90 degrees a second
-
-      // rotate around y axis
-      model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
-    }
-
-    updateMoon();
-
-    // update the state of the scene
-    glutPostRedisplay();//call the display callback
 }
 
 void updateMoon()
 {
+/*
     //total time
     float dt = getDT();// if you have anything moving, use dt.
 
+    float angleRotateMoon = 0.0;
+    float angleOrbitMoon = 0.0;
+
     // check for reverse direction of rotation
-    if( rotateFlagMoon)
+    if( rotateFlagMoon )
     {
       // reverse angle of planet
       angleRotateMoon = angleRotateMoon - (dt * M_PI/2); //move through -90 degrees a second
@@ -332,6 +341,7 @@ void updateMoon()
       // rotate around y axis
       model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
     }
+*/
 }
 
 void reshape(int n_w, int n_h)
@@ -526,7 +536,8 @@ void menu(int id)
       rotation_menu(id);
       break;
   }
-
+  // redraw screen without menu
+  glutPostRedisplay();
 }
 
 // menu choices 
@@ -539,17 +550,17 @@ void start_stop_menu(int id)
     case 2:
       paused = false;
       glutIdleFunc(update);
-      glutPostRedisplay();
+      //glutPostRedisplay();
       break;
     // stop rotation
     case 3:
       paused = true;
       glutIdleFunc(update);
-      glutPostRedisplay();
+      //glutPostRedisplay();
       break;
   }
   // redraw screen without menu
-  //glutPostRedisplay();
+  glutPostRedisplay();
 }
 
 // menu choices 
