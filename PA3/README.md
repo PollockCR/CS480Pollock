@@ -1,20 +1,31 @@
-An Interactive Rotating Cube in OpenGL
-======================================
-
+An Interactive Rotating Cube with Moon Cube in OpenGL
+=====================================================
+~ Cube Univerise ~
+==================
 Program Function
 ----------------
-The program will display a rainbow, rotating cube. A menu is available to start spinning,
-stop spinning, and to exit the program. Any left mouse click or key press (except Esc or Ctrl-C)
-will reverse the rotation or the cube. A right mouse click will display a menu that allows to 
-start rotation, stop rotation, and quit the program.
+The program will display a rainbow, rotating cube. Another, smaller cube rotates the first cube in an orbit. A menu is available to start spinning, stop spinning, and to exit the program. The rotation of cubes and orbits can be changed from this menu. To open the menu, right click the mouse.Any left mouse click, left or right arrow keys, or any standard key press (except Esc or Ctrl-C) will reverse the rotation or the cube.
+
+Extra Credit
+------------
+Extra credit was NOT achieved in this project.
 
 Building This Program
 ---------------------
 
-*This example requires GLM*
+*This example requires GLUT and GLEW* 
+
+*On ubuntu they can be installed with this command*
+
+>$ sudo apt-get install freeglut3-dev freeglut3 libglew1.6-dev
+
+*This example also requires GLM*
 *On Ubuntu it can be installed with this command*
 
 >$ sudo apt-get install libglm-dev
+
+*On a Mac you can get these libraries with this command(using homebrew)*
+>$ brew install freeglut glew
 
 *On a Mac you can install GLM with this command(using homebrew)*
 >$ brew install glm
