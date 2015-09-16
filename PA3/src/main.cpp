@@ -68,9 +68,6 @@ glm::mat4 projection;// eye->clip
 glm::mat4 mvp;// premultiplied modelviewprojection
 glm::mat4 mvp_moon; // premultiplied modelviewprojection for moon
 
-// font for displaying direction 
-void *font = GLUT_BITMAP_HELVETICA_18;
-
 //--GLUT Callbacks
 void render();
 
@@ -228,10 +225,6 @@ void render()
 // called on idle to update display
 void update()
 {
-    // string to hold text output
-    char rotateStringMoon[35] = "Moon rotation: ";
-    char orbitStringMoon[35] = "Moon orbit: ";
-
     // check for quit program
     if( quitCall )
     {
@@ -249,24 +242,6 @@ void update()
 
       // diplay moon updates
       updateMoon();
-
-      if( rotateFlagMoon )
-      {
-        strcat(rotateStringMoon,"clockwise");
-      }
-      else
-      {
-        strcat(rotateStringMoon,"counterclockwise");
-      }
-
-      if( orbitFlagMoon )
-      {
-        strcat(orbitStringMoon,"clockwise");
-      }
-      else
-      {
-        strcat(orbitStringMoon,"counterclockwise");
-      }
 
       // update the state of the scene
       glutPostRedisplay();//call the display callback
@@ -396,14 +371,14 @@ void special(int key, int x_pos, int y_pos)
   // planet direction left with left arrow key
   if(key == GLUT_KEY_LEFT)
   {
-    rotateFlagMoon = false;
-    orbitFlagMoon = false;
+    rotateFlagPlanet = false;
+    orbitFlagPlanet = false;
   }
   // planet direction right with right arrow key
   else if(key == GLUT_KEY_RIGHT)
   {
-    rotateFlagMoon = true;
-    orbitFlagMoon = true;
+    rotateFlagPlanet = true;
+    orbitFlagPlanet = true;
   }
   // redraw screen 
   glutPostRedisplay(); 
