@@ -79,7 +79,6 @@ void render();
   void updatePlanet();
   void updateMoon();
   void reshape(int n_w, int n_h);
-  void renderBitmapString(float x,float y,float z,void *font,char *string);
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
@@ -107,7 +106,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
 
     // Name and create the Window
-    glutCreateWindow("Rotating Cube");
+    glutCreateWindow("Cube Galaxy");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -230,8 +229,8 @@ void render()
 void update()
 {
     // string to hold text output
-    char rotateStringMoon[32] = "Moon rotation: ";
-    char orbitStringMoon[32] = "Moon orbit: ";
+    char rotateStringMoon[35] = "Moon rotation: ";
+    char orbitStringMoon[35] = "Moon orbit: ";
 
     // check for quit program
     if( quitCall )
@@ -268,9 +267,6 @@ void update()
       {
         strcat(orbitStringMoon,"counterclockwise");
       }
-      // display text of direction
-      renderBitmapString(0.0f, 0.5f, 0.0f, (void*) font, rotateStringMoon);
-
 
       // update the state of the scene
       glutPostRedisplay();//call the display callback
@@ -310,10 +306,10 @@ void updatePlanet()
     }
 
   // move in a circle
-  model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
+  model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleOrbitPlanet), 0.0, 4.0 * cos(angleOrbitPlanet)));
 
   // rotate around y axis
-  model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
+  model = glm::rotate(model,angleRotatePlanet,glm::vec3(0.0f,1.0f,0.0f));
 }
 
 void updateMoon()
@@ -330,7 +326,7 @@ void updateMoon()
     else 
     {
       // update angle of planet
-      angleRotateMoon += dt * 2 * M_PI/3; //move through 120 degrees a second
+      angleRotateMoon += (dt * 2 * M_PI/3); //move through 120 degrees a second
     }
 
   // orbit of moon
@@ -345,14 +341,14 @@ void updateMoon()
     else 
     {
       // update angle of planet
-      angleOrbitMoon += dt * 2 * M_PI/3; //move through 120 degrees a second
+      angleOrbitMoon += (dt * 2 * M_PI/3); //move through 120 degrees a second
     }
 
   // move in a circle
-  model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotateMoon), 0.0, 4.0 * cos(angleRotateMoon))) * model;
+  model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleOrbitMoon), 0.0, 4.0 * cos(angleOrbitMoon))) * model;
 
   // rotate around y axis
-  model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
+  model_moon = glm::rotate(model_moon,angleRotateMoon,glm::vec3(0.0f,1.0f,0.0f));
 
   // scale moon to be smaller
   model_moon = glm::scale(model_moon,glm::vec3(0.5f,0.5f,0.5f));
@@ -515,6 +511,7 @@ bool initialize()
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
 
     //and its done
@@ -644,22 +641,22 @@ void rotation_menu(int id)
   // switch case for menu options
   switch(id)
   {
-    // reverse rotation of planet
-    case 3:
-      rotateFlagPlanet = !rotateFlagPlanet;
-      break;
     // reverse orbit of planet
-    case 4:
+    case 3:
       orbitFlagPlanet = !orbitFlagPlanet;
       break;
-    // reverse rotation of moon
+    // reverse rotation of planet
+    case 4:
+      rotateFlagPlanet = !rotateFlagPlanet;
+      break;      
+    // reverse orbit of moon
     case 5:
+      orbitFlagMoon = !orbitFlagMoon;
+      break;   
+    // reverse rotation of moon
+    case 6:
       rotateFlagMoon = !rotateFlagMoon;
       break;
-    // reverse orbit of moon
-    case 6:
-      orbitFlagMoon = !orbitFlagMoon;
-      break;      
   }
   // redraw screen without menu
   glutPostRedisplay();
@@ -680,14 +677,3 @@ void mouse(int button, int state, int x_pos, int y_pos)
   // redraw screen without menu
   glutPostRedisplay();
 }
-
-// display string
-void renderBitmapString(float x,float y,float z,void *font,char *string)
-{
-  char *c;
-  glRasterPos3f(x, y, z);
-  for (c=string; *c != '\0'; c++) {
-    glutBitmapCharacter(font, *c);
-  }
-}
-
