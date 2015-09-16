@@ -5,6 +5,7 @@
 #include <fstream>
 #include <chrono>
 #include <string>
+#include <cstring>
 
 #define GLM_FORCE_RADIANS
 
@@ -23,9 +24,9 @@ struct Vertex
 //--Global constants
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
-const int NUM_SHADERS = 2;
 
 // Global variables
+
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
@@ -43,12 +44,14 @@ ShaderLoader programLoad; // Load shader class
     // Quit call
     bool quitCall = false;
 
-      static float angleRotatePlanet = 0.0;
-      static float angleOrbitPlanet = 0.0;
-      static float angleRotateMoon = 0.0;
-      static float angleOrbitMoon = 0.0;
+    // Angles of rotation
+    static float angleRotatePlanet = 0.0;
+    static float angleOrbitPlanet = 0.0;
+    static float angleRotateMoon = 0.0;
+    static float angleOrbitMoon = 0.0;
 
-      float dt = 0.0;
+    // dt variable for time
+    float dt = 0.0;
 
 // uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -58,24 +61,34 @@ GLint loc_position;
 GLint loc_color;
 
 // transform matrices
-glm::mat4 model;// obj->world each object should have its own model matrix
-glm::mat4 model_moon;
+glm::mat4 model;// obj-> world (planet) 
+glm::mat4 model_moon; // object -> world (moon)
 glm::mat4 view;// world->eye
 glm::mat4 projection;// eye->clip
 glm::mat4 mvp;// premultiplied modelviewprojection
-glm::mat4 mvp_moon;
+glm::mat4 mvp_moon; // premultiplied modelviewprojection for moon
+
+// font for displaying direction 
+void *font = GLUT_BITMAP_HELVETICA_18;
 
 //--GLUT Callbacks
 void render();
-void update();
-void updateMoon();
-void reshape(int n_w, int n_h);
-void keyboard(unsigned char key, int x_pos, int y_pos);
-void manageMenus();
-void menu(int id);
-void start_stop_menu(int id);
-void rotation_menu(int id);
-void mouse(int button, int state, int x_pos, int y_pos);
+
+  // update display functions
+  void update();
+  void updatePlanet();
+  void updateMoon();
+  void reshape(int n_w, int n_h);
+  void renderBitmapString(float x,float y,float z,void *font,char *string);
+
+  // called upon input
+  void keyboard(unsigned char key, int x_pos, int y_pos);
+  void special(int key, int x_pos, int y_pos);
+  void manageMenus();
+  void menu(int id);
+  void start_stop_menu(int id);
+  void rotation_menu(int id);
+  void mouse(int button, int state, int x_pos, int y_pos);
 
 //--Resource management
 bool initialize();
@@ -112,6 +125,7 @@ int main(int argc, char **argv)
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
     glutMouseFunc(mouse);// Called if there is a mouse click (left)
+    glutSpecialFunc(special);// Called if special keys pressed (arrows)
 
     // add menus
     manageMenus();
@@ -137,8 +151,6 @@ void render()
     //clear the screen
     glClearColor(0.0, 0.0, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //static float scale = 0.0f;
 
     //enable the shader program
     glUseProgram(program);
@@ -211,10 +223,15 @@ void render()
                            
     //swap the buffers
     glutSwapBuffers();
+
 }
 
+// called on idle to update display
 void update()
 {
+    // string to hold text output
+    char rotateStringMoon[32] = "Moon rotation: ";
+    char orbitStringMoon[32] = "Moon orbit: ";
 
     // check for quit program
     if( quitCall )
@@ -222,97 +239,126 @@ void update()
       manageMenus();
       exit(0);
     }
-/*
-    // pause rotations
-    if( paused )
-    {
-      dt = getDT();
-      //angleRotatePlanet = 0.0;
-      //angleOrbitPlanet = 0.0;
-    }
-*/
+    // otherwise, continue display
     else 
     {
       //total time
       dt = getDT();// if you have anything moving, use dt.
 
-      // check for reverse direction of rotation
-      if( rotateFlagPlanet )
-      {
-        // reverse angle of planet
-        angleRotatePlanet = angleRotatePlanet - (dt * M_PI/2); //move through -90 degrees a second
-      }
-      // normal direction
-      else 
-      {
-        // update angle of planet
-        angleRotatePlanet += dt * M_PI/2; //move through 90 degrees a second
-      }
+      // display planet updates
+      updatePlanet();
 
-      // check for reverse direction of orbit
-      if( orbitFlagPlanet )
-      {
-        // reverse angle of planet
-        angleOrbitPlanet = angleOrbitPlanet - (dt * M_PI/2); //move through -90 degrees a second
-      }
-      // normal direction
-      else 
-      {
-        // update angle of planet
-        angleOrbitPlanet += dt * M_PI/2; //move through 90 degrees a second
-      }
-
-      // move in a circle
-      model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
-
-      // rotate around y axis
-      model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
-      
+      // diplay moon updates
       updateMoon();
+
+      if( rotateFlagMoon )
+      {
+        strcat(rotateStringMoon,"clockwise");
+      }
+      else
+      {
+        strcat(rotateStringMoon,"counterclockwise");
+      }
+
+      if( orbitFlagMoon )
+      {
+        strcat(orbitStringMoon,"clockwise");
+      }
+      else
+      {
+        strcat(orbitStringMoon,"counterclockwise");
+      }
+      // display text of direction
+      renderBitmapString(0.0f, 0.5f, 0.0f, (void*) font, rotateStringMoon);
+
 
       // update the state of the scene
       glutPostRedisplay();//call the display callback
     }
 }
 
-void updateMoon()
+void updatePlanet()
 {
-      // check for reverse direction of rotation
-      if( rotateFlagMoon )
-      {
-        // reverse angle of planet
-        angleRotateMoon = angleRotateMoon - (dt * M_PI/2); //move through -90 degrees a second
-      }
-      // normal direction
-      else 
-      {
-        // update angle of planet
-        angleRotateMoon += dt * M_PI/2; //move through 90 degrees a second
-      }
+  // rotation of planet
 
-      // check for reverse direction of orbit
-      if( orbitFlagMoon )
-      {
-        // reverse angle of planet
-        angleOrbitMoon = angleOrbitMoon - (dt * M_PI/2); //move through -90 degrees a second
-      }
-      // normal direction
-      else 
-      {
-        // update angle of planet
-        angleOrbitMoon += dt * M_PI/2; //move through 90 degrees a second
-      }
+    // check for reverse direction of rotation
+    if( rotateFlagPlanet )
+    {
+      // reverse angle of planet
+      angleRotatePlanet = angleRotatePlanet - (dt * M_PI/2); //move through -90 degrees a second
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleRotatePlanet += dt * M_PI/2; //move through 90 degrees a second
+    }
 
-      // move in a circle
-      model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotateMoon), 0.0, 4.0 * cos(angleRotateMoon))) * model;
+  // orbit of planet
 
-      // rotate around y axis
-      model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
+    // check for reverse direction of orbit
+    if( orbitFlagPlanet )
+    {
+      // reverse angle of planet
+      angleOrbitPlanet = angleOrbitPlanet - (dt * M_PI/2); //move through -90 degrees a second
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleOrbitPlanet += dt * M_PI/2; //move through 90 degrees a second
+    }
 
-      // update the state of the scene
-      glutPostRedisplay();//call the display callback
+  // move in a circle
+  model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotatePlanet), 0.0, 4.0 * cos(angleRotatePlanet)));
+
+  // rotate around y axis
+  model = glm::rotate(model,angleOrbitPlanet,glm::vec3(0.0f,1.0f,0.0f));
 }
 
+void updateMoon()
+{
+  // rotation of moon
+
+    // check for reverse direction of rotation
+    if( rotateFlagMoon )
+    {
+      // reverse angle of planet
+      angleRotateMoon = angleRotateMoon - (2* dt * M_PI/3); //move through -120 degrees a second
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleRotateMoon += dt * 2 * M_PI/3; //move through 120 degrees a second
+    }
+
+  // orbit of moon
+
+    // check for reverse direction of orbit
+    if( orbitFlagMoon )
+    {
+      // reverse angle of planet
+      angleOrbitMoon = angleOrbitMoon - (dt * 2 * M_PI/3); //move through -120 degrees a second
+    }
+    // normal direction
+    else 
+    {
+      // update angle of planet
+      angleOrbitMoon += dt * 2 * M_PI/3; //move through 120 degrees a second
+    }
+
+  // move in a circle
+  model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleRotateMoon), 0.0, 4.0 * cos(angleRotateMoon))) * model;
+
+  // rotate around y axis
+  model_moon = glm::rotate(model_moon,angleOrbitMoon,glm::vec3(0.0f,1.0f,0.0f));
+
+  // scale moon to be smaller
+  model_moon = glm::scale(model_moon,glm::vec3(0.5f,0.5f,0.5f));
+}
+
+// resize window
 void reshape(int n_w, int n_h)
 {
     w = n_w;
@@ -325,6 +371,7 @@ void reshape(int n_w, int n_h)
 
 }
 
+// called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
     // Handle keyboard input
@@ -342,12 +389,33 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       rotateFlagPlanet = !rotateFlagPlanet;
       orbitFlagPlanet = !orbitFlagPlanet;
     }
+
+  // redraw screen 
+  glutPostRedisplay();    
 }
 
+// called for special key input (such as arrows)
+void special(int key, int x_pos, int y_pos)
+{
+  // planet direction left with left arrow key
+  if(key == GLUT_KEY_LEFT)
+  {
+    rotateFlagMoon = false;
+    orbitFlagMoon = false;
+  }
+  // planet direction right with right arrow key
+  else if(key == GLUT_KEY_RIGHT)
+  {
+    rotateFlagMoon = true;
+    orbitFlagMoon = true;
+  }
+  // redraw screen 
+  glutPostRedisplay(); 
+}
+
+// initialize basic geometry and shaders for this example
 bool initialize()
 {
-    // Initialize basic geometry and shaders for this example
-
     //this defines a cube, this is why a model loader is nice
     //you can also do this with a draw elements and indices, try to get that working
     Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
@@ -453,6 +521,7 @@ bool initialize()
     return true;
 }
 
+// delete old items
 void cleanUp()
 {
     // Clean up, Clean up
@@ -463,11 +532,6 @@ void cleanUp()
 //returns the time delta
 float getDT()
 {
-    /*if(paused)
-    {
-      return 0.0;
-    }*/
-
     float ret;
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
@@ -481,6 +545,7 @@ float getDT()
     return ret;
 }
 
+// adds and removes menus
 void manageMenus()
 {
   int startstop_menu = 0;
@@ -551,7 +616,7 @@ void menu(int id)
   glutPostRedisplay();
 }
 
-// menu choices 
+// menu choices for start and stop
 void start_stop_menu(int id)
 {
   // switch case for menu options
@@ -562,20 +627,18 @@ void start_stop_menu(int id)
       paused = false;
       dt = 0;
       glutIdleFunc(update);
-      //glutPostRedisplay();
       break;
     // stop rotation
     case 2:
       paused = true;
       glutIdleFunc(update);
-      //glutPostRedisplay();
       break;
   }
   // redraw screen without menu
   glutPostRedisplay();
 }
 
-// menu choices 
+// menu choices for rotations
 void rotation_menu(int id)
 {
   // switch case for menu options
@@ -614,5 +677,17 @@ void mouse(int button, int state, int x_pos, int y_pos)
     // change orbit flag
     orbitFlagPlanet = !orbitFlagPlanet;
   }
-
+  // redraw screen without menu
+  glutPostRedisplay();
 }
+
+// display string
+void renderBitmapString(float x,float y,float z,void *font,char *string)
+{
+  char *c;
+  glRasterPos3f(x, y, z);
+  for (c=string; *c != '\0'; c++) {
+    glutBitmapCharacter(font, *c);
+  }
+}
+
