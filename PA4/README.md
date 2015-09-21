@@ -1,13 +1,13 @@
-An 
-=====================================================
+OpenGL Model Loader
+===================
 
 Program Function
 ----------------
-The program will display a rainbow, rotating cube. Another, smaller cube rotates the first cube in an orbit. A menu is available to start spinning, stop spinning, and to exit the program. The rotation of cubes and orbits can be changed from this menu. To open the menu, right click the mouse.Any left mouse click, left or right arrow keys, or any standard key press (except Esc or Ctrl-C) will reverse the rotation or the cube.
+The program will load a model provided to it by the command line. The model must be a .obj file and be properly configured. 
 
 Extra Credit
 ------------
-Extra credit was NOT achieved in this project.
+Extra credit was attempted in this project and materials were added to the board in the given object file.
 
 Building This Program
 ---------------------
@@ -34,11 +34,15 @@ To build this example just
 >$ cd build
 >$ make
 
+You will be prompted to enter the file path to the object file. Example response:
+
+>$ ../bin/table.objs
+
 *If you are using a Mac you will need to edit the makefile in the build directory*
 
 The excutable will be put in bin
 *To run the program, execute this command*
->$ ../bin/Matrix
+>$ ../bin/Model
 
 Additional Notes For OSX Users
 ------------------------------

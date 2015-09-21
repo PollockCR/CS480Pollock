@@ -1,4 +1,5 @@
 #include "shader.h" // header file of shader loaders
+#include "objectLoader.h" // header file of object loader
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
@@ -6,6 +7,7 @@
 #include <chrono>
 #include <string>
 #include <cstring>
+#include <vector>
 
 #define GLM_FORCE_RADIANS
 
@@ -30,28 +32,15 @@ const char* fsFileName = "../bin/shader.fs";
 int w = 640, h = 480;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
+GLuint uvbuffer; // UV buffer
 ShaderLoader programLoad; // Load shader class
-
-    // Initialize rotations
-    bool rotateFlagPlanet = false;
-    bool orbitFlagPlanet = false;
-    bool rotateFlagMoon = false;
-    bool orbitFlagMoon = false;
-
-    // Paused rotations
-    bool paused = false;
 
     // Quit call
     bool quitCall = false;
 
-    // Angles of rotation
-    static float angleRotatePlanet = 0.0;
-    static float angleOrbitPlanet = 0.0;
-    static float angleRotateMoon = 0.0;
-    static float angleOrbitMoon = 0.0;
-
-    // dt variable for time
-    float dt = 0.0;
+// filename string
+char objFilepath[52];
+char * objPtr = objFilepath;
 
 // uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -62,37 +51,26 @@ GLint loc_color;
 
 // transform matrices
 glm::mat4 model;// obj-> world (planet) 
-glm::mat4 model_moon; // object -> world (moon)
 glm::mat4 view;// world->eye
 glm::mat4 projection;// eye->clip
 glm::mat4 mvp;// premultiplied modelviewprojection
-glm::mat4 mvp_moon; // premultiplied modelviewprojection for moon
 
 //--GLUT Callbacks
 void render();
 
   // update display functions
   void update();
-  void updatePlanet();
-  void updateMoon();
   void reshape(int n_w, int n_h);
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
-  void special(int key, int x_pos, int y_pos);
   void manageMenus();
   void menu(int id);
-  void start_stop_menu(int id);
-  void rotation_menu(int id);
   void mouse(int button, int state, int x_pos, int y_pos);
 
 //--Resource management
 bool initialize();
 void cleanUp();
-
-//--Random time things
-float getDT();
-std::chrono::time_point<std::chrono::high_resolution_clock> t1,t2;
 
 //--Main
 int main(int argc, char **argv)
@@ -102,8 +80,12 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
 
+    // Get filename of object
+    std::cout << "Enter filename of object (with filepath): ";
+    std::cin >> objFilepath;
+
     // Name and create the Window
-    glutCreateWindow("Cube Galaxy");
+    glutCreateWindow("Model Loader");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -120,8 +102,6 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
-    glutMouseFunc(mouse);// Called if there is a mouse click (left)
-    glutSpecialFunc(special);// Called if special keys pressed (arrows)
 
     // add menus
     manageMenus();
@@ -130,7 +110,6 @@ int main(int argc, char **argv)
     bool init = initialize();
     if(init)
     {
-        t1 = std::chrono::high_resolution_clock::now();
         glutMainLoop();
     }
 
@@ -163,36 +142,7 @@ void render()
       glEnableVertexAttribArray(loc_position);
       glEnableVertexAttribArray(loc_color);
       glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-
-        //set pointers into the vbo for each of the attributes(position and color)
-        glVertexAttribPointer( loc_position,//location of attribute
-                             3,//number of elements
-                             GL_FLOAT,//type
-                             GL_FALSE,//normalized?
-                             sizeof(Vertex),//stride
-                             0);//offset
-
-        glVertexAttribPointer( loc_color,
-                             3,
-                             GL_FLOAT,
-                             GL_FALSE,
-                             sizeof(Vertex),
-                             (void*)offsetof(Vertex,color));
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
-
-    // render second object
-
-      //premultiply the matrix for this example
-      mvp_moon = projection * view * model_moon;
-
-      //upload the matrix to the shader
-      glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp_moon));
-
-      //set up the Vertex Buffer Object so it can be drawn
-      glEnableVertexAttribArray(loc_position);
-      glEnableVertexAttribArray(loc_color);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+      glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 
         //set pointers into the vbo for each of the attributes(position and color)
         glVertexAttribPointer( loc_position,//location of attribute
@@ -234,99 +184,9 @@ void update()
     // otherwise, continue display
     else 
     {
-      //total time
-      dt = getDT();// if you have anything moving, use dt.
-
-      // display planet updates
-      updatePlanet();
-
-      // diplay moon updates
-      updateMoon();
-
       // update the state of the scene
       glutPostRedisplay();//call the display callback
     }
-}
-
-void updatePlanet()
-{
-  // rotation of planet
-
-    // check for reverse direction of rotation
-    if( rotateFlagPlanet )
-    {
-      // reverse angle of planet
-      angleRotatePlanet = angleRotatePlanet - (dt * M_PI/2); //move through -90 degrees a second
-    }
-    // normal direction
-    else 
-    {
-      // update angle of planet
-      angleRotatePlanet += dt * M_PI/2; //move through 90 degrees a second
-    }
-
-  // orbit of planet
-
-    // check for reverse direction of orbit
-    if( orbitFlagPlanet )
-    {
-      // reverse angle of planet
-      angleOrbitPlanet = angleOrbitPlanet - (dt * M_PI/2); //move through -90 degrees a second
-    }
-    // normal direction
-    else 
-    {
-      // update angle of planet
-      angleOrbitPlanet += dt * M_PI/2; //move through 90 degrees a second
-    }
-
-  // move in a circle
-  model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleOrbitPlanet), 0.0, 4.0 * cos(angleOrbitPlanet)));
-
-  // rotate around y axis
-  model = glm::rotate(model,angleRotatePlanet,glm::vec3(0.0f,1.0f,0.0f));
-}
-
-void updateMoon()
-{
-  // rotation of moon
-
-    // check for reverse direction of rotation
-    if( rotateFlagMoon )
-    {
-      // reverse angle of planet
-      angleRotateMoon = angleRotateMoon - (2* dt * M_PI/3); //move through -120 degrees a second
-    }
-    // normal direction
-    else 
-    {
-      // update angle of planet
-      angleRotateMoon += (dt * 2 * M_PI/3); //move through 120 degrees a second
-    }
-
-  // orbit of moon
-
-    // check for reverse direction of orbit
-    if( orbitFlagMoon )
-    {
-      // reverse angle of planet
-      angleOrbitMoon = angleOrbitMoon - (dt * 2 * M_PI/3); //move through -120 degrees a second
-    }
-    // normal direction
-    else 
-    {
-      // update angle of planet
-      angleOrbitMoon += (dt * 2 * M_PI/3); //move through 120 degrees a second
-    }
-
-  // move in a circle
-  model_moon = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angleOrbitMoon), 0.0, 4.0 * cos(angleOrbitMoon))) * model;
-
-  // rotate around y axis
-  model_moon = glm::rotate(model_moon,angleRotateMoon,glm::vec3(0.0f,1.0f,0.0f));
-
-  // scale moon to be smaller
-  model_moon = glm::scale(model_moon,glm::vec3(0.5f,0.5f,0.5f));
 }
 
 // resize window
@@ -354,93 +214,37 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       exit(0);
     }
     // continue program
-    else
-    {
-      // rotate cube
-      rotateFlagPlanet = !rotateFlagPlanet;
-      orbitFlagPlanet = !orbitFlagPlanet;
-    }
-
   // redraw screen 
   glutPostRedisplay();    
-}
-
-// called for special key input (such as arrows)
-void special(int key, int x_pos, int y_pos)
-{
-  // planet direction left with left arrow key
-  if(key == GLUT_KEY_LEFT)
-  {
-    rotateFlagPlanet = false;
-    orbitFlagPlanet = false;
-  }
-  // planet direction right with right arrow key
-  else if(key == GLUT_KEY_RIGHT)
-  {
-    rotateFlagPlanet = true;
-    orbitFlagPlanet = true;
-  }
-  // redraw screen 
-  glutPostRedisplay(); 
 }
 
 // initialize basic geometry and shaders for this example
 bool initialize()
 {
-    //this defines a cube, this is why a model loader is nice
-    //you can also do this with a draw elements and indices, try to get that working
-    Vertex geometry[] = { {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
+    // define model with model loader
+    bool result;
 
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-                          
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
+      // Read our .obj file
+      std::vector<glm::vec3> geometry;
+      std::vector<glm::vec2> uvs;
+      std::vector<glm::vec3> normals; // Won't be used at the moment.
+      result = loadOBJ( objPtr, geometry, uvs, normals);
 
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
+      if( !result )
+      {
+        quitCall = true;
+        glutIdleFunc(update);
+        exit(0);
+      }
 
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{-1.0, -1.0, -1.0}, {0.0, 0.0, 0.0}},
-
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{-1.0, -1.0, 1.0}, {0.0, 0.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-                          
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-
-                          {{1.0, -1.0, -1.0}, {1.0, 0.0, 0.0}},
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{1.0, 1.0, -1.0}, {1.0, 1.0, 0.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, -1.0}, {0.0, 1.0, 0.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-
-                          {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}},
-                          {{-1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}},
-                          {{1.0, -1.0, 1.0}, {1.0, 0.0, 1.0}}
-                        };
     // create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(geometry), geometry, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, geometry.size() * sizeof(glm::vec3), &geometry[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName,  program );
@@ -486,7 +290,6 @@ bool initialize()
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
-    glDisable(GL_TEXTURE_2D);
     glDepthFunc(GL_LESS);
 
     //and its done
@@ -499,61 +302,26 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);
     glDeleteBuffers(1, &vbo_geometry);
-}
-
-//returns the time delta
-float getDT()
-{
-    float ret;
-    t2 = std::chrono::high_resolution_clock::now();
-    ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
-    t1 = std::chrono::high_resolution_clock::now();
-
-    if( paused )
-    {
-      return 0.0;
-    }
-
-    return ret;
+    glDeleteBuffers(1, &uvbuffer);    
 }
 
 // adds and removes menus
 void manageMenus()
 {
-  int startstop_menu = 0;
-  int rotate_menu = 0;
   int main_menu = 0;
 
   // upon initialization
   if( !quitCall )
   {
-    // Create menu
-
-      // Create sub menu start-stop
-      startstop_menu = glutCreateMenu(start_stop_menu);
-      glutAddMenuEntry("Start rotation", 1);
-      glutAddMenuEntry("Stop rotation", 2);
-
-      // Create sub menu rotate
-      rotate_menu = glutCreateMenu(rotation_menu);
-      glutAddMenuEntry("Reverse orbit of planet", 3);
-      glutAddMenuEntry("Reverse rotation of planet", 4); 
-      glutAddMenuEntry("Reverse orbit of moon", 5);
-      glutAddMenuEntry("Reverse rotation of moon", 6);      
-
     // create main menu
     main_menu = glutCreateMenu(menu); // Call menu function
-    glutAddMenuEntry("Quit", 7);
-    glutAddSubMenu("Start & stop rotations", startstop_menu);
-    glutAddSubMenu("Reverse orbits & rotations", rotate_menu);
+    glutAddMenuEntry("Quit", 1);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
   // destroy menus before ending program
   else
   {
     // Clean up after ourselves
-    glutDestroyMenu(rotate_menu);
-    glutDestroyMenu(startstop_menu);
     glutDestroyMenu(main_menu);
   }
 
@@ -569,68 +337,10 @@ void menu(int id)
   {
     // call the rotation menu function
     case 1:
-    case 2:
-      start_stop_menu(id);
-      break;
-
-    // exit the program
-    case 7:
       quitCall = true;
       glutIdleFunc(update);
-      //exit(0);
       break;
-
     default:
-      rotation_menu(id);
-      break;
-  }
-  // redraw screen without menu
-  glutPostRedisplay();
-}
-
-// menu choices for start and stop
-void start_stop_menu(int id)
-{
-  // switch case for menu options
-  switch(id)
-  {
-    // update display, start rotation
-    case 1:
-      paused = false;
-      dt = 0;
-      glutIdleFunc(update);
-      break;
-    // stop rotation
-    case 2:
-      paused = true;
-      glutIdleFunc(update);
-      break;
-  }
-  // redraw screen without menu
-  glutPostRedisplay();
-}
-
-// menu choices for rotations
-void rotation_menu(int id)
-{
-  // switch case for menu options
-  switch(id)
-  {
-    // reverse orbit of planet
-    case 3:
-      orbitFlagPlanet = !orbitFlagPlanet;
-      break;
-    // reverse rotation of planet
-    case 4:
-      rotateFlagPlanet = !rotateFlagPlanet;
-      break;      
-    // reverse orbit of moon
-    case 5:
-      orbitFlagMoon = !orbitFlagMoon;
-      break;   
-    // reverse rotation of moon
-    case 6:
-      rotateFlagMoon = !rotateFlagMoon;
       break;
   }
   // redraw screen without menu
@@ -640,15 +350,6 @@ void rotation_menu(int id)
 // actions for left mouse click
 void mouse(int button, int state, int x_pos, int y_pos)
 {
-  // check for correct button  (left click)
-  if( button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-  {
-    // change rotation flag
-    rotateFlagPlanet = !rotateFlagPlanet;
-
-    // change orbit flag
-    orbitFlagPlanet = !orbitFlagPlanet;
-  }
   // redraw screen without menu
   glutPostRedisplay();
 }
