@@ -17,11 +17,11 @@
 
 //--Data types
 // This object defines the attributes of a vertex(position, color, etc...)
-struct Vertex
+/*struct Vertex
 {
     GLfloat position[3];
     GLfloat color[3];
-};
+};*/
 
 //--Global constants
 const char* vsFileName = "../bin/shader.vs";
@@ -29,7 +29,7 @@ const char* fsFileName = "../bin/shader.fs";
 
 // Global variables
 
-int w = 640, h = 480;// Window size
+int w = 640, h = 480, geometrySize;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 GLuint uvbuffer; // UV buffer
@@ -39,8 +39,7 @@ ShaderLoader programLoad; // Load shader class
     bool quitCall = false;
 
 // filename string
-char objFilepath[52];
-char * objPtr = objFilepath;
+char * objPtr;
 
 // uniform locations
 GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
@@ -75,14 +74,21 @@ void cleanUp();
 //--Main
 int main(int argc, char **argv)
 {
+    // If the user didn't provide a filename command line argument,
+    // print an error and exit.
+    if (argc <= 1)
+    {
+        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>" << std::endl;
+        exit(1);
+    }
+
     // Initialize glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
 
     // Get filename of object
-    std::cout << "Enter filename of object (with filepath): ";
-    std::cin >> objFilepath;
+    objPtr = argv[1];
 
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -145,21 +151,23 @@ void render()
       glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 
         //set pointers into the vbo for each of the attributes(position and color)
+        // 1rst attribute buffer : vertices
         glVertexAttribPointer( loc_position,//location of attribute
                              3,//number of elements
                              GL_FLOAT,//type
                              GL_FALSE,//normalized?
-                             sizeof(Vertex),//stride
-                             0);//offset
+                             0,//stride
+                             (void*)0;//offset
 
+        // 2nd attribute buffer : UVs  
         glVertexAttribPointer( loc_color,
                              3,
                              GL_FLOAT,
                              GL_FALSE,
-                             sizeof(Vertex),
-                             (void*)offsetof(Vertex,color));
+                             0,
+                             (void*)0;
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+    glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
 
     // done rendering objects
 
@@ -224,11 +232,42 @@ bool initialize()
     // define model with model loader
     bool result;
 
+    //enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    // loads shaders to program
+    programLoad.loadShader( vsFileName, fsFileName,  program );
+
+    // now we set the locations of the attributes and uniforms
+    // this allows us to access them easily while rendering
+    loc_position = glGetAttribLocation(program, const_cast<const char*>("v_position"));
+    if(loc_position == -1)
+    {
+        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
+        return false;
+    }
+
+    loc_color = glGetAttribLocation(program, const_cast<const char*>("v_color"));
+    if(loc_color == -1)
+    {
+        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
+        return false;
+    }
+
+    loc_mvpmat = glGetUniformLocation(program, const_cast<const char*>("mvpMatrix"));
+    if(loc_mvpmat == -1)
+    {
+        std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
+        return false;
+    }
+
       // Read our .obj file
       std::vector<glm::vec3> geometry;
       std::vector<glm::vec2> uvs;
       std::vector<glm::vec3> normals; // Won't be used at the moment.
       result = loadOBJ( objPtr, geometry, uvs, normals);
+      geometrySize = geometry.size();
 
       if( !result )
       {
@@ -245,35 +284,6 @@ bool initialize()
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-    // loads shaders to program
-    programLoad.loadShader( vsFileName, fsFileName,  program );
-
-    // now we set the locations of the attributes and uniforms
-    // this allows us to access them easily while rendering
-    loc_position = glGetAttribLocation(program,
-                    const_cast<const char*>("v_position"));
-    if(loc_position == -1)
-    {
-        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_color = glGetAttribLocation(program,
-                    const_cast<const char*>("v_color"));
-    if(loc_color == -1)
-    {
-        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_mvpmat = glGetUniformLocation(program,
-                    const_cast<const char*>("mvpMatrix"));
-    if(loc_mvpmat == -1)
-    {
-        std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
-        return false;
-    }
     
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
@@ -287,10 +297,6 @@ bool initialize()
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane, 
-
-    //enable depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
 
     //and its done
     return true;
