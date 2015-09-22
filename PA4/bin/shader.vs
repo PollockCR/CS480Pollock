@@ -1,5 +1,5 @@
 #version 120
-
+//from: http://www.opengl-tutorial.org/beginners-tutorials/tutorial-8-basic-shading/
 // Input vertex data, different for all executions of this shader.
 attribute vec3 vertexPosition_modelspace;
 attribute vec2 vertexUV;

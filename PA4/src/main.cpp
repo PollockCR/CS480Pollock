@@ -134,7 +134,7 @@ void render()
     //--Render the scene
 
     //clear the screen
-    glClearColor(0.0, 0.0, 0.2, 1.0);
+    glClearColor(0.4, 0.4, 0.4, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //enable the shader program
@@ -344,8 +344,15 @@ bool initialize()
       // Read our .obj file
       std::vector<glm::vec3> vertices;
       std::vector<glm::vec2> uvs;
-      std::vector<glm::vec3> normals; // Won't be used at the moment.
-      result = loadOBJ( objPtr, vertices, uvs, normals);
+      std::vector<glm::vec3> normals; 
+      std::vector<int> materials; // material to match faces
+
+        // material information
+        std::vector<std::string> materialInfo;
+        std::vector<glm::vec3> diffuses;
+        std::vector<glm::vec3> speculars;     
+
+      result = loadOBJ( objPtr, vertices, uvs, normals, materials, materialInfo, diffuses, speculars );
       verticesSize = vertices.size();
 
       if( !result )

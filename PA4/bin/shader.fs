@@ -1,5 +1,5 @@
 #version 120
-
+//from: http://www.opengl-tutorial.org/beginners-tutorials/tutorial-8-basic-shading/
 // Interpolated values from the vertex shaders
 varying vec2 UV;
 varying vec3 Position_worldspace;
