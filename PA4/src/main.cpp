@@ -33,6 +33,7 @@ int w = 640, h = 480, geometrySize;// Window size
 GLuint program;// The GLSL program handle
 GLuint vbo_geometry;// VBO handle for our geometry
 GLuint uvbuffer; // UV buffer
+//GLuint normalbuffer;
 ShaderLoader programLoad; // Load shader class
 
     // Quit call
@@ -47,6 +48,7 @@ GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
 // attribute locations
 GLint loc_position;
 GLint loc_color;
+//GLint loc_normal;
 
 // transform matrices
 glm::mat4 model;// obj-> world (planet) 
@@ -135,6 +137,7 @@ void render()
 
     //enable the shader program
     glUseProgram(program);
+//    GLuint lightID = glGetUniformLocation(program, "LightPosition_worldspace");
 
     // render first object
 
@@ -143,30 +146,49 @@ void render()
 
       //upload the matrix to the shader
       glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
-
+/*
+        // light
+        glm::vec3 lightPos = glm::vec3(4,4,4);
+        glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
+*/
       //set up the Vertex Buffer Object so it can be drawn
       glEnableVertexAttribArray(loc_position);
-      glEnableVertexAttribArray(loc_color);
       glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-      glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 
         //set pointers into the vbo for each of the attributes(position and color)
-        // 1rst attribute buffer : vertices
+        // 1st attribute buffer : vertices
         glVertexAttribPointer( loc_position,//location of attribute
-                             3,//number of elements
-                             GL_FLOAT,//type
-                             GL_FALSE,//normalized?
-                             0,//stride
-                             (void*)0;//offset
+                               3,//number of elements
+                               GL_FLOAT,//type
+                               GL_FALSE,//normalized?
+                               0,//stride
+                               (void*)0//offset
+                              );
+
+      glEnableVertexAttribArray(loc_color);
+      glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 
         // 2nd attribute buffer : UVs  
         glVertexAttribPointer( loc_color,
-                             3,
-                             GL_FLOAT,
-                             GL_FALSE,
-                             0,
-                             (void*)0;
+                               2,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               0,
+                               (void*)0
+                              );
+/*
+      glEnableVertexAttribArray(loc_normal);
+      glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 
+        // 3rd attribute buffer : normals  
+        glVertexAttribPointer( loc_normal,
+                               3,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               0,
+                               (void*)0
+                              );        
+*/
     glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
 
     // done rendering objects
@@ -174,6 +196,7 @@ void render()
     //clean up
     glDisableVertexAttribArray(loc_position);
     glDisableVertexAttribArray(loc_color);
+//    glDisableVertexAttribArray(loc_normal);    
                            
     //swap the buffers
     glutSwapBuffers();
@@ -254,7 +277,14 @@ bool initialize()
         std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
         return false;
     }
-
+/*
+    loc_normal = glGetAttribLocation(program, const_cast<const char*>("v_normal"));
+    if(loc_normal == -1)
+    {
+        std::cerr << "[F] V_NORMAL NOT FOUND" << std::endl;
+        return false;
+    }
+*/
     loc_mvpmat = glGetUniformLocation(program, const_cast<const char*>("mvpMatrix"));
     if(loc_mvpmat == -1)
     {
@@ -284,7 +314,11 @@ bool initialize()
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-    
+/*
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);    
+ */   
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
@@ -308,7 +342,8 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);
     glDeleteBuffers(1, &vbo_geometry);
-    glDeleteBuffers(1, &uvbuffer);    
+    glDeleteBuffers(1, &uvbuffer);
+//    glDeleteBuffers(1, &normalbuffer);    
 }
 
 // adds and removes menus
