@@ -34,6 +34,7 @@ GLuint programID;// The GLSL program handle
 GLuint vertexbuffer;// VBO handle for our geometry
 GLuint uvbuffer; // UV buffer
 GLuint normalbuffer;
+//GLuint materialbuffer;
 ShaderLoader programLoad; // Load shader class
 
     // Quit call
@@ -374,7 +375,11 @@ bool initialize()
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);    
-    
+/*
+    glGenBuffers(1, &materialbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, materialbuffer);
+    glBufferData(GL_ARRAY_BUFFER, materials.size() * sizeof(int), &materialbuffer[0], GL_STATIC_DRAW);    
+*/    
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
