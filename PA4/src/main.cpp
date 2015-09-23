@@ -16,8 +16,8 @@
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
 //--Data types
-// This object defines the attributes of a vertex(position, color, etc...)
-/*struct Vertex
+/*// This object defines the attributes of a vertex(position, color, etc...)
+struct Vertex
 {
     GLfloat position[3];
     GLfloat color[3];
@@ -33,8 +33,8 @@ int w = 640, h = 480, verticesSize;// Window size
 GLuint programID;// The GLSL program handle
 GLuint vertexbuffer;// VBO handle for our geometry
 GLuint uvbuffer; // UV buffer
-GLuint normalbuffer;
-//GLuint materialbuffer;
+GLuint normalbuffer; // Normal Buffer
+
 ShaderLoader programLoad; // Load shader class
 
     // Quit call
@@ -269,35 +269,7 @@ bool initialize()
 
     // now we set the locations of the attributes and uniforms
     // this allows us to access them easily while rendering
-    /*
-    loc_position = glGetAttribLocation(programID, const_cast<const char*>("v_position"));
-    if(loc_position == -1)
-    {
-        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-        return false;
-    }
 
-    loc_color = glGetAttribLocation(programID, const_cast<const char*>("v_color"));
-    if(loc_color == -1)
-    {
-        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_normal = glGetAttribLocation(programID, const_cast<const char*>("v_normal"));
-    if(loc_normal == -1)
-    {
-        std::cerr << "[F] V_NORMAL NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_mvpmat = glGetUniformLocation(programID, const_cast<const char*>("mvpMatrix"));
-    if(loc_mvpmat == -1)
-    {
-        std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
-        return false;
-    }
-*/
     // Get a handle for our "MVP" uniform
     matrixID = glGetUniformLocation(programID, "MVP");
       if(matrixID == -1)
@@ -346,14 +318,8 @@ bool initialize()
       std::vector<glm::vec3> vertices;
       std::vector<glm::vec2> uvs;
       std::vector<glm::vec3> normals; 
-      std::vector<int> materials; // material to match faces
 
-        // material information
-        std::vector<std::string> materialInfo;
-        std::vector<glm::vec3> diffuses;
-        std::vector<glm::vec3> speculars;     
-
-      result = loadOBJ( objPtr, vertices, uvs, normals, materials, materialInfo, diffuses, speculars );
+      result = loadOBJ( objPtr, vertices, uvs, normals );
       verticesSize = vertices.size();
 
       if( !result )
@@ -375,11 +341,7 @@ bool initialize()
     glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);    
-/*
-    glGenBuffers(1, &materialbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, materialbuffer);
-    glBufferData(GL_ARRAY_BUFFER, materials.size() * sizeof(int), &materialbuffer[0], GL_STATIC_DRAW);    
-*/    
+  
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 

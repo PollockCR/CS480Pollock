@@ -11,17 +11,14 @@
 
 // resource used to create this file: http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
 
-bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals, std::vector<int> & materials, std::vector<std::string> & materialInfo, std::vector<glm::vec3> & out_diffuses, std::vector<glm::vec3> & out_speculars )
+bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals )
 {
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
 	std::vector<glm::vec3> temp_vertices; 
 	std::vector<glm::vec2> temp_uvs;
 	std::vector<glm::vec3> temp_normals;
-	std::vector<unsigned int> diffuseValues, specularValues;
-	std::vector<glm::vec3> temp_diffuses; 
-	std::vector<glm::vec3> temp_speculars;	
-	int materialCount = 0;
-	int currentMaterial = 0;
+	//int materialCount = 0;
+	//int currentMaterial = 0;
 	int index;
 
 	FILE * file = fopen(path, "r");
@@ -83,11 +80,12 @@ bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vec
 			normalIndices.push_back(normalIndex[1]);
 			normalIndices.push_back(normalIndex[2]);
 			// add material if given
-			if( materialCount > 0 )
+			/*if( materialCount > 0 )
 			{
 				materials.push_back(currentMaterial);
-			}
+			}*/
 		}
+		/* extra credit - not finished
 		// if word is material library file
 		else if ( strcmp( lineHeader, "mtllib" ) == 0 )
 		{
@@ -108,7 +106,7 @@ bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vec
 					currentMaterial = index;
 				}
 			}			
-		}
+		}*/
 		else
 		{
 			// Probably a comment, eat up the rest of the line
@@ -136,7 +134,7 @@ bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vec
 		out_uvs     .push_back(uv);
 		out_normals .push_back(normal);
 	}
-
+ 	/* extra credit - not finished
 	// For each material
 	for( index = 0; index < materialCount; index++ )
 	{
@@ -151,12 +149,13 @@ bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vec
 		// Put the attributes in buffers
 		out_diffuses.push_back(diffuse);
 		out_speculars.push_back(specular);
-	}
+	}*/
 
 	// return success
 	return true;
 }
 
+/* extra credit - not finished
 // function to load material information
 // found from: http://www.raywenderlich.com/48297/export-blender-models-opengl-es-part-2
 int loadMaterialInfo( char *materialFilepath, std::vector<std::string> &materialInfo, std::vector<unsigned int> & diffuseValues, std::vector<unsigned int> & specularValues )
@@ -216,3 +215,4 @@ int loadMaterialInfo( char *materialFilepath, std::vector<std::string> &material
 	return materialCount;
 
 }
+*/
