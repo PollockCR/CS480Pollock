@@ -7,7 +7,7 @@ The program will load a model provided to it by the command line. The model must
 
 Extra Credit
 ------------
-Extra credit was attempted in this project and materials were added to the board in the given object file.
+Extra credit was not completed in this project.
 
 Building This Program
 ---------------------
@@ -34,15 +34,13 @@ To build this example just
 >$ cd build
 >$ make
 
-You will be prompted to enter the file path to the object file. Example response:
-
->$ ../bin/table.objs
-
 *If you are using a Mac you will need to edit the makefile in the build directory*
 
 The excutable will be put in bin
-*To run the program, execute this command*
->$ ../bin/Model
+*To run the program, execute these commands, replacing with your object file*
+
+>$ cd ../bin/
+>$ ./Model table.obj
 
 Additional Notes For OSX Users
 ------------------------------
