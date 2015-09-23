@@ -16,12 +16,12 @@
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
 //--Data types
-// This object defines the attributes of a vertex(position, color, etc...)
+/*// This object defines the attributes of a vertex(position, color, etc...)
 struct Vertex
 {
     GLfloat position[3];
     GLfloat color[3];
-};
+};*/
 
 //--Global constants
 const char* vsFileName = "../bin/shader.vs";
@@ -29,30 +29,34 @@ const char* fsFileName = "../bin/shader.fs";
 
 // Global variables
 
-int w = 640, h = 480;// Window size
-GLuint program;// The GLSL program handle
-GLuint vbo_geometry;// VBO handle for our geometry
+int w = 640, h = 480, verticesSize;// Window size
+GLuint programID;// The GLSL program handle
+GLuint vertexbuffer;// VBO handle for our geometry
 GLuint uvbuffer; // UV buffer
+GLuint normalbuffer; // Normal Buffer
+
 ShaderLoader programLoad; // Load shader class
 
     // Quit call
     bool quitCall = false;
 
 // filename string
-char objFilepath[52];
-char * objPtr = objFilepath;
+char * objPtr;
 
 // uniform locations
-GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
+GLint matrixID;// Location of the modelviewprojection matrix in the shader
+GLint viewMatrixID;
+GLint modelMatrixID;
 
 // attribute locations
-GLint loc_position;
-GLint loc_color;
+GLint vertexPosition_modelspaceID;
+GLint vertexUVID;
+GLint vertexNormal_modelspaceID;
 
 // transform matrices
-glm::mat4 model;// obj-> world (planet) 
-glm::mat4 view;// world->eye
-glm::mat4 projection;// eye->clip
+glm::mat4 modelMatrix;// obj-> world (planet) 
+glm::mat4 viewMatrix;// world->eye
+glm::mat4 projectionMatrix;// eye->clip
 glm::mat4 mvp;// premultiplied modelviewprojection
 
 //--GLUT Callbacks
@@ -75,14 +79,21 @@ void cleanUp();
 //--Main
 int main(int argc, char **argv)
 {
+    // If the user didn't provide a filename command line argument,
+    // print an error and exit.
+    if (argc <= 1)
+    {
+        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>" << std::endl;
+        exit(1);
+    }
+
     // Initialize glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
 
     // Get filename of object
-    std::cout << "Enter filename of object (with filepath): ";
-    std::cin >> objFilepath;
+    objPtr = argv[1];
 
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -124,48 +135,73 @@ void render()
     //--Render the scene
 
     //clear the screen
-    glClearColor(0.0, 0.0, 0.2, 1.0);
+    glClearColor(0.4, 0.4, 0.4, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //enable the shader program
-    glUseProgram(program);
+    glUseProgram(programID);
+    GLuint lightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
     // render first object
 
       //premultiply the matrix for this example
-      mvp = projection * view * model;
+      mvp = projectionMatrix * viewMatrix * modelMatrix;
 
       //upload the matrix to the shader
-      glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, glm::value_ptr(mvp));
+      glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
+      glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
+      glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &viewMatrix[0][0]);      
+
+        // light
+        glm::vec3 lightPos = glm::vec3(0,4,4);
+        glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
 
       //set up the Vertex Buffer Object so it can be drawn
-      glEnableVertexAttribArray(loc_position);
-      glEnableVertexAttribArray(loc_color);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-      glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+      glEnableVertexAttribArray(vertexPosition_modelspaceID);
+      glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 
         //set pointers into the vbo for each of the attributes(position and color)
-        glVertexAttribPointer( loc_position,//location of attribute
-                             3,//number of elements
-                             GL_FLOAT,//type
-                             GL_FALSE,//normalized?
-                             sizeof(Vertex),//stride
-                             0);//offset
+        // 1st attribute buffer : vertices
+        glVertexAttribPointer( vertexPosition_modelspaceID,//location of attribute
+                               3,//number of elements
+                               GL_FLOAT,//type
+                               GL_FALSE,//normalized?
+                               0,//stride
+                               (void*)0//offset
+                              );
 
-        glVertexAttribPointer( loc_color,
-                             3,
-                             GL_FLOAT,
-                             GL_FALSE,
-                             sizeof(Vertex),
-                             (void*)offsetof(Vertex,color));
+      glEnableVertexAttribArray(vertexUVID);
+      glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);//mode, starting index, count
+        // 2nd attribute buffer : UVs  
+        glVertexAttribPointer( vertexUVID,
+                               2,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               0,
+                               (void*)0
+                              );
+
+      glEnableVertexAttribArray(vertexNormal_modelspaceID);
+      glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+
+        // 3rd attribute buffer : normals  
+        glVertexAttribPointer( vertexNormal_modelspaceID,
+                               3,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               0,
+                               (void*)0
+                              );        
+
+    glDrawArrays(GL_TRIANGLES, 0, verticesSize);//mode, starting index, count
 
     // done rendering objects
 
     //clean up
-    glDisableVertexAttribArray(loc_position);
-    glDisableVertexAttribArray(loc_color);
+    glDisableVertexAttribArray(vertexPosition_modelspaceID);
+    glDisableVertexAttribArray(vertexUVID);
+    glDisableVertexAttribArray(vertexNormal_modelspaceID);    
                            
     //swap the buffers
     glutSwapBuffers();
@@ -198,7 +234,7 @@ void reshape(int n_w, int n_h)
     glViewport( 0, 0, w, h);
     //Update the projection matrix as well
     //See the init function for an explaination
-    projection = glm::perspective(45.0f, float(w)/float(h), 0.01f, 100.0f);
+    projectionMatrix = glm::perspective(45.0f, float(w)/float(h), 0.01f, 100.0f);
 
 }
 
@@ -224,11 +260,67 @@ bool initialize()
     // define model with model loader
     bool result;
 
+    //enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    // loads shaders to program
+    programLoad.loadShader( vsFileName, fsFileName,  programID );
+
+    // now we set the locations of the attributes and uniforms
+    // this allows us to access them easily while rendering
+
+    // Get a handle for our "MVP" uniform
+    matrixID = glGetUniformLocation(programID, "MVP");
+      if(matrixID == -1)
+      {
+        std::cerr << "[F] MVP NOT FOUND" << std::endl;
+        return false;
+      }      
+
+    viewMatrixID = glGetUniformLocation(programID, "V");
+      if(viewMatrixID == -1)
+      {
+        std::cerr << "[F] VIEW NOT FOUND" << std::endl;
+        return false;
+      }  
+
+    modelMatrixID = glGetUniformLocation(programID, "M");
+      if(modelMatrixID == -1)
+      {
+        std::cerr << "[F] MODEL NOT FOUND" << std::endl;
+        return false;
+      }    
+
+    // Get a handle for our buffers
+    vertexPosition_modelspaceID = glGetAttribLocation(programID, "vertexPosition_modelspace");
+      if(vertexPosition_modelspaceID == -1)
+      {
+        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
+        return false;
+      }
+    
+    vertexUVID = glGetAttribLocation(programID, "vertexUV");
+      if(vertexUVID == -1)
+      {
+        std::cerr << "[F] UV NOT FOUND" << std::endl;
+        return false;
+      }
+
+    vertexNormal_modelspaceID = glGetAttribLocation(programID, "vertexNormal_modelspace");
+      if(vertexNormal_modelspaceID == -1)
+      {
+        std::cerr << "[F] NORMAL NOT FOUND" << std::endl;
+        return false;
+      }
+
       // Read our .obj file
-      std::vector<glm::vec3> geometry;
+      std::vector<glm::vec3> vertices;
       std::vector<glm::vec2> uvs;
-      std::vector<glm::vec3> normals; // Won't be used at the moment.
-      result = loadOBJ( objPtr, geometry, uvs, normals);
+      std::vector<glm::vec3> normals; 
+
+      result = loadOBJ( objPtr, vertices, uvs, normals );
+      verticesSize = vertices.size();
 
       if( !result )
       {
@@ -238,59 +330,30 @@ bool initialize()
       }
 
     // create a Vertex Buffer object to store this vertex info on the GPU
-    glGenBuffers(1, &vbo_geometry);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, geometry.size() * sizeof(glm::vec3), &geometry[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
-    // loads shaders to program
-    programLoad.loadShader( vsFileName, fsFileName,  program );
-
-    // now we set the locations of the attributes and uniforms
-    // this allows us to access them easily while rendering
-    loc_position = glGetAttribLocation(program,
-                    const_cast<const char*>("v_position"));
-    if(loc_position == -1)
-    {
-        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_color = glGetAttribLocation(program,
-                    const_cast<const char*>("v_color"));
-    if(loc_color == -1)
-    {
-        std::cerr << "[F] V_COLOR NOT FOUND" << std::endl;
-        return false;
-    }
-
-    loc_mvpmat = glGetUniformLocation(program,
-                    const_cast<const char*>("mvpMatrix"));
-    if(loc_mvpmat == -1)
-    {
-        std::cerr << "[F] MVPMATRIX NOT FOUND" << std::endl;
-        return false;
-    }
-    
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);    
+  
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
+    viewMatrix = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
-    projection = glm::perspective( 45.0f, //the FoV typically 90 degrees is good which is what this is set to
+    projectionMatrix = glm::perspective( 45.0f, //the FoV typically 90 degrees is good which is what this is set to
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane, 
-
-    //enable depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
 
     //and its done
     return true;
@@ -300,9 +363,10 @@ bool initialize()
 void cleanUp()
 {
     // Clean up, Clean up
-    glDeleteProgram(program);
-    glDeleteBuffers(1, &vbo_geometry);
-    glDeleteBuffers(1, &uvbuffer);    
+    glDeleteProgram(programID);
+    glDeleteBuffers(1, &vertexbuffer);
+    glDeleteBuffers(1, &uvbuffer);
+    glDeleteBuffers(1, &normalbuffer);    
 }
 
 // adds and removes menus
@@ -318,7 +382,7 @@ void manageMenus()
     glutAddMenuEntry("Quit", 1);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
-  // destroy menus before ending program
+  // destroy menus before ending programID
   else
   {
     // Clean up after ourselves

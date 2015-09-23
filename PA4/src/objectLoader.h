@@ -8,5 +8,5 @@
 #include <glm/glm.hpp>
 
 bool loadOBJ( const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<glm::vec3> & out_normals );
-
+//int loadMaterialInfo( char *materialFilepath, std::vector<std::string> &materialInfo, std::vector<unsigned int> & diffuseValues, std::vector<unsigned int> & specularValues );
 #endif
