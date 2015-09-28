@@ -85,7 +85,7 @@ bool Mesh::loadMesh(const std::string& filename)
 bool Mesh::initFromScene(const aiScene* pScene, const std::string& filename)
 {  
    m_Entries.resize(pScene->mNumMeshes);
-   //m_Textures.resize(pScene->mNumMaterials);
+   m_Textures.resize(pScene->mNumMaterials);
 
    // Initialize the meshes in the scene one by one
    for(unsigned int i = 0 ; i < m_Entries.size() ; i++)
@@ -131,3 +131,64 @@ void Mesh::initMesh(unsigned int index, const aiMesh* paiMesh)
    m_Entries[index].init(vertices, indices);
 }
 
+bool Mesh::initMaterials(const aiScene* pScene, const std::string& filename)
+{
+   // Extract the directory part from the file name
+   std::string::size_type slashIndex = filename.find_last_of("/");
+   std::string dir;
+
+   if (slashIndex == std::string::npos)
+   {
+      dir = ".";
+   }
+   else if (SlashIndex == 0)
+   {
+      dir = "/";
+   }
+   else
+   {
+      dir = filename.substr(0, slashIndex);
+   }
+
+   bool result = true;
+
+   // Initialize the materials
+   for (unsigned int i = 0 ; i < pScene->mNumMaterials ; i++)
+   {
+      const aiMaterial* pMaterial = pScene->mMaterials[i];
+
+      m_Textures[i] = NULL;
+
+      if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+      {
+         aiString path;
+
+         if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+         {
+            std::string fullPath = dir + "/" + path.data;
+            m_Textures[i] = new Texture(GL_TEXTURE_2D, fullPath.c_str());
+
+            if (!m_Textures[i]->Load())
+            {
+               printf("Error loading texture '%s'\n", fullPath.c_str());
+               delete m_Textures[i];
+               m_Textures[i] = NULL;
+               result = false;
+            }
+            else
+            {
+               //printf("Loaded texture '%s'\n", fullPath.c_str());
+            }
+         }
+     }
+
+     // Load a white texture in case the model does not include its own texture
+     if (!m_Textures[i]) {
+         m_Textures[i] = new Texture(GL_TEXTURE_2D, "../bin/white.png");
+
+         result = m_Textures[i]->Load();
+     }
+   }
+
+   return result;
+}

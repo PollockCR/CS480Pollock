@@ -69,7 +69,7 @@ private:
    
 
    std::vector<MeshEntry> m_Entries;
-   //std::vector<Texture*> m_Textures;   
+   std::vector<Texture*> m_Textures;   
 };
 
 #endif
