@@ -2,18 +2,16 @@
 #define  MESH_H
 
 // Resource used: http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
-
-#include "mesh.h" // header file of object loader
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/glut.h> // doing otherwise causes compiler shouting
 #include <iostream>
 #include <vector>
 
 // Assimp
-#include <Importer.hpp> // C++ importer interface
-#include <scene.h> // Output data structure
-#include <postprocess.h> // Post processing flags
-#include <color4.h> // Post processing flags
+#include <assimp/Importer.hpp> // C++ importer interface
+#include <assimp/scene.h> // Output data structure
+#include <assimp/postprocess.h> // Post processing flags
+#include <assimp/color4.h> // Post processing flags
 
 // GLM
 #define GLM_FORCE_RADIANS
@@ -24,14 +22,18 @@
 struct Vertex
 {
    glm::vec3 position;
+   glm::vec3 color;
    glm::vec2 uv;
    glm::vec3 normal;
 
-   Vertex(){}
+   Vertex()
+   {
+   }
 
-   Vertex( const glm::vec3& t_position, const glm::vec2& t_uv, const glm::vec3 t_normal )
+   Vertex( const glm::vec3& t_position, const glm::vec3& t_color, const glm::vec2& t_uv, const glm::vec3 t_normal )
    {
       position = t_position;
+      color = t_color;
       uv = t_uv;
       normal = t_normal;
    }
@@ -51,10 +53,11 @@ public:
 private:
    bool initFromScene( const aiScene* pscene, const std::string& filename );
    void initMesh( unsigned int index, const aiMesh* paiMesh );
-   bool initMaterials( const aiScene* pscene, const std::string& filename );
+   //bool initMaterials( const aiScene* pscene, const std::string& filename );
    void clear();
 
-   #define INVALID_MATERIAL 0xFFFFFFFF
+   //#define INVALID_MATERIAL 0xFFFFFFFF
+   #define INVALID_OGL_VALUE 0xFFFFFFFF
    struct MeshEntry
    {
       MeshEntry();
@@ -64,12 +67,12 @@ private:
       GLuint vertexbuffer;
       GLuint indexbuffer;
       unsigned int numIndices;
-      unsigned int materialIndex;
+      //unsigned int materialIndex;
    };
    
 
    std::vector<MeshEntry> m_Entries;
-   std::vector<Texture*> m_Textures;   
+   //std::vector<Texture*> m_Textures;   
 };
 
 #endif

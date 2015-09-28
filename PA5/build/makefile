@@ -12,16 +12,16 @@ CXXFLAGS= -g -Wall -std=c++0x
 
 all: ../bin/Model
 
-../bin/Model: ../src/main.cpp shader.o objectLoader.o
-	$(CC) $(CXXFLAGS) ../src/main.cpp shader.o objectLoader.o -o ../bin/Model $(LIBS)
+../bin/Model: ../src/main.cpp shader.o mesh.o
+	$(CC) $(CXXFLAGS) ../src/main.cpp shader.o mesh.o -o ../bin/Model $(LIBS)
 
 shader.o: ../src/shader.cpp ../src/shader.h
-	$(CC) $(CXXFLAGS) -c ../src/shader.cpp ../src/shader.h
+	$(CC) $(CXXFLAGS) -c ../src/shader.cpp ../src/shader.h $(LIBS)
 
-objectLoader.o: ../src/objectLoader.cpp ../src/objectLoader.h
-	$(CC) $(CXXFLAGS) -c ../src/objectLoader.cpp ../src/objectLoader.h
+mesh.o: ../src/mesh.cpp ../src/mesh.h
+	$(CC) $(CXXFLAGS) -c ../src/mesh.cpp ../src/mesh.h $(LIBS)
 
 clean:
 	$(RM) ../bin/Model
 	$(RM) *.~ *.o
-	$(RM) ../src/*.gch
+	$(RM) ../src/*.gch*

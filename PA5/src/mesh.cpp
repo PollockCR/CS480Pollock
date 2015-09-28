@@ -8,7 +8,7 @@ Mesh::MeshEntry::MeshEntry()
    vertexbuffer = INVALID_OGL_VALUE;
    indexbuffer = INVALID_OGL_VALUE;
    numIndices  = 0;
-   materialIndex = INVALID_MATERIAL;
+   //materialIndex = INVALID_MATERIAL;
 };
 
 Mesh::MeshEntry::~MeshEntry()
@@ -64,19 +64,19 @@ bool Mesh::loadMesh(const std::string& filename)
    Assimp::Importer importer;
    
    //read from file
-   const aiScene* pScene = Importer.ReadFile(filename.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+   const aiScene* pScene = importer.ReadFile(filename.c_str(), aiProcess_Triangulate );
    
    // if scene is good
    if (pScene)
    {
       // initialize scene
-      result = InitFromScene(pScene, filename);
+      result = initFromScene(pScene, filename);
    }
    // if scene is not good
    else
    {
       // print erorr
-      printf("Error parsing '%s': '%s'\n", filename.c_str(), Importer.GetErrorString());
+      printf("Error parsing '%s': '%s'\n", filename.c_str(), importer.GetErrorString());
    }
 
    return result;
@@ -85,7 +85,7 @@ bool Mesh::loadMesh(const std::string& filename)
 bool Mesh::initFromScene(const aiScene* pScene, const std::string& filename)
 {  
    m_Entries.resize(pScene->mNumMeshes);
-   m_Textures.resize(pScene->mNumMaterials);
+   //m_Textures.resize(pScene->mNumMaterials);
 
    // Initialize the meshes in the scene one by one
    for(unsigned int i = 0 ; i < m_Entries.size() ; i++)
@@ -94,12 +94,13 @@ bool Mesh::initFromScene(const aiScene* pScene, const std::string& filename)
      initMesh(i, paiMesh);
    }
 
-   return initMaterials(pScene, filename);
+   //return initMaterials(pScene, filename);
+   return true;
 }
 
 void Mesh::initMesh(unsigned int index, const aiMesh* paiMesh)
 {
-   m_Entries[index].materialIndex = paiMesh->mMaterialIndex;
+   //m_Entries[index].materialIndex = paiMesh->mMaterialIndex;
    
    std::vector<Vertex> vertices;
    std::vector<unsigned int> indices;
@@ -110,13 +111,16 @@ void Mesh::initMesh(unsigned int index, const aiMesh* paiMesh)
    {
       const aiVector3D* pPos      = &(paiMesh->mVertices[i]);
       const aiVector3D* pNormal   = &(paiMesh->mNormals[i]);
-      const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &zero3D;
+      const aiVector3D* pColor    = &zero3D;
+      //const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : &zero3D;
+      const aiVector3D* pTexCoord = &zero3D;
 
-      Vertex v(Vector3f(pPos->x, pPos->y, pPos->z),
-               Vector2f(pTexCoord->x, pTexCoord->y),
-               Vector3f(pNormal->x, pNormal->y, pNormal->z));
+      Vertex v(glm::vec3(pPos->x, pPos->y, pPos->z),
+               glm::vec3(pColor->x, pColor->y, pColor->z),
+               glm::vec2(pTexCoord->x, pTexCoord->y),
+               glm::vec3(pNormal->x, pNormal->y, pNormal->z));
 
-      Vertices.push_back(v);
+      vertices.push_back(v);
    }
 
    for (unsigned int i = 0 ; i < paiMesh->mNumFaces ; i++)
@@ -131,7 +135,7 @@ void Mesh::initMesh(unsigned int index, const aiMesh* paiMesh)
    m_Entries[index].init(vertices, indices);
 }
 
-bool Mesh::initMaterials(const aiScene* pScene, const std::string& filename)
+/*bool Mesh::initMaterials(const aiScene* pScene, const std::string& filename)
 {
    // Extract the directory part from the file name
    std::string::size_type slashIndex = filename.find_last_of("/");
@@ -186,9 +190,49 @@ bool Mesh::initMaterials(const aiScene* pScene, const std::string& filename)
      if (!m_Textures[i]) {
          m_Textures[i] = new Texture(GL_TEXTURE_2D, "../bin/white.png");
 
-         result = m_Textures[i]->Load();
+         result = m_Textures[i] -> Load();
      }
    }
 
    return result;
+}*/
+
+void Mesh::render()
+{
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+
+    for (unsigned int i = 0 ; i < m_Entries.size() ; i++) {
+        glBindBuffer(GL_ARRAY_BUFFER, m_Entries[i].vertexbuffer);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,color));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,uv));
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,normal));
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Entries[i].indexbuffer);
+
+        //const unsigned int materialIndex = m_Entries[i].materialIndex;
+
+        /*if (materialIndex < m_Textures.size() && m_Textures[materialIndex]) {
+            m_Textures[materialIndex]->Bind(GL_TEXTURE0);
+        }*/
+
+        glDrawElements(GL_TRIANGLES, m_Entries[i].numIndices, GL_UNSIGNED_INT, 0);
+    }
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+
+    //enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    //swap the buffers
+    glutSwapBuffers();
 }
+
+

@@ -10,10 +10,10 @@
 #include <vector>
 
 // Assimp
-#include <Importer.hpp> // C++ importer interface
-#include <scene.h> // Output data structure
-#include <postprocess.h> // Post processing flags
-#include <color4.h> // Post processing flags
+#include <assimp/Importer.hpp> // C++ importer interface
+#include <assimp/scene.h> // Output data structure
+#include <assimp/postprocess.h> // Post processing flags
+#include <assimp/color4.h> // Post processing flags
 
 // GLM
 #define GLM_FORCE_RADIANS
@@ -23,11 +23,11 @@
 
 //--Data types
 // This object defines the attributes of a vertex(position, color, etc...)
-struct Vertex
+/*struct Vertex
 {
     GLfloat position[3];
     GLfloat color[3];
-};
+};*/
 
 //--Global constants
 const char* vsFileName = "../bin/shader.vs";
@@ -35,11 +35,9 @@ const char* fsFileName = "../bin/shader.fs";
 
 // Global variables
 
-int w = 640, h = 480, geometrySize;// Window size
+int w = 640, h = 480;// Window size
+Mesh* m_pMesh;
 GLuint program;// The GLSL program handle
-GLuint vbo_geometry;// VBO handle for our geometry
-GLuint vbo_uv; // UV buffer
-GLuint vbo_normal; // Normal Buffer
 
 ShaderLoader programLoad; // Load shader class
 
@@ -51,6 +49,8 @@ char * objPtr;
 
 // uniform locations
 GLint loc_mvp;// Location of the modelviewprojection matrix in the shader
+GLint loc_model;
+GLint loc_view;
 
 // attribute locations
 GLint loc_position;
@@ -142,8 +142,9 @@ void render()
     //--Render the scene
 
     //clear the screen
-    glClearColor(0.4, 0.4, 0.4, 1.0);
+    glClearColor(0.0, 0.0, 0.2, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //GLuint light = glGetUniformLocation(program, "light_pos");
 
     // render first object
 
@@ -151,68 +152,17 @@ void render()
       mvp = projection * view * model;
 
     //enable the shader program
-    glUseProgram(program);      
+    glUseProgram(program);
 
-      //upload the matrix to the shader
-      glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, &mvp[0][0]);    
+    //upload the matrix to the shader
+    glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(loc_model, 1, GL_FALSE, &model[0][0]);
+    glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);   
 
-      //set up the Vertex Buffer Object so it can be drawn
-      glEnableVertexAttribArray(loc_position);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-
-        //set pointers into the vbo for each of the attributes(position and color)
-        // 1st attribute buffer : vertices location
-        glVertexAttribPointer( loc_position,//location of attribute
-                               3,//number of elements
-                               GL_FLOAT,//type
-                               GL_FALSE,//normalized?
-                               sizeof(Vertex),//stride
-                               (void*)0//offset
-                              );
-
-        //set pointers into the vbo for each of the attributes(position and color)
-        // 1st attribute buffer : vertices colors
-        glVertexAttribPointer( loc_position,//location of attribute
-                               3,//number of elements
-                               GL_FLOAT,//type
-                               GL_FALSE,//normalized?
-                               sizeof(Vertex),//stride
-                               (void*)offset(Vertex,color)//offset
-                              );
-
-      glEnableVertexAttribArray(loc_uv);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_uv);
-
-        // 2nd attribute buffer : UVs  
-        glVertexAttribPointer( loc_uv,
-                               2,
-                               GL_FLOAT,
-                               GL_FALSE,
-                               0,
-                               (void*)0
-                              );
-
-      glEnableVertexAttribArray(loc_normal);
-      glBindBuffer(GL_ARRAY_BUFFER, vbo_normal);
-
-        // 3rd attribute buffer : normals  
-        glVertexAttribPointer( loc_normal,
-                               3,
-                               GL_FLOAT,
-                               GL_FALSE,
-                               0,
-                               (void*)0
-                              );        
-
-    glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
-
-    // done rendering objects
-
-    //clean up
-    glDisableVertexAttribArray(loc_position);
-    glDisableVertexAttribArray(loc_uv);
-    glDisableVertexAttribArray(loc_normal);    
-                           
+      /*// light
+      glm::vec3 lightPos = glm::vec3(0,4,4);
+      glUniform3f(light, lightPos.x, lightPos.y, lightPos.z);*/
+                 
     //swap the buffers
     glutSwapBuffers();
 
@@ -300,26 +250,12 @@ bool initialize()
       }      
     
     loc_uv = glGetAttribLocation(program, "v_uv");
-      if(loc_uv == -1)
-      {
-        std::cerr << "[F] UV NOT FOUND" << std::endl;
-        return false;
-      }
 
     loc_normal = glGetAttribLocation(program, "v_normal");
-      if(loc_normal == -1)
-      {
-        std::cerr << "[F] NORMAL NOT FOUND" << std::endl;
-        return false;
-      }
 
-      // Read our .obj file
-      std::vector<Vertex> geometry;
-      std::vector<glm::vec2> uvs;
-      std::vector<glm::vec3> normals; 
+    m_pMesh = new Mesh();
+    result = m_pMesh -> loadMesh(objPtr);
 
-      result = loadOBJ( objPtr, geometry, uvs, normals );
-      geometrySize = geometry.size();
 
       if( !result )
       {
@@ -328,28 +264,15 @@ bool initialize()
         exit(0);
       }
 
-    // create a Vertex Buffer object to store this vertex info on the GPU
-    glGenBuffers(1, &vbo_geometry);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, geometry.size() * sizeof(Vertex), &geometry[0], GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vbo_uv);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_uv);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-    glGenBuffers(1, &vbo_normal);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_normal);
-    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);    
-  
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
-                        glm::vec3(0.0, 0.0, 0.0), //Focus point
-                        glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+    view = glm::lookAt( glm::vec3(3.0f, 7.0f, -10.0f), //Eye Position
+                        glm::vec3(0.0f, -0.2f, 0.0f), //Focus point
+                        glm::vec3(0.0f, 1.0f, 0.0f)); //Positive Y is up
 
-    projection = glm::perspective( 45.0f, //the FoV typically 90 degrees is good which is what this is set to
+    projection = glm::perspective( 60.0f, //the FoV typically 90 degrees is good which is what this is set to
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane, 
@@ -365,10 +288,7 @@ bool initialize()
 void cleanUp()
 {
     // Clean up, Clean up
-    glDeleteProgram(program);
-    glDeleteBuffers(1, &vbo_geometry);
-    glDeleteBuffers(1, &vbo_uv);
-    glDeleteBuffers(1, &vbo_normal);    
+    glDeleteProgram(program);   
 }
 
 // adds and removes menus
