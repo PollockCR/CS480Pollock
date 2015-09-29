@@ -8,6 +8,7 @@
 # Compiled Object files
 *.slo
 *.lo
+*.obj
 *.o
 
 # Precompiled Headers
