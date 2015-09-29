@@ -5,10 +5,11 @@
 !makefile
 !.gitignore
 
-# Compiled Object files
+# Compiled Object files (except those in Resources)
 *.slo
 *.lo
 *.obj
+!*/Resources/*.obj
 *.o
 
 # Precompiled Headers
