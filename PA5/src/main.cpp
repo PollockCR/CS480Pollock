@@ -34,8 +34,12 @@ const char* fsFileName = "../bin/shader.fs";
   // Window size
   int w = 640, h = 480;
 
+  // geomerty size
+  int geometrySize;
+
   // The GLSL program handle
   GLuint program;
+  GLuint vbo_geometry;
 
   // rotations
   int orbit = -1;
@@ -68,12 +72,12 @@ const char* fsFileName = "../bin/shader.fs";
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
-  void manageMenus();
+  void manageMenus(bool quitCall);
   void menu(int id);
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize();
+  bool initialize(char* objectFilename);
   void cleanUp();
 
   //--Time function
@@ -175,7 +179,7 @@ void render()
                          sizeof(Vertex),
                          (void*)offsetof(Vertex,color));
 
-  glDrawArrays(GL_TRIANGLES, 0, geometry.size());//mode, starting index, count
+  glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
 
   //clean up
   glDisableVertexAttribArray(loc_position);
@@ -242,7 +246,7 @@ bool initialize( char* objectFilename )
     ShaderLoader programLoad;
 
     // load model into mesh object
-    geometryLoadedCorrectly = object.loadObj( objectFilename );
+    geometryLoadedCorrectly = object.loadMesh( objectFilename );
 
       // return false if not loaded
       if( !geometryLoadedCorrectly )
@@ -254,7 +258,7 @@ bool initialize( char* objectFilename )
     // Create a Vertex Buffer object to store this vertex info on the GPU
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object.geometry[0], GL_STATIC_DRAW);
 
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName, program );
@@ -300,6 +304,9 @@ bool initialize( char* objectFilename )
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // save size of geometry
+    geometrySize = object.geometry.size();
+
     //and its done
     return true;
 }
@@ -309,7 +316,7 @@ void cleanUp()
 {
     // Clean up, Clean up
     glDeleteProgram(program);   
-    glDeleteBuffers(1, &vbo_geometry)
+    glDeleteBuffers(1, &vbo_geometry);
 }
 
 // adds and removes menus
@@ -345,8 +352,7 @@ void menu(int id)
   {
     // call the rotation menu function
     case 1:
-      quitCall = true;
-      glutIdleFunc(update);
+      glutLeaveMainLoop();
       break;
 
     // default do nothing

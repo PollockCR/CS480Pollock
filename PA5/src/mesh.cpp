@@ -31,7 +31,7 @@ bool Mesh::loadMesh( char * objectFilename )
   aiMesh* mesh = pScene -> mMeshes[0];
 
   // loop through each face
-  for( index = 0; index < mesh-> nNumFaces; index++ )
+  for( index = 0; index < mesh-> mNumFaces; index++ )
   {
     // create aiFace
     const aiFace& face = mesh -> mFaces[index];
