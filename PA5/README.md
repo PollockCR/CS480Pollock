@@ -1,5 +1,5 @@
-OpenGL Model Loader
-===================
+OpenGL Model Loader with Assimp
+===============================
 
 Project Authors
 ---------------
@@ -7,7 +7,8 @@ This is the repository for the group Catherine Pollock, Conor Sullivan, and Pete
 
 Program Function
 ----------------
-The program will load a model provided to it by the command line. The model will be loaded using assimp and then displayed.
+The program will load a model provided to it by the command line. The model will be loaded using assimp and then displayed. The model will be green and red.
+
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA05/PA5.php
 
 Extra Credit
@@ -46,10 +47,10 @@ To build this example just
 *If you are using a Mac you will need to edit the makefile in the build directory*
 
 The excutable will be put in bin
-*To run the program, execute these commands, replacing with your object file*
+*To run the program, execute these commands, replacing with your object filepath*
 
 >$ cd ../bin/
->$ ./Model table.obj
+>$ ./Model  ~/Desktop/table.obj
 
 Additional Notes For OSX Users
 ------------------------------
