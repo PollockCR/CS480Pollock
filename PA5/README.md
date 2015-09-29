@@ -47,6 +47,7 @@ To build this example just
 *If you are using a Mac you will need to edit the makefile in the build directory*
 
 *The excutable will be put in bin
+
 *To run the program, execute these commands, replacing with your object filepath*
 
 >$ cd ../bin/
