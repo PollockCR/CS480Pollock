@@ -9,7 +9,6 @@
 *.slo
 *.lo
 *.obj
-!*/Resources/*.obj
 *.o
 
 # Precompiled Headers
