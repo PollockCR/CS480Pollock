@@ -42,6 +42,7 @@ Building This Program
 To build this example just 
 
 >$ cd build
+
 >$ make
 
 *If you are using a Mac you will need to edit the makefile in the build directory*
@@ -51,6 +52,7 @@ To build this example just
 *To run the program, execute these commands, replacing with your object filepath*
 
 >$ cd ../bin/
+
 >$ ./Model  ~/Desktop/table.obj
 
 Additional Notes For OSX Users
