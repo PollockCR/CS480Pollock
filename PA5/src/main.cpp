@@ -1,7 +1,9 @@
+// removed idle function, not in use
+// created seperate files for fragment and vertex shader
 #include "shader.h" // header file of shader loaders
 #include "mesh.h" // header file of object loader
 #include <GL/glew.h> // glew must be included before the main gl libs
-#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <GL/freeglut.h>
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -21,51 +23,44 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
-//--Data types
-// This object defines the attributes of a vertex(position, color, etc...)
-/*struct Vertex
-{
-    GLfloat position[3];
-    GLfloat color[3];
-};*/
+// DATA TYPES
 
-//--Global constants
+// GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
 
-// Global variables
+// GLOBAL VARIABLES
 
-int w = 640, h = 480;// Window size
-Mesh* m_pMesh;
-GLuint program;// The GLSL program handle
+  // Window size
+  int w = 640, h = 480;
 
-ShaderLoader programLoad; // Load shader class
+  // The GLSL program handle
+  GLuint program;
 
-    // Quit call
-    bool quitCall = false;
+  // rotations
+  int orbit = -1;
+  int rotation = -1;
 
-// filename string
-char * objPtr;
+  // uniform locations
+  GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
 
-// uniform locations
-GLint loc_mvp;// Location of the modelviewprojection matrix in the shader
-GLint loc_model;
-GLint loc_view;
+  // attribute locations
+  GLint loc_position;
+  GLint loc_color;
 
-// attribute locations
-GLint loc_position;
-GLint loc_color;
-GLint loc_uv;
-GLint loc_normal;
+  // transform matrices
+  glm::mat4 model;// obj-> world (planet) 
+  glm::mat4 view;// world->eye
+  glm::mat4 projection;// eye->clip
+  glm::mat4 mvp;// premultiplied modelviewprojection
 
-// transform matrices
-glm::mat4 model;// obj-> world (planet) 
-glm::mat4 view;// world->eye
-glm::mat4 projection;// eye->clip
-glm::mat4 mvp;// premultiplied modelviewprojection
+  // time information
+  std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
-//--GLUT Callbacks
-void render();
+// FUNCTION PROTOTYPES
+
+  //--GLUT Callbacks
+  void render();
 
   // update display functions
   void update();
@@ -77,20 +72,22 @@ void render();
   void menu(int id);
   void mouse(int button, int state, int x_pos, int y_pos);
 
-//--Resource management
-bool initialize();
-void cleanUp();
+  //--Resource management
+  bool initialize();
+  void cleanUp();
+
+  //--Time function
+  float getDT();
 
 
-
-//--Main
+// MAIN FUNCTION
 int main(int argc, char **argv)
 {
     // If the user didn't provide a filename command line argument,
     // print an error and exit.
     if (argc <= 1)
     {
-        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>" << std::endl;
+        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>. Please try again." << std::endl;
         exit(1);
     }
 
@@ -100,7 +97,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
 
     // Get filename of object
-    objPtr = argv[1];
+    char* objPtr = argv[1];
 
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -122,78 +119,106 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
 
     // add menus
-    manageMenus();
+    manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize();
+    bool init = initialize( objPtr );
     if(init)
     {
+        t1 = std::chrono::high_resolution_clock::now();
         glutMainLoop();
     }
+
+    // remove menus
+    manageMenus( true );
 
     // clean up and end program
     cleanUp();
     return 0;
 }
 
-//--Implementations
+// FUNCTION IMPLEMENTATION
+
+// render the scene
 void render()
 {
-    //--Render the scene
+  // clear the screen
+  glClearColor(0.0, 0.0, 0.2, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //clear the screen
-    glClearColor(0.0, 0.0, 0.2, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //GLuint light = glGetUniformLocation(program, "light_pos");
+  // premultiply the matrix for this example
+  mvp = projection * view * model;
 
-    // render first object
+  // enable the shader program
+  glUseProgram(program);
 
-      //premultiply the matrix for this example
-      mvp = projection * view * model;
+  // upload the matrix to the shader
+  glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &mvp[0][0]); 
 
-    //enable the shader program
-    glUseProgram(program);
+  // set up the Vertex Buffer Object so it can be drawn
+  glEnableVertexAttribArray(loc_position);
+  glEnableVertexAttribArray(loc_color);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
 
-    //upload the matrix to the shader
-    glUniformMatrix4fv(loc_mvp, 1, GL_FALSE, &mvp[0][0]);
-    glUniformMatrix4fv(loc_model, 1, GL_FALSE, &model[0][0]);
-    glUniformMatrix4fv(loc_view, 1, GL_FALSE, &view[0][0]);   
+  // set pointers into the vbo for each of the attributes(position and color)
+  glVertexAttribPointer( loc_position,//location of attribute
+                         3,//number of elements
+                         GL_FLOAT,//type
+                         GL_FALSE,//normalized?
+                         sizeof(Vertex),//stride
+                         0);//offset
 
-      /*// light
-      glm::vec3 lightPos = glm::vec3(0,4,4);
-      glUniform3f(light, lightPos.x, lightPos.y, lightPos.z);*/
-                 
-    //swap the buffers
-    glutSwapBuffers();
+  glVertexAttribPointer( loc_color,
+                         3,
+                         GL_FLOAT,
+                         GL_FALSE,
+                         sizeof(Vertex),
+                         (void*)offsetof(Vertex,color));
+
+  glDrawArrays(GL_TRIANGLES, 0, geometry.size());//mode, starting index, count
+
+  //clean up
+  glDisableVertexAttribArray(loc_position);
+  glDisableVertexAttribArray(loc_color);
+               
+  //swap the buffers
+  glutSwapBuffers();
 
 }
 
 // called on idle to update display
 void update()
 {
-    // check for quit program
-    if( quitCall )
-    {
-      manageMenus();
-      exit(0);
-    }
-    // otherwise, continue display
-    else 
-    {
-      // update the state of the scene
-      glutPostRedisplay();//call the display callback
-    }
+  // update object
+
+    //total time
+    static float rotationAngle = 0.0;
+    static float orbitAngle = 0.0;
+
+    float dt = getDT(); 
+
+    // move object 90 degrees a second
+    orbitAngle += dt * M_PI/2; // orbit
+    rotationAngle += dt * M_PI/2; // rotate
+
+    // rotation of cube around itself
+    model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+
+  // update the state of the scene
+  glutPostRedisplay();//call the display callback
 }
 
 // resize window
 void reshape(int n_w, int n_h)
 {
+    // set new window width and height
     w = n_w;
     h = n_h;
-    //Change the viewport to be correct
+
+    // change the viewport to be correct
     glViewport( 0, 0, w, h);
-    //Update the projection matrix as well
-    //See the init function for an explaination
+
+    // update the projection matrix
     projection = glm::perspective(45.0f, float(w)/float(h), 0.01f, 100.0f);
 
 }
@@ -201,36 +226,45 @@ void reshape(int n_w, int n_h)
 // called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
-    // Handle keyboard input
-    // end program
-    if(key == 27) // esc
-    {
-      quitCall = true;
-      glutIdleFunc(update);
-      exit(0);
-    }
-    // continue program
-  // redraw screen 
-  glutPostRedisplay();    
+  // Handle keyboard input - end program
+  if(key == 27) // esc
+  {
+    glutLeaveMainLoop();
+  }   
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize()
+bool initialize( char* objectFilename )
 {
     // define model with model loader
-    bool result;
+    bool geometryLoadedCorrectly;
+    Mesh object;
+    ShaderLoader programLoad;
+
+    // load model into mesh object
+    geometryLoadedCorrectly = object.loadObj( objectFilename );
+
+      // return false if not loaded
+      if( !geometryLoadedCorrectly )
+      {
+        std::cerr << "[F] GEOMETRY NOT LOADED CORRECTLY" << std::endl;
+        return false;
+      }
+
+    // Create a Vertex Buffer object to store this vertex info on the GPU
+    glGenBuffers(1, &vbo_geometry);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+    glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object[0], GL_STATIC_DRAW);
 
     // loads shaders to program
-    programLoad.loadShader( vsFileName, fsFileName,  program );
+    programLoad.loadShader( vsFileName, fsFileName, program );
 
-    // now we set the locations of the attributes and uniforms
-    // this allows us to access them easily while rendering
 
     // Get a handle for our "MVP" uniform
-    loc_mvp = glGetUniformLocation(program, "mvpMatrix");
-      if(loc_mvp == -1)
+    loc_mvpmat = glGetUniformLocation(program, "mvpMatrix");
+      if(loc_mvpmat == -1)
       {
-        std::cerr << "[F] MVP NOT FOUND" << std::endl;
+        std::cerr << "[F] MVP MATRIX NOT FOUND" << std::endl;
         return false;
       }       
 
@@ -248,34 +282,20 @@ bool initialize()
         std::cerr << "[F] COLOR NOT FOUND" << std::endl;
         return false;
       }      
-    
-    loc_uv = glGetAttribLocation(program, "v_uv");
-
-    loc_normal = glGetAttribLocation(program, "v_normal");
-
-    m_pMesh = new Mesh();
-    result = m_pMesh -> loadMesh(objPtr);
-
-
-      if( !result )
-      {
-        quitCall = true;
-        glutIdleFunc(update);
-        exit(0);
-      }
 
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(3.0f, 7.0f, -10.0f), //Eye Position
-                        glm::vec3(0.0f, -0.2f, 0.0f), //Focus point
-                        glm::vec3(0.0f, 1.0f, 0.0f)); //Positive Y is up
+    view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
+                        glm::vec3(0.0, 0.0, 0.0), //Focus point
+                        glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
-    projection = glm::perspective( 60.0f, //the FoV typically 90 degrees is good which is what this is set to
+    projection = glm::perspective( 45.0f, //the FoV typically 90 degrees is good which is what this is set to
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
-                                   100.0f); //Distance to the far plane, 
+                                   100.0f); //Distance to the far plane
+
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -289,10 +309,11 @@ void cleanUp()
 {
     // Clean up, Clean up
     glDeleteProgram(program);   
+    glDeleteBuffers(1, &vbo_geometry)
 }
 
 // adds and removes menus
-void manageMenus()
+void manageMenus( bool quitCall )
 {
   int main_menu = 0;
 
@@ -304,10 +325,11 @@ void manageMenus()
     glutAddMenuEntry("Quit", 1);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
+
   // destroy menus before ending program
   else
   {
-    // Clean up after ourselves
+    // clean up after ourselves
     glutDestroyMenu(main_menu);
   }
 
@@ -326,6 +348,8 @@ void menu(int id)
       quitCall = true;
       glutIdleFunc(update);
       break;
+
+    // default do nothing
     default:
       break;
   }
@@ -339,3 +363,18 @@ void mouse(int button, int state, int x_pos, int y_pos)
   // redraw screen without menu
   glutPostRedisplay();
 }
+
+//returns the time delta
+float getDT()
+{
+    float ret;
+
+      // if object not rotating set time to t1
+      //t1 = std::chrono::high_resolution_clock::now();
+
+    t2 = std::chrono::high_resolution_clock::now();
+    ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
+    t1 = std::chrono::high_resolution_clock::now();
+    return ret;
+}
+

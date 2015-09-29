@@ -3,7 +3,7 @@
 
 // Resource used: http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
 #include <GL/glew.h> // glew must be included before the main gl libs
-#include <GL/glut.h> // doing otherwise causes compiler shouting
+#include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
 
@@ -21,22 +21,8 @@
 
 struct Vertex
 {
-   glm::vec3 position;
-   glm::vec3 color;
-   glm::vec2 uv;
-   glm::vec3 normal;
-
-   Vertex()
-   {
-   }
-
-   Vertex( const glm::vec3& t_position, const glm::vec3& t_color, const glm::vec2& t_uv, const glm::vec3 t_normal )
-   {
-      position = t_position;
-      color = t_color;
-      uv = t_uv;
-      normal = t_normal;
-   }
+   GLfloat position[3];
+   GLfloat color[3];
 };
 
 // Mesh class represents interface between Assimp and OpenGL program
@@ -48,31 +34,10 @@ class Mesh
 public:
    Mesh();
    ~Mesh();
-   bool loadMesh( const std::string& filename );
+   bool loadMesh( char* objectFilename );
    void render();
-private:
-   bool initFromScene( const aiScene* pscene, const std::string& filename );
-   void initMesh( unsigned int index, const aiMesh* paiMesh );
-   //bool initMaterials( const aiScene* pscene, const std::string& filename );
-   void clear();
-
-   //#define INVALID_MATERIAL 0xFFFFFFFF
-   #define INVALID_OGL_VALUE 0xFFFFFFFF
-   struct MeshEntry
-   {
-      MeshEntry();
-      ~MeshEntry();
-      void init( const std:: vector<Vertex> & vertices, const std::vector<unsigned int>& indices );
-
-      GLuint vertexbuffer;
-      GLuint indexbuffer;
-      unsigned int numIndices;
-      //unsigned int materialIndex;
-   };
-   
-
-   std::vector<MeshEntry> m_Entries;
-   //std::vector<Texture*> m_Textures;   
+   std::vector<Vertex> geometry;
+private:   
 };
 
 #endif

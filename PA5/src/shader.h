@@ -1,7 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 #include <GL/glew.h>
-#include <GL/glut.h> 
+#include <GL/freeglut.h>
 #include <string>
 
 class ShaderLoader
