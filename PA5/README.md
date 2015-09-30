@@ -13,7 +13,7 @@ Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/pro
 
 Extra Credit
 ------------
-Extra credit was not offered in this project.
+It was unclear if extra credit was offered based on the description. If extra credit is adding colors to the model, that was achieved.
 
 Building This Program
 ---------------------
