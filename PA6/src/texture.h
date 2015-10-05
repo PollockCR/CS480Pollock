@@ -1,12 +1,12 @@
-#ifndef MESH_H
-#define  MESH_H
+#ifndef TEXTURE_H
+#define TEXTURE_H
 
 // Resource used: http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
-#include "texture.h"
+#include <string>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
@@ -23,28 +23,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
-struct Vertex
-{
-   GLfloat position[3];
-   GLfloat uv[2];
-};
-
-// Mesh class represents interface between Assimp and OpenGL program
-// An object of this class takes a file name to loadMesh and uses Assimp to load model
-// Next, creates vertex buffers, index buffers, and texture objects, which contain model data
-
-class Mesh
+class Texture
 {
 public:
-   Mesh();
-   ~Mesh();
-   void clearMesh();
-   bool loadMesh( char* objectFilename );
-   bool loadMaterials( char* objectFilename, const aiScene* pScene );
-   std::vector<Vertex> geometry;
-   std::vector<Texture*> m_Textures;
-private:   
+   Texture( const std::string& textureFilename );
+   bool load();
+   GLsizei imageWidth;
+   GLsizei imageHeight;
+   const GLvoid* imageData;
+
+private:
+   std::string m_filename;
+   Magick::Image m_image;
+   Magick::Blob m_blob;
 };
 
 #endif
-

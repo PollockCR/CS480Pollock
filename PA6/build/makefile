@@ -1,6 +1,6 @@
 # Linux
 CC=g++
-LIBS= -lglut -lGLEW -lGL -lassimp
+LIBS= -lglut -lGLEW -lGL -lassimp `Magick++-config --cppflags --cxxflags --ldflags --libs`
 
 # For Macs uncomment the next line and comment out the previous one
 #CC=clang++
@@ -12,14 +12,17 @@ CXXFLAGS= -g -Wall -std=c++0x
 
 all: ../bin/Model
 
-../bin/Model: ../src/main.cpp shader.o mesh.o
-	$(CC) $(CXXFLAGS) ../src/main.cpp shader.o mesh.o -o ../bin/Model $(LIBS)
+../bin/Model: ../src/main.cpp shader.o texture.o mesh.o 
+	$(CC) $(CXXFLAGS) ../src/main.cpp shader.o texture.o mesh.o -o ../bin/Model $(LIBS)
 
 shader.o: ../src/shader.cpp ../src/shader.h
 	$(CC) $(CXXFLAGS) -c ../src/shader.cpp ../src/shader.h $(LIBS)
 
-mesh.o: ../src/mesh.cpp ../src/mesh.h
+mesh.o: ../src/mesh.cpp ../src/mesh.h 
 	$(CC) $(CXXFLAGS) -c ../src/mesh.cpp ../src/mesh.h $(LIBS)
+
+texture.o: ../src/texture.cpp ../src/texture.h
+	$(CC) $(CXXFLAGS) -c ../src/texture.cpp ../src/texture.h $(LIBS)	
 
 clean:
 	$(RM) ../bin/Model

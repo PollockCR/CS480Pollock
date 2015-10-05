@@ -2,6 +2,7 @@
 // created seperate files for fragment and vertex shader
 #include "shader.h" // header file of shader loaders
 #include "mesh.h" // header file of object loader
+#include "texture.h"
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/freeglut.h>
 #include <iostream>
@@ -16,6 +17,9 @@
 #include <assimp/scene.h> // Output data structure
 #include <assimp/postprocess.h> // Post processing flags
 #include <assimp/color4.h> // Post processing flags
+
+// Magick++
+#include <Magick++.h>
 
 // GLM
 #define GLM_FORCE_RADIANS
@@ -40,6 +44,7 @@ const char* fsFileName = "../bin/shader.fs";
   // The GLSL program handle
   GLuint program;
   GLuint vbo_geometry;
+  GLuint aTexture;
 
   // rotations
   int orbit = -1;
@@ -50,7 +55,7 @@ const char* fsFileName = "../bin/shader.fs";
 
   // attribute locations
   GLint loc_position;
-  GLint loc_color;
+  GLint loc_uv;
 
   // transform matrices
   glm::mat4 model;// obj-> world (planet) 
@@ -99,6 +104,8 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
+
+    Magick::InitializeMagick(NULL);
 
     // Get filename of object
     char* objPtr = argv[1];
@@ -161,10 +168,13 @@ void render()
 
   // set up the Vertex Buffer Object so it can be drawn
   glEnableVertexAttribArray(loc_position);
-  glEnableVertexAttribArray(loc_color);
+  glEnableVertexAttribArray(loc_uv);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
 
-  // set pointers into the vbo for each of the attributes(position and color)
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, aTexture);
+
+  // set pointers into the vbo for each of the attributes(position and uv)
   glVertexAttribPointer( loc_position,//location of attribute
                          3,//number of elements
                          GL_FLOAT,//type
@@ -172,18 +182,18 @@ void render()
                          sizeof(Vertex),//stride
                          0);//offset
 
-  glVertexAttribPointer( loc_color,
-                         3,
+  glVertexAttribPointer( loc_uv,
+                         2,
                          GL_FLOAT,
                          GL_FALSE,
                          sizeof(Vertex),
-                         (void*)offsetof(Vertex,color));
+                         (void*)offsetof(Vertex,uv));
 
   glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
 
   //clean up
   glDisableVertexAttribArray(loc_position);
-  glDisableVertexAttribArray(loc_color);
+  glDisableVertexAttribArray(loc_uv);
                
   //swap the buffers
   glutSwapBuffers();
@@ -260,6 +270,14 @@ bool initialize( char* objectFilename )
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object.geometry[0], GL_STATIC_DRAW);
 
+    glGenTextures(1, &aTexture); 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, aTexture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.m_Textures[0]->imageWidth, object.m_Textures[0]->imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.m_Textures[0]->imageData);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName, program );
 
@@ -280,10 +298,10 @@ bool initialize( char* objectFilename )
         return false;
       }
 
-    loc_color = glGetAttribLocation(program, "v_color");
-      if(loc_color == -1)
+    loc_uv = glGetAttribLocation(program, "v_uv");
+      if(loc_uv == -1)
       {
-        std::cerr << "[F] COLOR NOT FOUND" << std::endl;
+        std::cerr << "[F] UV NOT FOUND" << std::endl;
         return false;
       }      
 
@@ -317,6 +335,7 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
+    glDeleteBuffers(1, &aTexture);
 }
 
 // adds and removes menus
