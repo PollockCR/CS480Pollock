@@ -18,7 +18,7 @@ Extra credit was not offered in this project.
 Ubuntu Dependencies
 -------------------
 
-*The following packages can be installed with these commands*
+The following packages can be installed with these commands:
 
 *This project requires magick++* 
 
@@ -39,7 +39,7 @@ Ubuntu Dependencies
 Mac OSX Dependencies
 --------------------
 
-*The following libraries can be installed with these commands using homebrew*
+The following libraries can be installed with these commands using homebrew:
 
 *This project requires magick++*
 
@@ -57,7 +57,7 @@ Mac OSX Dependencies
 
 >$ brew install glm
 
-*Additionally, ensure that the latest version of the Developer Tools is installed*
+Additionally, ensure that the latest version of the Developer Tools is installed
 
 Building this Project
 ---------------------
@@ -68,16 +68,18 @@ To build this project just
 
 >$ make
 
-*If you are using a Mac you will need to edit the makefile in the build directory*
+If you are using a Mac you will need to edit the makefile in the build directory
 
-*The excutable will be put in bin*
+The excutable will be put in bin
 
-*To run the program, execute these commands, replacing with your object filepath and your object's texture filepath*
+To run the program, execute these commands, replacing with your object filepath and your object's texture filepath:
 
 >$ cd ../bin/
 
 >$ ./Model  ~/Desktop/capsule.obj ~/Desktop/capsule0.jpg
 
 *or*
+
+>$ cd ../bin/
 
 >$ ./Model  ~/Desktop/capsule.obj
