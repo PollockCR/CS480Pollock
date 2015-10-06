@@ -6,16 +6,12 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
-#include "texture.h"
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
 #include <assimp/scene.h> // Output data structure
 #include <assimp/postprocess.h> // Post processing flags
 #include <assimp/color4.h> // Post processing flags
-
-// Magick++
-#include <Magick++.h>
 
 // GLM
 #define GLM_FORCE_RADIANS
@@ -38,11 +34,9 @@ class Mesh
 public:
    Mesh();
    ~Mesh();
-   void clearMesh();
    bool loadMesh( char* objectFilename );
-   bool loadMaterials( char* objectFilename, const aiScene* pScene );
+   void render();
    std::vector<Vertex> geometry;
-   std::vector<Texture*> m_Textures;
 private:   
 };
 

@@ -2,7 +2,6 @@
 // created seperate files for fragment and vertex shader
 #include "shader.h" // header file of shader loaders
 #include "mesh.h" // header file of object loader
-#include "texture.h"
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/freeglut.h>
 #include <iostream>
@@ -18,14 +17,14 @@
 #include <assimp/postprocess.h> // Post processing flags
 #include <assimp/color4.h> // Post processing flags
 
-// Magick++
-#include <Magick++.h>
-
 // GLM
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
+
+// MAGICK++
+#include <Magick++.h>
 
 // DATA TYPES
 
@@ -44,7 +43,7 @@ const char* fsFileName = "../bin/shader.fs";
   // The GLSL program handle
   GLuint program;
   GLuint vbo_geometry;
-  GLuint aTexture;
+  GLuint texture;
 
   // rotations
   int orbit = -1;
@@ -55,7 +54,10 @@ const char* fsFileName = "../bin/shader.fs";
 
   // attribute locations
   GLint loc_position;
-  GLint loc_uv;
+  GLint loc_texture;
+
+  // Image blob
+  Magick::Blob m_blob;
 
   // transform matrices
   glm::mat4 model;// obj-> world (planet) 
@@ -82,7 +84,7 @@ const char* fsFileName = "../bin/shader.fs";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize(char* objectFilename);
+  bool initialize( char* objectFilename, char* pictureName );
   void cleanUp();
 
   //--Time function
@@ -105,10 +107,9 @@ int main(int argc, char **argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
 
-    Magick::InitializeMagick(NULL);
-
     // Get filename of object
-    char* objPtr = argv[1];
+    char* objPtr  = argv[1];
+    char* objPtr2 = argv[2];
 
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -133,7 +134,7 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize( objPtr );
+    bool init = initialize( objPtr, objPtr2 );
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -168,13 +169,10 @@ void render()
 
   // set up the Vertex Buffer Object so it can be drawn
   glEnableVertexAttribArray(loc_position);
-  glEnableVertexAttribArray(loc_uv);
+  glEnableVertexAttribArray(loc_texture);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, aTexture);
-
-  // set pointers into the vbo for each of the attributes(position and uv)
+  // set pointers into the vbo for each of the attributes(position and color)
   glVertexAttribPointer( loc_position,//location of attribute
                          3,//number of elements
                          GL_FLOAT,//type
@@ -182,7 +180,7 @@ void render()
                          sizeof(Vertex),//stride
                          0);//offset
 
-  glVertexAttribPointer( loc_uv,
+  glVertexAttribPointer( loc_texture,
                          2,
                          GL_FLOAT,
                          GL_FALSE,
@@ -193,7 +191,7 @@ void render()
 
   //clean up
   glDisableVertexAttribArray(loc_position);
-  glDisableVertexAttribArray(loc_uv);
+  glDisableVertexAttribArray(loc_texture);
                
   //swap the buffers
   glutSwapBuffers();
@@ -217,6 +215,7 @@ void update()
 
     // rotation of cube around itself
     model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+    model = glm::scale(model, glm::vec3(3.5, 3.5, 3.5));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -248,12 +247,17 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename )
+bool initialize( char* objectFilename, char* pictureName )
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
     Mesh object;
     ShaderLoader programLoad;
+
+    Magick::Image* m_pImage;
+
+    m_pImage = new Magick::Image(pictureName);
+    m_pImage->write(&m_blob, "RGBA");
 
     // load model into mesh object
     geometryLoadedCorrectly = object.loadMesh( objectFilename );
@@ -270,11 +274,12 @@ bool initialize( char* objectFilename )
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object.geometry[0], GL_STATIC_DRAW);
 
-    glGenTextures(1, &aTexture); 
+    // Create Texture object
+    glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, aTexture);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.m_Textures[0]->imageWidth, object.m_Textures[0]->imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.m_Textures[0]->imageData);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pImage->columns(), m_pImage->rows(), 0, GL_RGBA,     
+                                                                GL_UNSIGNED_BYTE, m_blob.data());
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -298,10 +303,10 @@ bool initialize( char* objectFilename )
         return false;
       }
 
-    loc_uv = glGetAttribLocation(program, "v_uv");
-      if(loc_uv == -1)
+    loc_texture = glGetAttribLocation(program, "v_color");
+      if(loc_texture == -1)
       {
-        std::cerr << "[F] UV NOT FOUND" << std::endl;
+        std::cerr << "[F] COLOR NOT FOUND" << std::endl;
         return false;
       }      
 
@@ -335,7 +340,6 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
-    glDeleteBuffers(1, &aTexture);
 }
 
 // adds and removes menus

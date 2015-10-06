@@ -1,5 +1,5 @@
-OpenGL Model Loader with Textures and Assimp
-============================================
+OpenGL Model Loader with Assimp
+===============================
 
 Project Authors
 ---------------
@@ -7,7 +7,7 @@ This is the repository for the group Catherine Pollock, Conor Sullivan, and Pete
 
 Program Function
 ----------------
-The program will load a model provided to it by the command line. The model will be loaded using assimp and then displayed with the supplied texture.
+The program will load a model provided to it by the first command line argument along with a texture as the second command line argument. The model will be loaded using assimp and then displayed. The model will be green and red.
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA06/PA6.php
 
@@ -34,7 +34,6 @@ Building This Program
 >$ sudo apt-get install libglm-dev
 
 *On a Mac you can get these libraries with this command(using homebrew)*
-
 >$ brew install freeglut glew
 
 *On a Mac you can install GLM with this command(using homebrew)*
@@ -43,17 +42,14 @@ Building This Program
 To build this example just 
 
 >$ cd build
-
 >$ make
 
 *If you are using a Mac you will need to edit the makefile in the build directory*
 
-*The excutable will be put in bin
-
+The excutable will be put in bin
 *To run the program, execute these commands, replacing with your object filepath*
 
 >$ cd ../bin/
-
 >$ ./Model  ~/Desktop/table.obj
 
 Additional Notes For OSX Users
