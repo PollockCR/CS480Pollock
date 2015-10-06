@@ -6,6 +6,7 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
+#include <string>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
@@ -22,7 +23,7 @@
 struct Vertex
 {
    GLfloat position[3];
-   GLfloat color[3];
+   GLfloat uv[2];
 };
 
 // Mesh class represents interface between Assimp and OpenGL program

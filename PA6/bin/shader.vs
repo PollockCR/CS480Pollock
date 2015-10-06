@@ -1,6 +1,6 @@
 attribute vec3 v_position;
-attribute vec3 v_color;
-varying vec3 color;
+attribute vec2 v_color;
+varying vec2 color;
 uniform mat4 mvpMatrix;
 void main( void )
 {

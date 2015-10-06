@@ -23,11 +23,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
+// MAGICK++
+#include <Magick++.h>
+
 // DATA TYPES
 
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
+const char* blankTexture = "../../Resources/white.png";
 
 // GLOBAL VARIABLES
 
@@ -40,6 +44,7 @@ const char* fsFileName = "../bin/shader.fs";
   // The GLSL program handle
   GLuint program;
   GLuint vbo_geometry;
+  GLuint texture;
 
   // rotations
   int orbit = -1;
@@ -50,7 +55,10 @@ const char* fsFileName = "../bin/shader.fs";
 
   // attribute locations
   GLint loc_position;
-  GLint loc_color;
+  GLint loc_texture;
+
+  // Image blob
+  Magick::Blob m_blob;
 
   // transform matrices
   glm::mat4 model;// obj-> world (planet) 
@@ -77,7 +85,7 @@ const char* fsFileName = "../bin/shader.fs";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize(char* objectFilename);
+  bool initialize( char* objectFilename, const char* textureFilename );
   void cleanUp();
 
   //--Time function
@@ -87,6 +95,7 @@ const char* fsFileName = "../bin/shader.fs";
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
+    bool init = false;
     // If the user didn't provide a filename command line argument,
     // print an error and exit.
     if (argc <= 1)
@@ -101,8 +110,8 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
 
     // Get filename of object
-    char* objPtr = argv[1];
-
+    char* objPtr  = argv[1];
+    
     // Name and create the Window
     glutCreateWindow("Model Loader");
 
@@ -126,7 +135,18 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize( objPtr );
+    // pass blank texture if not given one 
+    if( argc == 2 )
+    {
+      init = initialize( objPtr, blankTexture );
+    }
+    // or, pass texture given from command line arguments
+    else
+    {
+      init = initialize( objPtr, argv[2] );
+    }
+
+    // if initialized, begin glut main loop
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -161,7 +181,7 @@ void render()
 
   // set up the Vertex Buffer Object so it can be drawn
   glEnableVertexAttribArray(loc_position);
-  glEnableVertexAttribArray(loc_color);
+  glEnableVertexAttribArray(loc_texture);
   glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
 
   // set pointers into the vbo for each of the attributes(position and color)
@@ -172,18 +192,18 @@ void render()
                          sizeof(Vertex),//stride
                          0);//offset
 
-  glVertexAttribPointer( loc_color,
-                         3,
+  glVertexAttribPointer( loc_texture,
+                         2,
                          GL_FLOAT,
                          GL_FALSE,
                          sizeof(Vertex),
-                         (void*)offsetof(Vertex,color));
+                         (void*)offsetof(Vertex,uv));
 
   glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
 
   //clean up
   glDisableVertexAttribArray(loc_position);
-  glDisableVertexAttribArray(loc_color);
+  glDisableVertexAttribArray(loc_texture);
                
   //swap the buffers
   glutSwapBuffers();
@@ -207,6 +227,7 @@ void update()
 
     // rotation of cube around itself
     model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+    model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -238,12 +259,24 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename )
+bool initialize( char* objectFilename, const char* textureFilename )
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
     Mesh object;
     ShaderLoader programLoad;
+
+    // initialize magick
+    Magick::InitializeMagick(NULL);
+
+    // create an image pointer
+    Magick::Image* m_pImage;
+
+    // save image to image pointer
+    m_pImage = new Magick::Image( textureFilename );
+
+    // write data to blob
+    m_pImage->write(&m_blob, "RGBA");
 
     // load model into mesh object
     geometryLoadedCorrectly = object.loadMesh( objectFilename );
@@ -259,6 +292,15 @@ bool initialize( char* objectFilename )
     glGenBuffers(1, &vbo_geometry);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
     glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object.geometry[0], GL_STATIC_DRAW);
+
+    // Create Texture object
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pImage->columns(), m_pImage->rows(), 0, GL_RGBA,     
+                                                                GL_UNSIGNED_BYTE, m_blob.data());
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName, program );
@@ -280,8 +322,8 @@ bool initialize( char* objectFilename )
         return false;
       }
 
-    loc_color = glGetAttribLocation(program, "v_color");
-      if(loc_color == -1)
+    loc_texture = glGetAttribLocation(program, "v_color");
+      if(loc_texture == -1)
       {
         std::cerr << "[F] COLOR NOT FOUND" << std::endl;
         return false;
@@ -317,6 +359,7 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
+    glDeleteBuffers(1, &texture);
 }
 
 // adds and removes menus
@@ -375,9 +418,7 @@ float getDT()
 {
     float ret;
 
-      // if object not rotating set time to t1
-      //t1 = std::chrono::high_resolution_clock::now();
-
+    // update time using time elapsed since last call
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();

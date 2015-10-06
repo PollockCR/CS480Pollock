@@ -7,7 +7,7 @@ This is the repository for the group Catherine Pollock, Conor Sullivan, and Pete
 
 Program Function
 ----------------
-The program will load a model provided to it by the command line. The model will be loaded using assimp and then displayed with the supplied texture.
+The program will load a model provided to it by the command line, along with its texture file (if applicable). The model will be loaded using assimp and then displayed with the supplied texture. If no texture is supplied, the model will be white.
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA06/PA6.php
 
@@ -15,48 +15,71 @@ Extra Credit
 ------------
 Extra credit was not offered in this project.
 
-Building This Program
----------------------
+Ubuntu Dependencies
+-------------------
 
-*This example requires assimp3* 
-*On ubuntu they can be installed with this command*
+The following packages can be installed with these commands:
+
+*This project requires magick++* 
+
+>$ sudo apt-get install libmagick++-dev imagemagick
+
+*This project requires assimp3* 
 
 >$ sudo apt-get install libassimp-dev
 
-*This example requires GLUT and GLEW* 
-*On ubuntu they can be installed with this command*
+*This project requires GLUT and GLEW* 
 
 >$ sudo apt-get install freeglut3-dev freeglut3 libglew1.6-dev
 
-*This example also requires GLM*
-*On Ubuntu it can be installed with this command*
+*This project requires GLM*
 
 >$ sudo apt-get install libglm-dev
 
-*On a Mac you can get these libraries with this command(using homebrew)*
+Mac OSX Dependencies
+--------------------
+
+The following libraries can be installed with these commands using homebrew:
+
+*This project requires magick++*
+
+>$ brew install imagemagick
+
+*This project requires assimp3* 
+
+>$ brew install assimp
+
+*This project requires GLUT and GLEW* 
 
 >$ brew install freeglut glew
 
-*On a Mac you can install GLM with this command(using homebrew)*
+*This project requires GLM*
+
 >$ brew install glm
 
-To build this example just 
+Additionally, ensure that the latest version of the Developer Tools is installed
+
+Building this Project
+---------------------
+
+To build this project just 
 
 >$ cd build
 
 >$ make
 
-*If you are using a Mac you will need to edit the makefile in the build directory*
+If you are using a Mac you will need to edit the makefile in the build directory
 
-*The excutable will be put in bin
+The excutable will be put in bin
 
-*To run the program, execute these commands, replacing with your object filepath*
+To run the program, execute these commands, replacing with your object filepath and your object's texture filepath:
 
 >$ cd ../bin/
 
->$ ./Model  ~/Desktop/table.obj
+>$ ./Model  ~/Desktop/capsule.obj ~/Desktop/capsule0.jpg
 
-Additional Notes For OSX Users
-------------------------------
+*or*
 
-Ensure that the latest version of the Developer Tools is installed.
+>$ cd ../bin/
+
+>$ ./Model  ~/Desktop/capsule.obj
