@@ -47,12 +47,14 @@ bool Mesh::loadMesh( char * objectFilename )
       tempVertex.position[1] = tempPos.y;
       tempVertex.position[2] = tempPos.z;
 
+      // if has texture, save uv values
       if( mesh->HasTextureCoords(0) )
       {
         aiVector3D tempTex = mesh -> mTextureCoords[0][face.mIndices[vertexNum]];
         tempVertex.uv[0] = tempTex.x;
         tempVertex.uv[1] = tempTex.y;
       }
+      // if no texture, save 0 for uv values
       else 
       {
         aiVector3D tempTex(0.0f, 0.0f, 0.0f);

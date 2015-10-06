@@ -135,15 +135,18 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
+    // pass blank texture if not given one 
     if( argc == 2 )
     {
       init = initialize( objPtr, blankTexture );
     }
+    // or, pass texture given from command line arguments
     else
     {
       init = initialize( objPtr, argv[2] );
     }
 
+    // if initialized, begin glut main loop
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -224,7 +227,7 @@ void update()
 
     // rotation of cube around itself
     model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    model = glm::scale(model, glm::vec3(3.5, 3.5, 3.5));
+    model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -263,11 +266,16 @@ bool initialize( char* objectFilename, const char* textureFilename )
     Mesh object;
     ShaderLoader programLoad;
 
+    // initialize magick
     Magick::InitializeMagick(NULL);
 
+    // create an image pointer
     Magick::Image* m_pImage;
 
+    // save image to image pointer
     m_pImage = new Magick::Image( textureFilename );
+
+    // write data to blob
     m_pImage->write(&m_blob, "RGBA");
 
     // load model into mesh object
@@ -351,6 +359,7 @@ void cleanUp()
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
+    glDeleteBuffers(1, &texture);
 }
 
 // adds and removes menus
@@ -409,9 +418,7 @@ float getDT()
 {
     float ret;
 
-      // if object not rotating set time to t1
-      //t1 = std::chrono::high_resolution_clock::now();
-
+    // update time using time elapsed since last call
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
