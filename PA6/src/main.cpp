@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
     // Get filename of object
     char* objPtr  = argv[1];
-    char* objPtr2 = argv[2];
+    //char* objPtr2 = argv[2];
 
     // Name and create the Window
     glutCreateWindow("Model Loader");

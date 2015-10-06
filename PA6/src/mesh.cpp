@@ -47,9 +47,18 @@ bool Mesh::loadMesh( char * objectFilename )
       tempVertex.position[1] = tempPos.y;
       tempVertex.position[2] = tempPos.z;
 
-      aiVector3D tempTex = mesh -> mTextureCoords[0][face.mIndices[vertexNum]];
-      tempVertex.uv[0] = tempTex.x;
-      tempVertex.uv[1] = tempTex.y;
+      if( mesh->HasTextureCoords(0) )
+      {
+        aiVector3D tempTex = mesh -> mTextureCoords[0][face.mIndices[vertexNum]];
+        tempVertex.uv[0] = tempTex.x;
+        tempVertex.uv[1] = tempTex.y;
+      }
+      else 
+      {
+        aiVector3D tempTex(0.0f, 0.0f, 0.0f);
+        tempVertex.uv[0] = tempTex.x;
+        tempVertex.uv[1] = tempTex.y;
+      }
 
       // push vertex to geometry
       geometry.push_back(tempVertex);      
