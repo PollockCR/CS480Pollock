@@ -31,6 +31,7 @@
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
+const char* blankTexture = "../../Resources/white.png";
 
 // GLOBAL VARIABLES
 
@@ -84,7 +85,7 @@ const char* fsFileName = "../bin/shader.fs";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize( char* objectFilename, char* pictureName );
+  bool initialize( char* objectFilename, const char* textureFilename );
   void cleanUp();
 
   //--Time function
@@ -94,6 +95,7 @@ const char* fsFileName = "../bin/shader.fs";
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
+    bool init = false;
     // If the user didn't provide a filename command line argument,
     // print an error and exit.
     if (argc <= 1)
@@ -109,16 +111,6 @@ int main(int argc, char **argv)
 
     // Get filename of object
     char* objPtr  = argv[1];
-    char* texPtr = NULL;
-
-    if( argc == 2 )
-    {
-      strcpy( texPtr, "../../Resources/white.png");
-    }
-    else
-    {
-      texPtr = argv[2];
-    }
     
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -143,7 +135,15 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize( objPtr, texPtr );
+    if( argc == 2 )
+    {
+      init = initialize( objPtr, blankTexture );
+    }
+    else
+    {
+      init = initialize( objPtr, argv[2] );
+    }
+
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -256,12 +256,14 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename, char* textureFilename )
+bool initialize( char* objectFilename, const char* textureFilename )
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
     Mesh object;
     ShaderLoader programLoad;
+
+    Magick::InitializeMagick(NULL);
 
     Magick::Image* m_pImage;
 
