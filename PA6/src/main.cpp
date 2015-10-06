@@ -109,8 +109,17 @@ int main(int argc, char **argv)
 
     // Get filename of object
     char* objPtr  = argv[1];
-    //char* objPtr2 = argv[2];
+    char* texPtr = NULL;
 
+    if( argc == 2 )
+    {
+      strcpy( texPtr, "../../Resources/white.png");
+    }
+    else
+    {
+      texPtr = argv[2];
+    }
+    
     // Name and create the Window
     glutCreateWindow("Model Loader");
 
@@ -134,7 +143,7 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    bool init = initialize( objPtr, objPtr2 );
+    bool init = initialize( objPtr, texPtr );
     if(init)
     {
         t1 = std::chrono::high_resolution_clock::now();
@@ -247,7 +256,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename, char* pictureName )
+bool initialize( char* objectFilename, char* textureFilename )
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
@@ -256,7 +265,7 @@ bool initialize( char* objectFilename, char* pictureName )
 
     Magick::Image* m_pImage;
 
-    m_pImage = new Magick::Image(pictureName);
+    m_pImage = new Magick::Image( textureFilename );
     m_pImage->write(&m_blob, "RGBA");
 
     // load model into mesh object

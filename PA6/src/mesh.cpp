@@ -64,7 +64,7 @@ bool Mesh::loadMesh( char * objectFilename )
       geometry.push_back(tempVertex);      
     }
   }
-  
+
   // return success
   return true;
 }

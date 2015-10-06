@@ -6,6 +6,7 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <vector>
+#include <string>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
