@@ -57,9 +57,6 @@ const char* blankTexture = "../../Resources/white.png";
   GLint loc_position;
   GLint loc_texture;
 
-  // Image blob
-  Magick::Blob m_blob;
-
   // transform matrices
   glm::mat4 model;// obj-> world (planet) 
   glm::mat4 view;// world->eye
@@ -265,6 +262,9 @@ bool initialize( char* objectFilename, const char* textureFilename )
     bool geometryLoadedCorrectly;
     Mesh object;
     ShaderLoader programLoad;
+    // Image blob
+    Magick::Blob m_blob;
+
 
     // initialize magick
     Magick::InitializeMagick(NULL);
@@ -272,8 +272,18 @@ bool initialize( char* objectFilename, const char* textureFilename )
     // create an image pointer
     Magick::Image* m_pImage;
 
-    // save image to image pointer
-    m_pImage = new Magick::Image( textureFilename );
+    // try to load image
+    try
+    {
+      // save image to image pointer
+      m_pImage = new Magick::Image( textureFilename );
+    }
+    // output error if not loaded
+    catch(Magick::Error& err)
+    {
+      std::cerr << "[F] IMAGE NOT LOADED CORRECTLY: " << err.what() << std::endl;
+      return false;
+    }
 
     // write data to blob
     m_pImage->write(&m_blob, "RGBA");
