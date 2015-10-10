@@ -155,7 +155,7 @@ void update()
     angle += dt * M_PI/2; //move through 90 degrees a second
 
     // move in a circle
-    model = glm::translate( glm::mat4(1.0f), glm::vec3(4.0 * sin(angle), 0.0, 4.0 * cos(angle)));
+    model = glm::translate( glm::mat4(1.0f), glm::vec3(20.0 * sin(angle), 0.0, 20.0 * cos(angle)));
 
     // rotate around y axis
     model = glm::rotate(model,angle,glm::vec3(0.0f,1.0f,0.0f));

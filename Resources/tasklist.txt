@@ -1,0 +1,16 @@
+- Gather data
+	- Planet scaling - based on sun of 1.0 (done in Mesh::loadMesh())
+	- Math for orbit paths and speed (done with glm::translate)
+	- Math for rotation (speed and axis)
+	- Moons with scaling, orbit paths and speed, rotation 
+- Function to zoom into planets - LookAt function?
+- Saturn's rings (make in blender with general planet model, apply Saturn's scaling)
+- Background
+- Implementing two programs (scaled and actual)
+- Updating readme and create user manual
+
+
+Extra stuff
+- Draw orbit paths
+- Rotate saturn's rings
+- Other rings?
