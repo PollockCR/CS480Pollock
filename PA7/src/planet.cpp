@@ -1,5 +1,4 @@
 #include "planet.h"
-
 Planet::Planet()
 {
   // set default valuess
