@@ -22,9 +22,10 @@ Planet::~Planet()
 {
 }
 
-bool Planet::loadImage( const char* imageFilepath )
+bool Planet::loadImage( const char* imageFilepath, Magick::Blob &m_blob )
 {
   // initialize magick
+  Magick::InitializeMagick(NULL);
   Magick::Image* temp_pImage;
 std::cout << imageFilepath << std::endl;
   // try to load image

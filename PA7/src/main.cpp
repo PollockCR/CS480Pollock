@@ -61,6 +61,7 @@ const char* blankTexture = "../../Resources/white.png";
   // planets
   std::vector<Planet> planets;
   int numPlanets = 0;
+  std::vector<Magick::Blob> blobs;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
@@ -165,21 +166,20 @@ void render()
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // enable the shader program
+    glUseProgram(program);  
+
   // loop through each planet
   for( index = 0; index < numPlanets; index++ )
   {
     // premultiply the matrix for this example
     planets[index].mvp = projection * view * planets[index].model;
 
-    // enable the shader program
-    glUseProgram(program);
-
     // upload the matrix to the shader
     glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(planets[index].mvp[0][0])); 
 
     // set up the Vertex Buffer Object so it can be drawn
     glEnableVertexAttribArray(loc_position);
-    glEnableVertexAttribArray(loc_texture);
     glBindBuffer(GL_ARRAY_BUFFER, planets[index].vbo_geometry);
 
     // set pointers into the vbo for each of the attributes(position and color)
@@ -189,6 +189,9 @@ void render()
                            GL_FALSE,//normalized?
                            sizeof(Vertex),//stride
                            0);//offset
+
+    glEnableVertexAttribArray(loc_texture);
+    glBindTexture(GL_TEXTURE_2D, planets[index].texture);
 
     glVertexAttribPointer( loc_texture,
                            2,
@@ -267,9 +270,9 @@ bool initialize( const char* objectFilename )
 {
     // define model with model loader
     bool fileReadCorrectly;
+    int index;
     std::vector<Mesh> meshes;
     ShaderLoader programLoad;
-    Magick::InitializeMagick(NULL);
 
     fileReadCorrectly = loadInfo( objectFilename, meshes );
 
@@ -278,6 +281,22 @@ bool initialize( const char* objectFilename )
       {
         return false;
       }
+
+    for( index = 0; index < numPlanets; index++ )
+    {
+      // Create a Vertex Buffer object to store this vertex info on the GPU
+      glGenBuffers(1, &(planets[index].vbo_geometry));
+      glBindBuffer(GL_ARRAY_BUFFER, planets[index].vbo_geometry);
+      glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size()*sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);
+
+      // Create Texture object
+      glGenTextures(1, &(planets[index].texture));
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, planets[index].texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[index].imageCols, planets[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, blobs[index].data());
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);        
+    }      
 
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName, program );
@@ -377,7 +396,9 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
       // load texture
       std::string textureFilepath;
       ifs >> textureFilepath;
-      imageLoadedCorrectly = planets[index].loadImage(textureFilepath.c_str());
+      Magick::Blob m_blob;
+      imageLoadedCorrectly = planets[index].loadImage(textureFilepath.c_str(), m_blob);
+      blobs.emplace_back(m_blob.data(), m_blob.length());
 
         // return false if not loaded
         if( !imageLoadedCorrectly )
@@ -404,19 +425,7 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
 
       // save size of geometry
       planets[index].geometrySize = meshes[index].geometry.size();
-
-      // Create a Vertex Buffer object to store this vertex info on the GPU
-      glGenBuffers(1, &(planets[index].vbo_geometry));
-      glBindBuffer(GL_ARRAY_BUFFER, planets[index].vbo_geometry);
-      glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size()*sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);
-
-      // Create Texture object
-      glGenTextures(1, &(planets[index].texture));
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, planets[index].texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[index].imageCols, planets[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, planets[index].m_blob.data());
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);      
+    
   }
 
   // update planet count
