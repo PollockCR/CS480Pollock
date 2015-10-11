@@ -2,6 +2,7 @@
 // created seperate files for fragment and vertex shader
 #include "shader.h" // header file of shader loaders
 #include "mesh.h" // header file of object loader
+#include "planet.h" // header file for planet class
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/freeglut.h>
 #include <iostream>
@@ -38,13 +39,8 @@ const char* blankTexture = "../../Resources/white.png";
   // Window size
   int w = 640, h = 480;
 
-  // geomerty size
-  int geometrySize;
-
   // The GLSL program handle
   GLuint program;
-  GLuint vbo_geometry;
-  GLuint texture;
 
   // rotations
   int orbit = -1;
@@ -58,10 +54,11 @@ const char* blankTexture = "../../Resources/white.png";
   GLint loc_texture;
 
   // transform matrices
-  glm::mat4 model;// obj-> world (planet) 
   glm::mat4 view;// world->eye
   glm::mat4 projection;// eye->clip
-  glm::mat4 mvp;// premultiplied modelviewprojection
+
+  // planets
+  std::vector<Planet> planets;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
@@ -168,18 +165,18 @@ void render()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // premultiply the matrix for this example
-  mvp = projection * view * model;
+  planets[0].mvp = projection * view * planets[0].model;
 
   // enable the shader program
   glUseProgram(program);
 
   // upload the matrix to the shader
-  glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &mvp[0][0]); 
+  glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(planets[0].mvp[0][0])); 
 
   // set up the Vertex Buffer Object so it can be drawn
   glEnableVertexAttribArray(loc_position);
   glEnableVertexAttribArray(loc_texture);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
+  glBindBuffer(GL_ARRAY_BUFFER, planets[0].vbo_geometry);
 
   // set pointers into the vbo for each of the attributes(position and color)
   glVertexAttribPointer( loc_position,//location of attribute
@@ -196,7 +193,7 @@ void render()
                          sizeof(Vertex),
                          (void*)offsetof(Vertex,uv));
 
-  glDrawArrays(GL_TRIANGLES, 0, geometrySize);//mode, starting index, count
+  glDrawArrays(GL_TRIANGLES, 0, planets[0].geometrySize);//mode, starting index, count
 
   //clean up
   glDisableVertexAttribArray(loc_position);
@@ -213,18 +210,15 @@ void update()
   // update object
 
     //total time
-    static float rotationAngle = 0.0;
-    static float orbitAngle = 0.0;
-
     float dt = getDT(); 
 
     // move object 90 degrees a second
-    orbitAngle += dt * M_PI/2; // orbit
-    rotationAngle += dt * M_PI/2; // rotate
+    planets[0].orbitAngle += dt * M_PI/2; // orbit
+    planets[0].rotationAngle += dt * M_PI/2; // rotate
 
     // rotation of cube around itself
-    model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+    planets[0].model = glm::rotate( glm::mat4(1.0f), planets[0].rotationAngle, planets[0].rotationAxis);
+    //model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -260,36 +254,25 @@ bool initialize( char* objectFilename, const char* textureFilename )
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
-    Mesh object;
+    bool imageLoadedCorrectly;
+    std::vector<Mesh> meshes;
     ShaderLoader programLoad;
-    // Image blob
-    Magick::Blob m_blob;
 
+    Planet tempPlanet;
+    planets.push_back(tempPlanet);
+    imageLoadedCorrectly = planets[0].loadImage(textureFilename);
 
-    // initialize magick
-    Magick::InitializeMagick(NULL);
+      // return false if not loaded
+      if( !imageLoadedCorrectly )
+      {
+        return false;
+      }
 
-    // create an image pointer
-    Magick::Image* m_pImage;
-
-    // try to load image
-    try
-    {
-      // save image to image pointer
-      m_pImage = new Magick::Image( textureFilename );
-    }
-    // output error if not loaded
-    catch(Magick::Error& err)
-    {
-      std::cerr << "[F] IMAGE NOT LOADED CORRECTLY: " << err.what() << std::endl;
-      return false;
-    }
-
-    // write data to blob
-    m_pImage->write(&m_blob, "RGBA");
+    Mesh tempMesh;
+    meshes.push_back(tempMesh);
 
     // load model into mesh object
-    geometryLoadedCorrectly = object.loadMesh( objectFilename );
+    geometryLoadedCorrectly = meshes[0].loadMesh( objectFilename );
 
       // return false if not loaded
       if( !geometryLoadedCorrectly )
@@ -298,17 +281,20 @@ bool initialize( char* objectFilename, const char* textureFilename )
         return false;
       }
 
+      // save size of geometry
+      planets[0].geometrySize = meshes[0].geometry.size();
+
     // Create a Vertex Buffer object to store this vertex info on the GPU
-    glGenBuffers(1, &vbo_geometry);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, object.geometry.size()*sizeof(Vertex), &object.geometry[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &(planets[0].vbo_geometry));
+    glBindBuffer(GL_ARRAY_BUFFER, planets[0].vbo_geometry);
+    glBufferData(GL_ARRAY_BUFFER, meshes[0].geometry.size()*sizeof(Vertex), &(meshes[0].geometry[0]), GL_STATIC_DRAW);
 
     // Create Texture object
-    glGenTextures(1, &texture);
+    glGenTextures(1, &(planets[0].texture));
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_pImage->columns(), m_pImage->rows(), 0, GL_RGBA,     
-                                                                GL_UNSIGNED_BYTE, m_blob.data());
+    glBindTexture(GL_TEXTURE_2D, planets[0].texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[0].m_pImage->columns(), planets[0].m_pImage->rows(), 0, GL_RGBA,     
+                                                                GL_UNSIGNED_BYTE, planets[0].m_blob.data());
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -356,9 +342,6 @@ bool initialize( char* objectFilename, const char* textureFilename )
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // save size of geometry
-    geometrySize = object.geometry.size();
-
     //and its done
     return true;
 }
@@ -368,8 +351,8 @@ void cleanUp()
 {
     // Clean up, Clean up
     glDeleteProgram(program);   
-    glDeleteBuffers(1, &vbo_geometry);
-    glDeleteBuffers(1, &texture);
+    glDeleteBuffers(1, &(planets[0].vbo_geometry));
+    glDeleteBuffers(1, &(planets[0].texture));
 }
 
 // adds and removes menus

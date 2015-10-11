@@ -1,5 +1,5 @@
-#ifndef MESH_H
-#define  MESH_H
+#ifndef PLANET_H
+#define PLANET_H
 
 // Resource used: http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
 #include <GL/glew.h> // glew must be included before the main gl libs
@@ -14,31 +14,35 @@
 #include <assimp/postprocess.h> // Post processing flags
 #include <assimp/color4.h> // Post processing flags
 
+// MAGICK++
+#include <Magick++.h>
+
 // GLM
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp> // makes passing matrices to shaders easier
 
-struct Vertex
-{
-   GLfloat position[3];
-   GLfloat uv[2];
-};
-
-// Mesh class represents interface between Assimp and OpenGL program
-// An object of this class takes a file name to loadMesh and uses Assimp to load model
-// Next, creates vertex buffers, index buffers, and texture objects, which contain model data
-
-class Mesh
+class Planet
 {
 public:
-   Mesh();
-   ~Mesh();
-   bool loadMesh( char* objectFilename );
-   std::vector<Vertex> geometry;
-private:   
+	Planet();
+	~Planet();
+	bool loadImage( const char* imageFilepath );
+	GLfloat scale = 1.0;
+	float rotationAngle = 0.0;
+	float orbitAngle = 0.0;
+  glm::vec3 rotationAxis;
+	bool rotateCW = true;
+	glm::mat4 model;
+	glm::mat4 mvp;
+	GLuint vbo_geometry;
+	GLuint texture;	
+  Magick::Blob m_blob;  	
+  Magick::Image* m_pImage;
+  int geometrySize;
+private:
+
 };
 
 #endif
-
