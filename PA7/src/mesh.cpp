@@ -11,7 +11,7 @@ Mesh::~Mesh()
 {
 }
 
-bool Mesh::loadMesh( char * objectFilename )
+bool Mesh::loadMesh( const char * objectFilename, GLfloat scale )
 {
   Assimp::Importer importer;
   unsigned int index, vertexNum;
@@ -43,9 +43,9 @@ bool Mesh::loadMesh( char * objectFilename )
       Vertex tempVertex;
 
       // save x y and z for each vertex
-      tempVertex.position[0] = tempPos.x;
-      tempVertex.position[1] = tempPos.y;
-      tempVertex.position[2] = tempPos.z;
+      tempVertex.position[0] = tempPos.x * scale;
+      tempVertex.position[1] = tempPos.y * scale;
+      tempVertex.position[2] = tempPos.z * scale;
 
       // if has texture, save uv values
       if( mesh->HasTextureCoords(0) )

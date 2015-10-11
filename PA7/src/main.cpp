@@ -32,6 +32,7 @@
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
+const char* defaultInfo = "../bin/planetinfo.txt";
 const char* blankTexture = "../../Resources/white.png";
 
 // GLOBAL VARIABLES
@@ -59,6 +60,7 @@ const char* blankTexture = "../../Resources/white.png";
 
   // planets
   std::vector<Planet> planets;
+  int numPlanets = 0;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
@@ -79,7 +81,8 @@ const char* blankTexture = "../../Resources/white.png";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize( char* objectFilename, const char* textureFilename );
+  bool initialize( const char* objectFilename );
+  bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes );
   void cleanUp();
 
   //--Time function
@@ -92,19 +95,16 @@ int main(int argc, char **argv)
     bool init = false;
     // If the user didn't provide a filename command line argument,
     // print an error and exit.
-    if (argc <= 1)
+    /*if (argc < 1)
     {
         std::cout << "ERROR: Usage: " << argv[0] << " <Filename>. Please try again." << std::endl;
         exit(1);
-    }
+    }*/
 
     // Initialize glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
-
-    // Get filename of object
-    char* objPtr  = argv[1];
     
     // Name and create the Window
     glutCreateWindow("Model Loader");
@@ -130,14 +130,14 @@ int main(int argc, char **argv)
 
     // Initialize all of our resources(shaders, geometry)
     // pass blank texture if not given one 
-    if( argc == 2 )
+    if( argc == 1 )
     {
-      init = initialize( objPtr, blankTexture );
+      init = initialize( defaultInfo );
     }
     // or, pass texture given from command line arguments
     else
     {
-      init = initialize( objPtr, argv[2] );
+      init = initialize( argv[1] );
     }
 
     // if initialized, begin glut main loop
@@ -160,41 +160,45 @@ int main(int argc, char **argv)
 // render the scene
 void render()
 {
+  int index;
   // clear the screen
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // premultiply the matrix for this example
-  planets[0].mvp = projection * view * planets[0].model;
+  // loop through each planet
+  for( index = 0; index < numPlanets; index++ )
+  {
+    // premultiply the matrix for this example
+    planets[index].mvp = projection * view * planets[index].model;
 
-  // enable the shader program
-  glUseProgram(program);
+    // enable the shader program
+    glUseProgram(program);
 
-  // upload the matrix to the shader
-  glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(planets[0].mvp[0][0])); 
+    // upload the matrix to the shader
+    glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(planets[index].mvp[0][0])); 
 
-  // set up the Vertex Buffer Object so it can be drawn
-  glEnableVertexAttribArray(loc_position);
-  glEnableVertexAttribArray(loc_texture);
-  glBindBuffer(GL_ARRAY_BUFFER, planets[0].vbo_geometry);
+    // set up the Vertex Buffer Object so it can be drawn
+    glEnableVertexAttribArray(loc_position);
+    glEnableVertexAttribArray(loc_texture);
+    glBindBuffer(GL_ARRAY_BUFFER, planets[index].vbo_geometry);
 
-  // set pointers into the vbo for each of the attributes(position and color)
-  glVertexAttribPointer( loc_position,//location of attribute
-                         3,//number of elements
-                         GL_FLOAT,//type
-                         GL_FALSE,//normalized?
-                         sizeof(Vertex),//stride
-                         0);//offset
+    // set pointers into the vbo for each of the attributes(position and color)
+    glVertexAttribPointer( loc_position,//location of attribute
+                           3,//number of elements
+                           GL_FLOAT,//type
+                           GL_FALSE,//normalized?
+                           sizeof(Vertex),//stride
+                           0);//offset
 
-  glVertexAttribPointer( loc_texture,
-                         2,
-                         GL_FLOAT,
-                         GL_FALSE,
-                         sizeof(Vertex),
-                         (void*)offsetof(Vertex,uv));
+    glVertexAttribPointer( loc_texture,
+                           2,
+                           GL_FLOAT,
+                           GL_FALSE,
+                           sizeof(Vertex),
+                           (void*)offsetof(Vertex,uv));
 
-  glDrawArrays(GL_TRIANGLES, 0, planets[0].geometrySize);//mode, starting index, count
-
+    glDrawArrays(GL_TRIANGLES, 0, planets[index].geometrySize);//mode, starting index, count
+  }
   //clean up
   glDisableVertexAttribArray(loc_position);
   glDisableVertexAttribArray(loc_texture);
@@ -208,20 +212,29 @@ void render()
 void update()
 {
   // update object
+  int index;
 
-    //total time
-    float dt = getDT(); 
+  //total time
+  float dt = getDT(); 
 
-    // move object 90 degrees a second
-    planets[0].orbitAngle += dt * M_PI/2; // orbit
-    planets[0].rotationAngle += dt * M_PI/2; // rotate
+  // loop through each planet
+  for( index = 0; index < numPlanets; index++ )
+  {
+    // move object orbitSpeed radians a second
+    planets[index].orbitAngle += dt * planets[index].orbitSpeed;
+    // move object rotationSpeed radians a second
+    planets[index].rotationAngle += dt * planets[index].rotationSpeed;
 
-    // rotation of cube around itself
-    planets[0].model = glm::rotate( glm::mat4(1.0f), planets[0].rotationAngle, planets[0].rotationAxis);
-    //model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+    // orbit of planet
+    planets[index].model = glm::translate(glm::mat4(1.0f), glm::vec3(planets[index].orbitPath.x * sin(planets[index].orbitAngle), planets[index].orbitPath.y, planets[index].orbitPath.z * cos(planets[index].orbitAngle)));
 
-  // update the state of the scene
-  glutPostRedisplay();//call the display callback
+    // rotation of planet
+    planets[index].model = glm::rotate( planets[index].model, planets[index].rotationAngle, planets[index].rotationAxis);
+
+    //model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0)); 
+  }
+    // update the state of the scene
+    glutPostRedisplay();//call the display callback   
 }
 
 // resize window
@@ -250,53 +263,21 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename, const char* textureFilename )
+bool initialize( const char* objectFilename )
 {
     // define model with model loader
-    bool geometryLoadedCorrectly;
-    bool imageLoadedCorrectly;
+    bool fileReadCorrectly;
     std::vector<Mesh> meshes;
     ShaderLoader programLoad;
+    Magick::InitializeMagick(NULL);
 
-    Planet tempPlanet;
-    planets.push_back(tempPlanet);
-    imageLoadedCorrectly = planets[0].loadImage(textureFilename);
+    fileReadCorrectly = loadInfo( objectFilename, meshes );
 
-      // return false if not loaded
-      if( !imageLoadedCorrectly )
+      // check that file was read
+      if( !fileReadCorrectly )
       {
         return false;
       }
-
-    Mesh tempMesh;
-    meshes.push_back(tempMesh);
-
-    // load model into mesh object
-    geometryLoadedCorrectly = meshes[0].loadMesh( objectFilename );
-
-      // return false if not loaded
-      if( !geometryLoadedCorrectly )
-      {
-        std::cerr << "[F] GEOMETRY NOT LOADED CORRECTLY" << std::endl;
-        return false;
-      }
-
-      // save size of geometry
-      planets[0].geometrySize = meshes[0].geometry.size();
-
-    // Create a Vertex Buffer object to store this vertex info on the GPU
-    glGenBuffers(1, &(planets[0].vbo_geometry));
-    glBindBuffer(GL_ARRAY_BUFFER, planets[0].vbo_geometry);
-    glBufferData(GL_ARRAY_BUFFER, meshes[0].geometry.size()*sizeof(Vertex), &(meshes[0].geometry[0]), GL_STATIC_DRAW);
-
-    // Create Texture object
-    glGenTextures(1, &(planets[0].texture));
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, planets[0].texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[0].m_pImage->columns(), planets[0].m_pImage->rows(), 0, GL_RGBA,     
-                                                                GL_UNSIGNED_BYTE, planets[0].m_blob.data());
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // loads shaders to program
     programLoad.loadShader( vsFileName, fsFileName, program );
@@ -346,13 +327,126 @@ bool initialize( char* objectFilename, const char* textureFilename )
     return true;
 }
 
+bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
+{
+  std::ifstream ifs(infoFilepath, std::ifstream::in);
+  bool geometryLoadedCorrectly;
+  bool imageLoadedCorrectly;
+  int index;
+  int numInfo = -1;
+  GLfloat scale;
+
+  if( !ifs.is_open() )
+  {
+    std::cerr << "[F] FAILED TO READ FILE!" << infoFilepath << std::endl;
+    return false;    
+  }
+
+  ifs >> numInfo;
+  if( numInfo == -1 )
+  {
+    std::cerr << "[F] FAILED TO READ FILE! INVALID FORMAT" << std::endl;
+    return false; 
+  }
+
+  for( index = 0; index < numInfo; index++ )
+  {
+    // create new planet
+    Planet tempPlanet;
+    planets.push_back(tempPlanet);
+
+    // create new mesh
+    Mesh tempMesh;
+    meshes.push_back(tempMesh);
+
+    // read from file
+
+      // load obj file
+      std::string objFilepath;
+      ifs >> objFilepath;
+      ifs >> scale;
+      geometryLoadedCorrectly = meshes[index].loadMesh( objFilepath.c_str(), scale );
+
+        // return false if not loaded
+        if( !geometryLoadedCorrectly )
+        {
+          std::cerr << "[F] GEOMETRY NOT LOADED CORRECTLY" << std::endl;
+          return false;
+        }
+
+      // load texture
+      std::string textureFilepath;
+      ifs >> textureFilepath;
+      imageLoadedCorrectly = planets[index].loadImage(textureFilepath.c_str());
+
+        // return false if not loaded
+        if( !imageLoadedCorrectly )
+        {
+          return false;
+        }
+
+      // load rotation speed
+      ifs >> planets[index].rotationSpeed;
+
+      // load orbit speed
+      ifs >> planets[index].orbitSpeed;
+
+      // load rotation axis
+      ifs >> planets[index].rotationAxis.x >> planets[index].rotationAxis.y >> planets[index].rotationAxis.z;
+
+      // load orbit path 
+      ifs >> planets[index].orbitPath.x >> planets[index].orbitPath.y >> planets[index].orbitPath.z;
+
+      // load index of planet to orbit
+      ifs >> planets[index].orbitIndex;
+
+      //std::cout << objFilepath << ' ' << scale << ' ' << textureFilepath << ' ' <<planets[index].rotationSpeed << ' ' << planets[index].orbitSpeed << ' ' << planets[index].rotationAxis.x << ' ' << planets[index].rotationAxis.y << ' ' << planets[index].rotationAxis.z << ' ' << planets[index].orbitPath.x << ' ' << planets[index].orbitPath.y << ' ' << planets[index].orbitPath.z << std::endl;
+
+      // save size of geometry
+      planets[index].geometrySize = meshes[index].geometry.size();
+
+      // Create a Vertex Buffer object to store this vertex info on the GPU
+      glGenBuffers(1, &(planets[index].vbo_geometry));
+      glBindBuffer(GL_ARRAY_BUFFER, planets[index].vbo_geometry);
+      glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size()*sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);
+
+      // Create Texture object
+      glGenTextures(1, &(planets[index].texture));
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, planets[index].texture);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[index].imageCols, planets[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, planets[index].m_blob.data());
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);      
+  }
+
+  // update planet count
+  numPlanets = planets.size();
+
+  if( numInfo != numPlanets )
+  {
+    std::cerr << "[F] FAILED TO READ FILE! DATA DOES NOT MATCH PLANET COUNT" << std::endl;
+    return false; 
+  }  
+
+  // return success
+  return true;
+}
+
 // delete old items
 void cleanUp()
 {
-    // Clean up, Clean up
-    glDeleteProgram(program);   
-    glDeleteBuffers(1, &(planets[0].vbo_geometry));
-    glDeleteBuffers(1, &(planets[0].texture));
+  // initialize variables
+  int index;
+
+  // clean up program
+  glDeleteProgram(program);   
+
+    // clean up each planet
+    for( index = 0; index < numPlanets; index++ )
+    {
+      glDeleteBuffers(1, &(planets[index].vbo_geometry));
+      glDeleteBuffers(1, &(planets[index].texture));      
+    }
 }
 
 // adds and removes menus
