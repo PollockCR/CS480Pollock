@@ -61,7 +61,6 @@ const char* blankTexture = "../../Resources/white.png";
   // planets
   std::vector<Planet> planets;
   int numPlanets = 0;
-  std::vector<Magick::Blob> blobs;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
@@ -293,7 +292,7 @@ bool initialize( const char* objectFilename )
       glGenTextures(1, &(planets[index].texture));
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, planets[index].texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[index].imageCols, planets[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, blobs[index].data());
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, planets[index].imageCols, planets[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, planets[index].m_blob.data());
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);        
     }      
@@ -396,9 +395,7 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
       // load texture
       std::string textureFilepath;
       ifs >> textureFilepath;
-      Magick::Blob m_blob;
-      imageLoadedCorrectly = planets[index].loadImage(textureFilepath.c_str(), m_blob);
-      blobs.emplace_back(m_blob.data(), m_blob.length());
+      imageLoadedCorrectly = planets[index].loadImage(textureFilepath.c_str());
 
         // return false if not loaded
         if( !imageLoadedCorrectly )
