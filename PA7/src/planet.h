@@ -29,7 +29,7 @@ public:
 	Planet();
 	~Planet();
   //Planet& operator=(const Planet&);
-	bool loadImage( const char* imageFilepath );
+	bool loadImage( const char* imageFilepath, Magick::Blob &m_blob );
 	GLfloat scale;
 	float rotationAngle;
 	float orbitAngle;
@@ -42,7 +42,6 @@ public:
 	glm::mat4 mvp;
 	GLuint vbo_geometry;
 	GLuint texture;	
-  Magick::Blob m_blob;  
   GLuint imageCols;
   GLuint imageRows;
   int geometrySize;
