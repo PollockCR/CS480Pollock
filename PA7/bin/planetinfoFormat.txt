@@ -1,0 +1,10 @@
+int numberOfPlanets
+string filepathToObject
+GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
+string filepathToTexture
+float rotationSpeed
+float orbitSpeed
+glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
+glm::vec3 orbitPath (i.e. "4.0 0.0 4.0" for 4 units x/z axis)
+int orbitIndex (for index of object orbiting around, 0 for sun)
+
