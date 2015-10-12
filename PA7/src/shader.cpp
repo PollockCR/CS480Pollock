@@ -25,7 +25,8 @@ std::string ShaderLoader::readFile(const char *filePath)
 
     // save each line to string
     std::string line = "";
-    while(!ifs.eof()) {
+    while(!ifs.eof())
+    {
         std::getline(ifs, line);
         content.append(line + "\n");
     }

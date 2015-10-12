@@ -28,18 +28,23 @@ class Planet
 public:
 	Planet();
 	~Planet();
+  //Planet& operator=(const Planet&);
 	bool loadImage( const char* imageFilepath );
-	GLfloat scale = 1.0;
-	float rotationAngle = 0.0;
-	float orbitAngle = 0.0;
+	GLfloat scale;
+	float rotationAngle;
+	float orbitAngle;
+  float rotationSpeed;
+  float orbitSpeed;
   glm::vec3 rotationAxis;
-	bool rotateCW = true;
+  glm::vec3 orbitPath;
+  int orbitIndex;
 	glm::mat4 model;
 	glm::mat4 mvp;
+  Magick::Blob m_blob;
 	GLuint vbo_geometry;
 	GLuint texture;	
-  Magick::Blob m_blob;  	
-  Magick::Image* m_pImage;
+  GLuint imageCols;
+  GLuint imageRows;
   int geometrySize;
 private:
 

@@ -1,0 +1,49 @@
+6
+../bin/planet.obj
+1.0
+../bin/sunmap.png
+0.2
+0.0
+0.0 1.0 0.0
+0.0 0.0 0.0
+0
+../bin/planet.obj
+0.1
+../bin/mercurymap.jpg
+1.5
+2.0
+0.0 1.0 0.0
+2.0 0.0 2.0
+0
+../bin/planet.obj
+0.3
+../bin/venusmap.jpg
+1.0
+1.5
+0.0 1.0 0.0
+4.0 0.0 4.0
+0
+../bin/planet.obj
+0.3
+../bin/earthmap.jpg
+5.0
+1.0
+0.0 1.0 0.0
+6.0 0.0 6.0
+0
+../bin/planet.obj
+0.1
+../bin/moonmap.jpg
+1.0
+2.0
+0.0 1.0 0.0
+1.0 0.0 1.0
+3
+../bin/planet.obj
+0.2
+../bin/marsmap.jpg
+5.0
+0.8
+0.0 1.0 0.0
+8.0 0.0 8.0
+0
