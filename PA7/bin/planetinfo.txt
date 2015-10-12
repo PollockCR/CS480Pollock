@@ -1,4 +1,4 @@
-6
+12
 ../bin/planet.obj
 1.0
 ../bin/sunmap.png
@@ -46,4 +46,52 @@
 0.8
 0.0 1.0 0.0
 8.0 0.0 8.0
+0
+../bin/planet.obj
+0.5
+../bin/jupitermap.jpg
+8.0
+0.2
+0.0 1.0 0.0
+10.0 0.0 10.0
+0
+../bin/planet.obj
+0.4
+../bin/saturnmap.png
+8.0
+0.14
+0.0 1.0 0.0
+12.0 0.0 12.0
+0
+../bin/planet.obj
+0.1
+../bin/uranusmap.jpg
+5.0
+0.12
+0.0 1.0 0.0
+14.0 1.0 14.0
+0
+../bin/planet.obj
+0.35
+../bin/neptunemap.jpg
+5.0
+0.1
+0.0 1.0 0.0
+16.0 0.0 16.0
+0
+../bin/planet.obj
+0.1
+../bin/plutomap.png
+5.0
+0.07
+0.0 1.0 0.0
+16.0 1.0 18.0
+0
+../bin/planet.obj
+15
+../bin/starsmap.png
+0.1
+0.0
+0.0 1.0 0.0
+0.0 0.0 0.0
 0
