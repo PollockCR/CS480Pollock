@@ -36,3 +36,5 @@
 
 # Temporary files
 *.*~
+
+.DS_Store
