@@ -42,6 +42,7 @@ bool Planet::loadImage( const char* imageFilepath )
     return false;
   }
 
+  // save image dimensions
   imageCols = temp_pImage->columns();
   imageRows = temp_pImage->rows();
 

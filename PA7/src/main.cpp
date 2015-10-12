@@ -93,13 +93,6 @@ const char* blankTexture = "../../Resources/white.png";
 int main(int argc, char **argv)
 {
     bool init = false;
-    // If the user didn't provide a filename command line argument,
-    // print an error and exit.
-    /*if (argc < 1)
-    {
-        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>. Please try again." << std::endl;
-        exit(1);
-    }*/
 
     // Initialize glut
     glutInit(&argc, argv);
@@ -107,7 +100,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
     
     // Name and create the Window
-    glutCreateWindow("Model Loader");
+    glutCreateWindow("Solar System");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -129,12 +122,12 @@ int main(int argc, char **argv)
     manageMenus( false );
 
     // Initialize all of our resources(shaders, geometry)
-    // pass blank texture if not given one 
+    // pass default planet info if not given one 
     if( argc == 1 )
     {
       init = initialize( defaultInfo );
     }
-    // or, pass texture given from command line arguments
+    // or, pass planet info given from command line argument
     else
     {
       init = initialize( argv[1] );
@@ -227,8 +220,24 @@ void update()
     // move object rotationSpeed radians a second
     planets[index].rotationAngle += dt * planets[index].rotationSpeed;
 
-    // orbit of planet
-    planets[index].model = glm::translate(glm::mat4(1.0f), glm::vec3(planets[index].orbitPath.x * sin(planets[index].orbitAngle), planets[index].orbitPath.y, planets[index].orbitPath.z * cos(planets[index].orbitAngle)));
+    // check for moon 
+    if( planets[index].orbitIndex == 0 )
+    {
+      // orbit of planet
+      planets[index].model = glm::translate(glm::mat4(1.0f),
+          glm::vec3(planets[index].orbitPath.x * sin(planets[index].orbitAngle),
+                    planets[index].orbitPath.y,
+                    planets[index].orbitPath.z * cos(planets[index].orbitAngle)));
+    }
+    else
+    {
+      // orbit of planet
+      planets[index].model = glm::translate(glm::mat4(1.0f),
+          glm::vec3(planets[index].orbitPath.x * sin(planets[index].orbitAngle),
+                    planets[index].orbitPath.y,
+                    planets[index].orbitPath.z * cos(planets[index].orbitAngle))) * planets[planets[index].orbitIndex].model;
+    }
+
 
     // rotation of planet
     planets[index].model = glm::rotate( planets[index].model, planets[index].rotationAngle, planets[index].rotationAxis);
@@ -345,8 +354,10 @@ bool initialize( const char* objectFilename )
     return true;
 }
 
+// load info from file into planets
 bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
 {
+  // initialize variables
   std::ifstream ifs(infoFilepath, std::ifstream::in);
   bool geometryLoadedCorrectly;
   bool imageLoadedCorrectly;
@@ -354,19 +365,24 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
   int numInfo = -1;
   GLfloat scale;
 
+  // check for open file
   if( !ifs.is_open() )
   {
     std::cerr << "[F] FAILED TO READ FILE!" << infoFilepath << std::endl;
     return false;    
   }
 
+  // read in number of planets
   ifs >> numInfo;
+
+  // check for invalid file format
   if( numInfo == -1 )
   {
     std::cerr << "[F] FAILED TO READ FILE! INVALID FORMAT" << std::endl;
     return false; 
   }
 
+  // loop through each planet
   for( index = 0; index < numInfo; index++ )
   {
     // create new planet
@@ -418,8 +434,6 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
       // load index of planet to orbit
       ifs >> planets[index].orbitIndex;
 
-      //std::cout << objFilepath << ' ' << scale << ' ' << textureFilepath << ' ' <<planets[index].rotationSpeed << ' ' << planets[index].orbitSpeed << ' ' << planets[index].rotationAxis.x << ' ' << planets[index].rotationAxis.y << ' ' << planets[index].rotationAxis.z << ' ' << planets[index].orbitPath.x << ' ' << planets[index].orbitPath.y << ' ' << planets[index].orbitPath.z << std::endl;
-
       // save size of geometry
       planets[index].geometrySize = meshes[index].geometry.size();
     
@@ -428,6 +442,7 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes )
   // update planet count
   numPlanets = planets.size();
 
+  // make sure data matches
   if( numInfo != numPlanets )
   {
     std::cerr << "[F] FAILED TO READ FILE! DATA DOES NOT MATCH PLANET COUNT" << std::endl;
