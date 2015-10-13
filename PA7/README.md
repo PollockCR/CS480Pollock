@@ -9,23 +9,23 @@ Program Function
 ----------------
 The program models the solar system. Planet information files can be passed through the command line, or default ones will be used. Two files are loaded from, one with scaled planet data and one with actual planet data. Scaled mode provides exaggerated planet sizes and orbits for better user viewing. Actual mode provides a view that demonstrates correct ratios in relation to the solar system. Planet information files must be in the following format:
 
->$ int numberOfPlanets
+> int numberOfPlanets
 
->$ string filepathToObject
+> string filepathToObject
 
->$ GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
+> GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
 
->$ string filepathToTexture
+> string filepathToTexture
 
->$ float rotationSpeed
+> float rotationSpeed
 
->$ float orbitSpeed
+> float orbitSpeed
 
->$ glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
+> glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
 
->$ glm::vec3 orbitPath (i.e. "4.0 0.0 4.0" for 4 units x/z axis)
+> glm::vec3 orbitPath (i.e. "4.0 0.0 4.0" for 4 units x/z axis)
 
->$ int orbitIndex (for index of object orbiting around, 0 for sun)
+> int orbitIndex (for index of object orbiting around, 0 for sun)
 
 Planet information files must be in correct format or undesired results will occur. All files mentioned must be in location specified in planet info files. 
 
