@@ -43,7 +43,11 @@ const char* blankTexture = "../../Resources/white.png";
 
   // The GLSL program handle
   GLuint program[2];
+  GLuint textProgram;
+
+  // flags
   int mode = 0;
+  bool displayMenu = true;
 
   // uniform locations
   GLint loc_mvpmat[2];// Location of the modelviewprojection matrix in the shader
@@ -67,6 +71,8 @@ const char* blankTexture = "../../Resources/white.png";
 
   //--GLUT Callbacks
   void render();
+  void displayText();
+  void sPrint( float xPos, float yPos, char *str);
 
   // update display functions
   void update();
@@ -158,6 +164,13 @@ void render()
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // display menu if enabled
+  if(displayMenu)
+  {
+    displayText();
+  }
+
+
   // set offset for planets (scaled = 0, actual = numPlanets)
   if( mode == 1 )
   {
@@ -207,6 +220,45 @@ void render()
                
   //swap the buffers
   glutSwapBuffers();    
+}
+
+// displays text on screen
+void displayText()
+{
+  // place text 
+  glUseProgram(textProgram);
+  char* textMode = new char[100];
+  if( mode == 0 )
+  {
+    textMode = (char*)"Mode - Spacebar: Scaled view";
+  }
+  else 
+  {
+    textMode = (char*)"Mode - Spacebar: Actual view";
+  }
+  sPrint(-0.95, 0.90, (char*)"Quit - Esc");
+  sPrint(-0.95, 0.80, (char*)"Toggle Menu Display - m");
+  sPrint(-0.95, 0.70, textMode);
+}
+
+// prints a string to the screen
+void sPrint( float xPos, float yPos, char *str)
+{
+  int length;
+  int index;
+
+  // see how many characters are in text string.
+  length = strlen( str ); 
+
+  // location to start printing text
+  glRasterPos2f(xPos, yPos); 
+
+  // loop until index is greater then length
+  for( index = 0; index < length; index++) 
+  {
+    // Print a character on the screen
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, str[index]); 
+  }
 }
 
 // called on idle to update display
@@ -277,30 +329,38 @@ void reshape(int n_w, int n_h)
 // called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
-  // Handle keyboard input - end program
-  if(key == 27) // esc
+  // Handle keyboard input
+  switch(key)
   {
-    glutLeaveMainLoop();
-  }  
+    //end program
+    case 27: // esc
+      glutLeaveMainLoop();
+      break; 
   // switch modes
-  if(key == 32) // space bar
-  {
-    if( mode == 0 )
-    {
-      mode = 1;
-    }
-    else 
-    {
-      mode = 0;
-    }
+    case 32: // space bar
+      if( mode == 0 )
+      {
+        mode = 1;
+      }
+      else 
+      {
+        mode = 0;
+      }
+      break;
+    case 77:
+    case 109:
+      displayMenu = !displayMenu;
+      break;
+    default:
+      break;
   }   
+
 }
 
 // initialize basic geometry and shaders for this example
 bool initialize( const char* scaledFilename, const char* actualFilename )
 {
     // define model with model loader
-    bool fileReadCorrectly;
     int pIndex;
     int index;
     int offset = 0;
@@ -536,6 +596,7 @@ void manageMenus( bool quitCall )
     main_menu = glutCreateMenu(menu); // Call menu function
     glutAddMenuEntry("Quit", 1);
     glutAddMenuEntry("Switch Mode", 2);
+    glutAddMenuEntry("Toggle Menu Display", 3);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -569,6 +630,9 @@ void menu(int id)
       {
         mode = 0;
       }
+      break;
+    case 3: // toggle menu display
+      displayMenu = !displayMenu;
       break;
     // default do nothing
     default:
