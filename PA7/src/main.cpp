@@ -28,6 +28,16 @@
 #include <Magick++.h>
 
 // DATA TYPES
+/*struct ViewData
+{
+  int currentView = 0;
+  bool newView = false;
+  bool updateViewFlag = false;
+  float currentPos[3];
+  float destPos[3];
+  float currentFocus[3];
+  float destFocus[3];  
+};*/
 
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
@@ -44,6 +54,8 @@ const char* blankTexture = "../../Resources/white.png";
   // The GLSL program handle
   GLuint program[2];
   GLuint textProgram;
+  bool updateViewFlag = false;
+  int currentView = 0;
 
   // flags
   int mode = 0;
@@ -59,6 +71,7 @@ const char* blankTexture = "../../Resources/white.png";
   // transform matrices
   glm::mat4 view;// world->eye
   glm::mat4 projection;// eye->clip
+  glm::mat4 temp;
 
   // planets
   std::vector<Planet> planets;
@@ -72,14 +85,16 @@ const char* blankTexture = "../../Resources/white.png";
   //--GLUT Callbacks
   void render();
   void displayText();
-  void sPrint( float xPos, float yPos, char *str);
+  void sPrint( float xPos, float yPos, const char *str);
 
   // update display functions
   void update();
+  void changeView();
   void reshape(int n_w, int n_h);
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
+  void special(int key, int xPos, int yPos);  
   void manageMenus(bool quitCall);
   void menu(int id);
   void mouse(int button, int state, int x_pos, int y_pos);
@@ -121,6 +136,8 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutSpecialFunc(special); // Called if there is special input (arrows)
+
 
     // add menus
     manageMenus( false );
@@ -228,6 +245,7 @@ void displayText()
   // place text 
   glUseProgram(textProgram);
   char* textMode = new char[100];
+  std::string textPlanet = "Current View - L/R Arrows: " + planets[currentView].nameOfPlanet;
   if( mode == 0 )
   {
     textMode = (char*)"Mode - Spacebar: Scaled view";
@@ -239,10 +257,12 @@ void displayText()
   sPrint(-0.95, 0.90, (char*)"Quit - Esc");
   sPrint(-0.95, 0.80, (char*)"Toggle Menu Display - m");
   sPrint(-0.95, 0.70, textMode);
+  sPrint(-0.95, 0.60, textPlanet.c_str());  
+
 }
 
 // prints a string to the screen
-void sPrint( float xPos, float yPos, char *str)
+void sPrint( float xPos, float yPos, const char *str)
 {
   int length;
   int index;
@@ -307,8 +327,104 @@ void update()
     // rotation of planet
     planets[index+offset].model = glm::rotate( planets[index+offset].model, planets[index+offset].rotationAngle, planets[index+offset].rotationAxis);
   }
-    // update the state of the scene
-    glutPostRedisplay();//call the display callback   
+
+  // change the view
+  changeView();
+
+
+  // update the state of the scene
+  glutPostRedisplay();//call the display callback   
+}
+
+// change which planet to view
+void changeView()
+{
+  //int index;
+  int offset = 0;
+  if( mode == 1 )
+  {
+    offset = numPlanets - 1;
+  }
+
+  //static float currentPos[3];
+  //static float currentFocus[3];
+  static float destPos[3];
+  static float destFocus[3];
+
+  switch( currentView )
+  {
+    // default view
+    case 0:
+      updateViewFlag = false;
+      view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
+                          glm::vec3(0.0, 0.0, 0.0), //Focus point
+                          glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+      break;
+    default:
+      destPos[0] = (4 + planets[currentView+offset].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
+      destPos[1] = planets[currentView+offset].orbitPath.y;        
+      destPos[2] = (4 + planets[currentView+offset].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);        
+      destFocus[0] = planets[currentView+offset].orbitPath.x * sin(planets[currentView+offset].orbitAngle);        
+      destFocus[1] = planets[currentView+offset].orbitPath.y;        
+      destFocus[2] = planets[currentView+offset].orbitPath.z * cos(planets[currentView+offset].orbitAngle);            
+    /*
+      currentPos[0] = (4 + planets[currentView+offset-1].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
+      currentPos[1] = planets[currentView+offset-1].orbitPath.y;
+      currentPos[2] = (4 + planets[currentView+offset-1].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);
+      currentFocus[0] = planets[currentView+offset-1].orbitPath.x * sin(planets[currentView+offset].orbitAngle);
+      currentFocus[1] = planets[currentView+offset-1].orbitPath.y; 
+      currentFocus[2] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
+
+      if( updateViewFlag )
+      {
+        for( index = 0; index < 3; index++ )
+        {
+          if( currentPos[index] < destPos[index] )
+          {
+            currentPos[index] += 0.15;
+          }
+          if( currentFocus[index] > destFocus[index] )
+          {
+            currentPos[index] -= 0.15;
+          }
+
+          if( currentFocus[index] < destFocus[index] )
+          {
+            currentFocus[index] += 0.15;
+          }
+          if( currentFocus[index] > destFocus[index] )
+          {
+            currentFocus[index] -= 0.15;
+          }          
+        }
+
+        if( (currentPos[0] - destPos[0]) <= 0.5 && (currentPos[0] - destPos[0]) >= -0.5 &&
+            (currentPos[1] - destPos[1]) <= 0.5 && (currentPos[1] - destPos[1]) >= -0.5 &&            
+            (currentPos[2] - destPos[2]) <= 0.5 && (currentPos[2] - destPos[2]) >= -0.5 &&
+            (currentFocus[0] - destFocus[0]) <= 0.5 && (currentFocus[0] - destFocus[0]) >= -0.5 &&
+            (currentFocus[1] - destFocus[1]) <= 0.5 && (currentFocus[1] - destFocus[1]) >= -0.5 &&            
+            (currentFocus[2] - destFocus[2]) <= 0.5 && (currentFocus[2] - destFocus[2]) >= -0.5 )
+        {
+          updateViewFlag = false;
+          view = temp;
+        }
+
+        view = glm::lookAt( glm::vec3(currentPos[0], currentPos[1], currentPos[2]), 
+                      glm::vec3(currentFocus[0], currentFocus[1], currentFocus[2]), 
+                      glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up          
+      }
+      else
+      {
+    */
+      view = glm::lookAt(glm::vec3(destPos[0], destPos[1], destPos[2]), 
+                           glm::vec3(destFocus[0], destFocus[1], destFocus[2]), 
+                           glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+     // }
+      break;
+  }
+
+  // update the state of the scene
+  glutPostRedisplay();//call the display callback   
 }
 
 // resize window
@@ -355,6 +471,37 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       break;
   }   
 
+}
+
+void special(int key, int xPos, int yPos)
+{
+  // reset view 
+  if( key == GLUT_KEY_LEFT)
+  {
+    currentView = 0;
+    updateViewFlag = true;        
+  }
+  // go to next view
+  else if( key == GLUT_KEY_RIGHT)
+  {
+    // increment planet view index
+    currentView++;
+
+    // skip moons
+    if( planets[currentView].orbitIndex != 0 )
+    {
+      currentView++;
+    }
+
+    // reset if at end
+    if( currentView >= numPlanets - 1 )
+    {
+      currentView = 0;
+    }      
+
+    // flag to update view
+    updateViewFlag = true;
+  }  
 }
 
 // initialize basic geometry and shaders for this example
@@ -528,6 +675,9 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int offset )
         {
           return false;
         }
+
+      // load texture name
+      ifs >> planets[index+offset].nameOfPlanet;
 
       // load rotation speed
       ifs >> planets[index+offset].rotationSpeed;

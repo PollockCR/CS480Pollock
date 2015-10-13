@@ -17,6 +17,8 @@ The program models the solar system. Planet information files can be passed thro
 
 > string filepathToTexture
 
+> string nameOfTexture (no spaces)
+
 > float rotationSpeed
 
 > float orbitSpeed
@@ -33,7 +35,11 @@ When the program is running, the following commands can be used:
 
 To quit: *Esc*
 
+To toggle menu display: *m*
+
 To change mode: *spacebar* or *right-click menu*
+
+To change view: *left-arrow* to reset or *right-arrow* to go to next planet
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA07/PA7.php
 
@@ -41,6 +47,8 @@ Extra Credit
 ------------
 The following features were added beyond project requirements:
 - Option to go from actual data to scaled view (spacebar)
+- Menu lists options for interaction (display can be toggled with m)
+- Displays name of current planet view and current mode
 
 Ubuntu Dependencies
 -------------------

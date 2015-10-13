@@ -2,6 +2,7 @@ int numberOfPlanets
 string filepathToObject
 GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
 string filepathToTexture
+string nameOfTexture
 float rotationSpeed
 float orbitSpeed
 glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
