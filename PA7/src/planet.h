@@ -30,6 +30,7 @@ public:
    ~Planet();
    //Planet& operator=(const Planet&);
    bool loadImage( const char* imageFilepath );
+   std::string nameOfPlanet;
    GLfloat scale;
    float rotationAngle;
    float orbitAngle;

@@ -2,6 +2,7 @@
 ../bin/planet.obj
 2.0
 ../bin/sunmap.png
+SolarSystem
 0.2
 0.0
 0.0 1.0 0.0
@@ -10,6 +11,7 @@
 ../bin/planet.obj
 0.05
 ../bin/mercurymap.jpg
+Mercury
 1.5
 2.0
 0.0 1.0 0.0
@@ -18,6 +20,7 @@
 ../bin/planet.obj
 0.15
 ../bin/venusmap.jpg
+Venus
 1.0
 1.5
 0.0 1.0 0.0
@@ -26,6 +29,7 @@
 ../bin/planet.obj
 0.15
 ../bin/earthmap.jpg
+Earth
 5.0
 1.0
 0.0 1.0 0.0
@@ -34,6 +38,7 @@
 ../bin/planet.obj
 0.05
 ../bin/moonmap.jpg
+Moon
 1.0
 2.0
 0.0 1.0 0.0
@@ -42,6 +47,7 @@
 ../bin/planet.obj
 0.1
 ../bin/marsmap.jpg
+Mars
 5.0
 0.8
 0.0 1.0 0.0
@@ -50,6 +56,7 @@
 ../bin/planet.obj
 0.25
 ../bin/jupitermap.jpg
+Jupiter
 8.0
 0.2
 0.0 1.0 0.0
@@ -58,6 +65,7 @@
 ../bin/planet.obj
 0.2
 ../bin/saturnmap.png
+Saturn
 8.0
 0.18
 0.0 1.0 0.0
@@ -66,14 +74,16 @@
 ../bin/planet.obj
 0.05
 ../bin/uranusmap.jpg
+Uranus
 5.0
 0.16
 0.0 1.0 0.0
-14.0 1.0 14.0
+14.0 0.0 14.0
 0
 ../bin/planet.obj
 0.175
 ../bin/neptunemap.jpg
+Neptune
 5.0
 0.14
 0.0 1.0 0.0
@@ -82,6 +92,7 @@
 ../bin/planet.obj
 0.05
 ../bin/plutomap.png
+Pluto
 5.0
 0.12
 0.0 1.0 0.0
@@ -90,6 +101,7 @@
 ../bin/planet.obj
 15
 ../bin/starsmap.png
+Stars
 0.1
 0.0
 0.0 1.0 0.0
