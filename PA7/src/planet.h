@@ -26,25 +26,27 @@
 class Planet
 {
 public:
-	Planet();
-	~Planet();
-  //Planet& operator=(const Planet&);
-	bool loadImage( const char* imageFilepath, Magick::Blob &m_blob );
-	GLfloat scale;
-	float rotationAngle;
-	float orbitAngle;
-  float rotationSpeed;
-  float orbitSpeed;
-  glm::vec3 rotationAxis;
-  glm::vec3 orbitPath;
-  int orbitIndex;
-	glm::mat4 model;
-	glm::mat4 mvp;
-	GLuint vbo_geometry;
-	GLuint texture;	
-  GLuint imageCols;
-  GLuint imageRows;
-  int geometrySize;
+   Planet();
+   ~Planet();
+   //Planet& operator=(const Planet&);
+   bool loadImage( const char* imageFilepath );
+   std::string nameOfPlanet;
+   GLfloat scale;
+   float rotationAngle;
+   float orbitAngle;
+   float rotationSpeed;
+   float orbitSpeed;
+   glm::vec3 rotationAxis;
+   glm::vec3 orbitPath;
+   int orbitIndex;
+   glm::mat4 model;
+   glm::mat4 mvp;
+   Magick::Blob m_blob;
+   GLuint vbo_geometry;
+   GLuint texture;	
+   GLuint imageCols;
+   GLuint imageRows;
+   int geometrySize;
 private:
 
 };

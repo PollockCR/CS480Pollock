@@ -22,12 +22,12 @@ Planet::~Planet()
 {
 }
 
-bool Planet::loadImage( const char* imageFilepath, Magick::Blob &m_blob )
+bool Planet::loadImage( const char* imageFilepath )
 {
   // initialize magick
   Magick::InitializeMagick(NULL);
   Magick::Image* temp_pImage;
-std::cout << imageFilepath << std::endl;
+
   // try to load image
   try
   {
@@ -41,6 +41,7 @@ std::cout << imageFilepath << std::endl;
     return false;
   }
 
+  // save image dimensions
   imageCols = temp_pImage->columns();
   imageRows = temp_pImage->rows();
 
