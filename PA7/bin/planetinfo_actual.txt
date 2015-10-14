@@ -1,4 +1,4 @@
-12
+15
 ../bin/planet.obj
 2.0
 ../bin/sunmap.png
@@ -15,7 +15,7 @@ Mercury
 1.5
 2.0
 0.0 1.0 0.0
-2.0 0.0 2.0
+4.0 0.0 4.0
 0
 ../bin/planet.obj
 0.15
@@ -24,7 +24,7 @@ Venus
 1.0
 1.5
 0.0 1.0 0.0
-4.0 0.0 4.0
+6.0 0.0 6.0
 0
 ../bin/planet.obj
 0.15
@@ -33,7 +33,7 @@ Earth
 5.0
 1.0
 0.0 1.0 0.0
-6.0 0.0 6.0
+8.0 0.0 8.0
 0
 ../bin/planet.obj
 0.05
@@ -51,7 +51,7 @@ Mars
 5.0
 0.8
 0.0 1.0 0.0
-8.0 0.0 8.0
+10.0 0.0 10.0
 0
 ../bin/planet.obj
 0.25
@@ -60,8 +60,26 @@ Jupiter
 8.0
 0.2
 0.0 1.0 0.0
-10.0 0.0 10.0
+14.0 0.0 14.0
 0
+../bin/planet.obj
+0.18
+../bin/ganymedemap.png
+Ganymede
+8.0
+0.8
+0.0 1.0 0.0
+1.7 -0.25 1.7
+6
+../bin/planet.obj
+0.15
+../bin/castillomap.jpg
+Castillo
+9.0
+0.9
+0.0 1.0 0.0
+2.3 0.25 2.3
+6
 ../bin/planet.obj
 0.2
 ../bin/saturnmap.png
@@ -69,8 +87,17 @@ Saturn
 8.0
 0.18
 0.0 1.0 0.0
-12.0 0.0 12.0
+16.0 0.0 16.0
 0
+../bin/planet.obj
+0.18
+../bin/titanmap.png
+Titan
+6.0
+0.8
+0.0 1.0 0.0
+2.0 0.0 2.0
+9
 ../bin/planet.obj
 0.05
 ../bin/uranusmap.jpg
@@ -78,7 +105,7 @@ Uranus
 5.0
 0.16
 0.0 1.0 0.0
-14.0 0.0 14.0
+18.0 0.0 18.0
 0
 ../bin/planet.obj
 0.175
@@ -87,7 +114,7 @@ Neptune
 5.0
 0.14
 0.0 1.0 0.0
-16.0 0.0 16.0
+20.0 0.0 20.0
 0
 ../bin/planet.obj
 0.05
@@ -96,10 +123,10 @@ Pluto
 5.0
 0.12
 0.0 1.0 0.0
-16.0 1.0 18.0
+24.0 1.0 18.0
 0
 ../bin/planet.obj
-15
+32
 ../bin/starsmap.png
 Stars
 0.1

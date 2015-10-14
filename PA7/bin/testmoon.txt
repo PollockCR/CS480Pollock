@@ -1,0 +1,28 @@
+3
+../bin/planet.obj
+1.0
+../bin/sunmap.png
+SolarSystem
+0.2
+0.0
+0.0 1.0 0.0
+0.0 0.0 0.0
+0
+../bin/planet.obj
+0.6
+../bin/jupitermap.jpg
+Jupiter
+8.0
+0.2
+0.0 1.0 0.0
+10.0 0.0 10.0
+0
+../bin/planet.obj
+0.18
+../bin/ganymedemap.png
+Ganymede
+8.0
+0.8
+0.0 1.0 0.0
+1.5 0.0 1.5
+1

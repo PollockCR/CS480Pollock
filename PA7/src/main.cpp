@@ -245,7 +245,6 @@ void displayText()
   // place text 
   glUseProgram(textProgram);
   char* textMode = new char[100];
-  std::string textPlanet = "Current View - L/R Arrows: " + planets[currentView].nameOfPlanet;
   if( mode == 0 )
   {
     textMode = (char*)"Mode - Spacebar: Scaled view";
@@ -254,6 +253,7 @@ void displayText()
   {
     textMode = (char*)"Mode - Spacebar: Actual view";
   }
+  std::string textPlanet = "Current View - L/R Arrows: " + planets[currentView].nameOfPlanet;
   sPrint(-0.95, 0.90, (char*)"Quit - Esc");
   sPrint(-0.95, 0.80, (char*)"Toggle Menu Display - m");
   sPrint(-0.95, 0.70, textMode);
@@ -286,6 +286,7 @@ void update()
 {
   // update object
   int index;
+  int orbit = 0;
   int offset = 0;
 
   //total time
@@ -316,11 +317,15 @@ void update()
     }
     else
     {
+      if( mode == 1 )
+      {
+        orbit++;
+      }
       // orbit of planet
       planets[index+offset].model = glm::translate(glm::mat4(1.0f),
           glm::vec3(planets[index+offset].orbitPath.x * sin(planets[index+offset].orbitAngle),
                     planets[index+offset].orbitPath.y,
-                    planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle))) * planets[planets[index+offset].orbitIndex].model;
+                    planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle))) * planets[planets[index+offset].orbitIndex + offset].model;
     }
 
 
@@ -343,84 +348,84 @@ void changeView()
   int offset = 0;
   if( mode == 1 )
   {
-    offset = numPlanets - 1;
+    offset = numPlanets;
   }
+  int index = offset + currentView;
 
   //static float currentPos[3];
   //static float currentFocus[3];
   static float destPos[3];
   static float destFocus[3];
 
-  switch( currentView )
+  // default view of entire solar system
+  if( currentView == 0 || currentView == numPlanets - 1 )
   {
-    // default view
-    case 0:
-      updateViewFlag = false;
-      view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
-                          glm::vec3(0.0, 0.0, 0.0), //Focus point
-                          glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-      break;
-    default:
-      destPos[0] = (4 + planets[currentView+offset].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
-      destPos[1] = planets[currentView+offset].orbitPath.y;        
-      destPos[2] = (4 + planets[currentView+offset].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);        
-      destFocus[0] = planets[currentView+offset].orbitPath.x * sin(planets[currentView+offset].orbitAngle);        
-      destFocus[1] = planets[currentView+offset].orbitPath.y;        
-      destFocus[2] = planets[currentView+offset].orbitPath.z * cos(planets[currentView+offset].orbitAngle);            
-    /*
-      currentPos[0] = (4 + planets[currentView+offset-1].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
-      currentPos[1] = planets[currentView+offset-1].orbitPath.y;
-      currentPos[2] = (4 + planets[currentView+offset-1].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);
-      currentFocus[0] = planets[currentView+offset-1].orbitPath.x * sin(planets[currentView+offset].orbitAngle);
-      currentFocus[1] = planets[currentView+offset-1].orbitPath.y; 
-      currentFocus[2] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
+    updateViewFlag = false;
+    view = glm::lookAt( glm::vec3(0.0, 15.0, -30.0), //Eye Position
+                        glm::vec3(0.0, 0.0, 0.0), //Focus point
+                        glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+  }
+  // view of each planet or moon
+  else 
+  {
+    destPos[0] = (4 + planets[index].orbitPath.x) * sin(planets[index].orbitAngle);
+    destPos[1] = planets[index].orbitPath.y;        
+    destPos[2] = (4 + planets[index].orbitPath.z) * cos(planets[index].orbitAngle);        
+    destFocus[0] = planets[index].orbitPath.x * sin(planets[index].orbitAngle);        
+    destFocus[1] = planets[index].orbitPath.y;        
+    destFocus[2] = planets[index].orbitPath.z * cos(planets[index].orbitAngle);            
+  /*
+    currentPos[0] = (4 + planets[currentView+offset-1].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
+    currentPos[1] = planets[currentView+offset-1].orbitPath.y;
+    currentPos[2] = (4 + planets[currentView+offset-1].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);
+    currentFocus[0] = planets[currentView+offset-1].orbitPath.x * sin(planets[currentView+offset].orbitAngle);
+    currentFocus[1] = planets[currentView+offset-1].orbitPath.y; 
+    currentFocus[2] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
 
-      if( updateViewFlag )
+    if( updateViewFlag )
+    {
+      for( index = 0; index < 3; index++ )
       {
-        for( index = 0; index < 3; index++ )
+        if( currentPos[index] < destPos[index] )
         {
-          if( currentPos[index] < destPos[index] )
-          {
-            currentPos[index] += 0.15;
-          }
-          if( currentFocus[index] > destFocus[index] )
-          {
-            currentPos[index] -= 0.15;
-          }
-
-          if( currentFocus[index] < destFocus[index] )
-          {
-            currentFocus[index] += 0.15;
-          }
-          if( currentFocus[index] > destFocus[index] )
-          {
-            currentFocus[index] -= 0.15;
-          }          
+          currentPos[index] += 0.15;
+        }
+        if( currentFocus[index] > destFocus[index] )
+        {
+          currentPos[index] -= 0.15;
         }
 
-        if( (currentPos[0] - destPos[0]) <= 0.5 && (currentPos[0] - destPos[0]) >= -0.5 &&
-            (currentPos[1] - destPos[1]) <= 0.5 && (currentPos[1] - destPos[1]) >= -0.5 &&            
-            (currentPos[2] - destPos[2]) <= 0.5 && (currentPos[2] - destPos[2]) >= -0.5 &&
-            (currentFocus[0] - destFocus[0]) <= 0.5 && (currentFocus[0] - destFocus[0]) >= -0.5 &&
-            (currentFocus[1] - destFocus[1]) <= 0.5 && (currentFocus[1] - destFocus[1]) >= -0.5 &&            
-            (currentFocus[2] - destFocus[2]) <= 0.5 && (currentFocus[2] - destFocus[2]) >= -0.5 )
+        if( currentFocus[index] < destFocus[index] )
         {
-          updateViewFlag = false;
-          view = temp;
+          currentFocus[index] += 0.15;
         }
-
-        view = glm::lookAt( glm::vec3(currentPos[0], currentPos[1], currentPos[2]), 
-                      glm::vec3(currentFocus[0], currentFocus[1], currentFocus[2]), 
-                      glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up          
+        if( currentFocus[index] > destFocus[index] )
+        {
+          currentFocus[index] -= 0.15;
+        }          
       }
-      else
+
+      if( (currentPos[0] - destPos[0]) <= 0.5 && (currentPos[0] - destPos[0]) >= -0.5 &&
+          (currentPos[1] - destPos[1]) <= 0.5 && (currentPos[1] - destPos[1]) >= -0.5 &&            
+          (currentPos[2] - destPos[2]) <= 0.5 && (currentPos[2] - destPos[2]) >= -0.5 &&
+          (currentFocus[0] - destFocus[0]) <= 0.5 && (currentFocus[0] - destFocus[0]) >= -0.5 &&
+          (currentFocus[1] - destFocus[1]) <= 0.5 && (currentFocus[1] - destFocus[1]) >= -0.5 &&            
+          (currentFocus[2] - destFocus[2]) <= 0.5 && (currentFocus[2] - destFocus[2]) >= -0.5 )
       {
-    */
-      view = glm::lookAt(glm::vec3(destPos[0], destPos[1], destPos[2]), 
-                           glm::vec3(destFocus[0], destFocus[1], destFocus[2]), 
-                           glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-     // }
-      break;
+        updateViewFlag = false;
+        view = temp;
+      }
+
+      view = glm::lookAt( glm::vec3(currentPos[0], currentPos[1], currentPos[2]), 
+                    glm::vec3(currentFocus[0], currentFocus[1], currentFocus[2]), 
+                    glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up          
+    }
+    else
+    {
+  */
+    view = glm::lookAt(glm::vec3(destPos[0], destPos[1], destPos[2]), 
+                         glm::vec3(destFocus[0], destFocus[1], destFocus[2]), 
+                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
   }
 
   // update the state of the scene
@@ -488,13 +493,13 @@ void special(int key, int xPos, int yPos)
     currentView++;
 
     // skip moons
-    if( planets[currentView].orbitIndex != 0 )
+    while( planets[currentView].orbitIndex != 0 )
     {
       currentView++;
-    }
+    }    
 
     // reset if at end
-    if( currentView >= numPlanets - 1 )
+    if( currentView >= numPlanets )
     {
       currentView = 0;
     }      
@@ -584,7 +589,7 @@ bool initialize( const char* scaledFilename, const char* actualFilename )
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 8.0, -16.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 15.0, -30.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
