@@ -54,12 +54,16 @@ const char* blankTexture = "../../Resources/white.png";
   // The GLSL program handle
   GLuint program[2];
   GLuint textProgram;
+  GLuint startProgram;
   bool updateViewFlag = false;
   int currentView = 0;
+  float dt = 0.0;
 
   // flags
   int mode = 0;
   bool displayMenu = true;
+  bool paused = true;
+  bool started = false;
 
   // uniform locations
   GLint loc_mvpmat[2];// Location of the modelviewprojection matrix in the shader
@@ -178,65 +182,74 @@ void render()
   //int pIndex;
   int offset = 0; 
   // clear the screen
-  glClearColor(0.0, 0.0, 0.2, 1.0);
+  glClearColor(0.2, 0.2, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // display menu if enabled
-  if(displayMenu)
+  if( !started )
   {
-    displayText();
+    // place text 
+    glUseProgram(startProgram);
+    sPrint(-0.25, 0.1, (char*)"Press Spacebar to Start Simulation");
+    sPrint(-0.13, 0.0, (char*)"Press Esc to Quit");
   }
-
-
-  // set offset for planets (scaled = 0, actual = numPlanets)
-  if( mode == 1 )
+  else
   {
-    offset = numPlanets;
+    // display menu if enabled
+    if(displayMenu)
+    {
+      displayText();
+    }
+
+    // set offset for planets (scaled = 0, actual = numPlanets)
+    if( mode == 1 )
+    {
+      offset = numPlanets;
+    }
+
+    // enable the shader program
+    glUseProgram(program[mode]);  
+
+    // loop through each planet
+    for( index = 0; index < numPlanets; index++ )
+    {
+      // premultiply the matrix for this example
+      planets[index+offset].mvp = projection * view * planets[index+offset].model;
+
+      // upload the matrix to the shader
+      glUniformMatrix4fv(loc_mvpmat[mode], 1, GL_FALSE, &(planets[index+offset].mvp[0][0])); 
+
+      // set up the Vertex Buffer Object so it can be drawn
+      glEnableVertexAttribArray(loc_position[mode]);
+      glBindBuffer(GL_ARRAY_BUFFER, planets[index+offset].vbo_geometry);
+
+      // set pointers into the vbo for each of the attributes(position and color)
+      glVertexAttribPointer( loc_position[mode],//location of attribute
+                             3,//number of elements
+                             GL_FLOAT,//type
+                             GL_FALSE,//normalized?
+                             sizeof(Vertex),//stride
+                             0);//offset
+
+      glEnableVertexAttribArray(loc_texture[mode]);
+      glBindTexture(GL_TEXTURE_2D, planets[index+offset].texture);
+
+      glVertexAttribPointer( loc_texture[mode],
+                             2,
+                             GL_FLOAT,
+                             GL_FALSE,
+                             sizeof(Vertex),
+                             (void*)offsetof(Vertex,uv));
+
+      glDrawArrays(GL_TRIANGLES, 0, planets[index+offset].geometrySize);//mode, starting index, count
+    }
+
+    //clean up
+    glDisableVertexAttribArray(loc_position[mode]);
+    glDisableVertexAttribArray(loc_texture[mode]);
+                   
   }
-
-  // enable the shader program
-  glUseProgram(program[mode]);  
-
-  // loop through each planet
-  for( index = 0; index < numPlanets; index++ )
-  {
-    // premultiply the matrix for this example
-    planets[index+offset].mvp = projection * view * planets[index+offset].model;
-
-    // upload the matrix to the shader
-    glUniformMatrix4fv(loc_mvpmat[mode], 1, GL_FALSE, &(planets[index+offset].mvp[0][0])); 
-
-    // set up the Vertex Buffer Object so it can be drawn
-    glEnableVertexAttribArray(loc_position[mode]);
-    glBindBuffer(GL_ARRAY_BUFFER, planets[index+offset].vbo_geometry);
-
-    // set pointers into the vbo for each of the attributes(position and color)
-    glVertexAttribPointer( loc_position[mode],//location of attribute
-                           3,//number of elements
-                           GL_FLOAT,//type
-                           GL_FALSE,//normalized?
-                           sizeof(Vertex),//stride
-                           0);//offset
-
-    glEnableVertexAttribArray(loc_texture[mode]);
-    glBindTexture(GL_TEXTURE_2D, planets[index+offset].texture);
-
-    glVertexAttribPointer( loc_texture[mode],
-                           2,
-                           GL_FLOAT,
-                           GL_FALSE,
-                           sizeof(Vertex),
-                           (void*)offsetof(Vertex,uv));
-
-    glDrawArrays(GL_TRIANGLES, 0, planets[index+offset].geometrySize);//mode, starting index, count
-  }
-
-  //clean up
-  glDisableVertexAttribArray(loc_position[mode]);
-  glDisableVertexAttribArray(loc_texture[mode]);
-               
-  //swap the buffers
-  glutSwapBuffers();    
+    //swap the buffers
+    glutSwapBuffers();   
 }
 
 // displays text on screen
@@ -247,17 +260,19 @@ void displayText()
   char* textMode = new char[100];
   if( mode == 0 )
   {
-    textMode = (char*)"Mode - Spacebar: Scaled view";
+    textMode = (char*)"View Mode - v: Scaled view";
   }
   else 
   {
-    textMode = (char*)"Mode - Spacebar: Actual view";
+    textMode = (char*)"View Mode - v: Actual view";
   }
-  std::string textPlanet = "Current View - L/R Arrows: " + planets[currentView].nameOfPlanet;
+  std::string textPlanet = "Current Planet View - L/R Arrows: " + planets[currentView].nameOfPlanet;
   sPrint(-0.95, 0.90, (char*)"Quit - Esc");
   sPrint(-0.95, 0.80, (char*)"Toggle Menu Display - m");
-  sPrint(-0.95, 0.70, textMode);
-  sPrint(-0.95, 0.60, textPlanet.c_str());  
+  sPrint(-0.95, 0.70, (char*)"Pause/Resume Simulation - Spacebar");  
+  sPrint(-0.95, 0.60, textMode);
+  sPrint(-0.95, 0.50, textPlanet.c_str());  
+  sPrint(-0.95, 0.40, (char*)"More Options - Right Click");  
 
 }
 
@@ -284,58 +299,60 @@ void sPrint( float xPos, float yPos, const char *str)
 // called on idle to update display
 void update()
 {
-  // update object
-  int index;
-  int orbit = 0;
-  int offset = 0;
-
-  //total time
-  float dt = getDT(); 
-
-  // set offset for planets (scaled = 0, actual = numPlanets)
-  if( mode == 1 )
+  if( started )
   {
-    offset = numPlanets;
-  }  
+    // update object
+    int index;
+    int orbit = 0;
+    int offset = 0;
 
-  // loop through each planet
-  for( index = 0; index < numPlanets; index++ )
-  {
-    // move object orbitSpeed radians a second
-    planets[index+offset].orbitAngle += dt * planets[index+offset].orbitSpeed;
-    // move object rotationSpeed radians a second
-    planets[index+offset].rotationAngle += dt * planets[index+offset].rotationSpeed;
+    //total time
+    dt = getDT(); 
 
-    // check for moon 
-    if( planets[index+offset].orbitIndex == 0 )
+    // set offset for planets (scaled = 0, actual = numPlanets)
+    if( mode == 1 )
     {
-      // orbit of planet
-      planets[index+offset].model = glm::translate(glm::mat4(1.0f),
-          glm::vec3(planets[index+offset].orbitPath.x * sin(planets[index+offset].orbitAngle),
-                    planets[index+offset].orbitPath.y,
-                    planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle)));
-    }
-    else
+      offset = numPlanets;
+    }  
+
+    // loop through each planet
+    for( index = 0; index < numPlanets; index++ )
     {
-      if( mode == 1 )
+      // move object orbitSpeed radians a second
+      planets[index+offset].orbitAngle += dt * planets[index+offset].orbitSpeed;
+      // move object rotationSpeed radians a second
+      planets[index+offset].rotationAngle += dt * planets[index+offset].rotationSpeed;
+
+      // check for moon 
+      if( planets[index+offset].orbitIndex == 0 )
       {
-        orbit++;
+        // orbit of planet
+        planets[index+offset].model = glm::translate(glm::mat4(1.0f),
+            glm::vec3(planets[index+offset].orbitPath.x * sin(planets[index+offset].orbitAngle),
+                      planets[index+offset].orbitPath.y,
+                      planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle)));
       }
-      // orbit of planet
-      planets[index+offset].model = glm::translate(glm::mat4(1.0f),
-          glm::vec3(planets[index+offset].orbitPath.x * sin(planets[index+offset].orbitAngle),
-                    planets[index+offset].orbitPath.y,
-                    planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle))) * planets[planets[index+offset].orbitIndex + offset].model;
+      else
+      {
+        if( mode == 1 )
+        {
+          orbit++;
+        }
+        // orbit of planet
+        planets[index+offset].model = glm::translate(glm::mat4(1.0f),
+            glm::vec3(planets[index+offset].orbitPath.x * sin(planets[index+offset].orbitAngle),
+                      planets[index+offset].orbitPath.y,
+                      planets[index+offset].orbitPath.z * cos(planets[index+offset].orbitAngle))) * planets[planets[index+offset].orbitIndex + offset].model;
+      }
+
+
+      // rotation of planet
+      planets[index+offset].model = glm::rotate( planets[index+offset].model, planets[index+offset].rotationAngle, planets[index+offset].rotationAxis);
     }
 
-
-    // rotation of planet
-    planets[index+offset].model = glm::rotate( planets[index+offset].model, planets[index+offset].rotationAngle, planets[index+offset].rotationAxis);
+    // change the view
+    changeView();
   }
-
-  // change the view
-  changeView();
-
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback   
@@ -459,6 +476,16 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       break; 
   // switch modes
     case 32: // space bar
+      // pause
+      paused = !paused;
+      started = true;        
+      break;
+    case 77:
+    case 109:
+      displayMenu = !displayMenu;
+      break;
+    case 118:
+    case 86:
       if( mode == 0 )
       {
         mode = 1;
@@ -467,10 +494,6 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       {
         mode = 0;
       }
-      break;
-    case 77:
-    case 109:
-      displayMenu = !displayMenu;
       break;
     default:
       break;
@@ -729,7 +752,9 @@ void cleanUp()
 
   // clean up programs
   glDeleteProgram(program[0]); 
-  glDeleteProgram(program[1]);   
+  glDeleteProgram(program[1]); 
+  glDeleteProgram(textProgram); 
+  glDeleteProgram(startProgram); 
 
     // clean up each planet
     for( index = 0; index < numPlanets*2; index++ )
@@ -752,6 +777,7 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Quit", 1);
     glutAddMenuEntry("Switch Mode", 2);
     glutAddMenuEntry("Toggle Menu Display", 3);
+    glutAddMenuEntry("Pause/Resume Simulation", 4);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -784,10 +810,13 @@ void menu(int id)
       else 
       {
         mode = 0;
-      }
+      }    
       break;
     case 3: // toggle menu display
       displayMenu = !displayMenu;
+      break;
+    case 4:
+      paused = !paused;
       break;
     // default do nothing
     default:
@@ -800,8 +829,8 @@ void menu(int id)
 // actions for left mouse click
 void mouse(int button, int state, int x_pos, int y_pos)
 {
-  // redraw screen without menu
-  glutPostRedisplay();
+  // update display
+  glutPostRedisplay();  
 }
 
 //returns the time delta
@@ -813,6 +842,13 @@ float getDT()
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
+
+    // check if paused
+    if( paused )
+    {
+      return 0.0;
+    }
+
     return ret;
 }
 
