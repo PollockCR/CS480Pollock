@@ -380,9 +380,10 @@ void changeView()
   //int index;
   int offset = 0;
   int zoom = 4;
+
   if( mode == 1 )
   {
-    zoom = 1.5;
+    zoom = 2;
     offset = numPlanets;
   }
   int index = offset + currentView;
@@ -833,9 +834,18 @@ void pan(float source[], float dest[])
   // only do if changing view
   if (counter < 150 && updateViewFlag)
   {
-    // increment y pos/focus of source view for time determined by counter
-    source[1] += 0.07;
-    source[4] += 0.05;
+    if (mode == 1)
+    {
+      source[1] += 0.12;
+      source[4] += 0.09;
+    }
+    else
+    {
+      // increment y pos/focus of source view for time determined by counter
+      source[1] += 0.07;
+      source[4] += 0.05;
+    }
+
     counter++;
 
     // update view coordinates
@@ -855,9 +865,9 @@ void pan(float source[], float dest[])
       for (int i = 0; i < 6; i++)
       {
           if (source[i] < dest[i]) 
-              source[i] += 0.18;
+              source[i] += 0.2;
           if (source[i] > dest[i]) 
-              source[i] -= 0.18;
+              source[i] -= 0.2;          
       }
         
       // check acceptable ranges
