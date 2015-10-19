@@ -395,6 +395,13 @@ void changeView()
   if( currentView == 0 || currentView == numPlanets - 1 )
   {
     updateViewFlag = false;
+    paused = false;
+    source[0] = 0.0;
+    source[1] = 15.0;
+    source[2] = -30.0;
+    source[3] = 0.0;
+    source[4] = 0.0; 
+    source[5] = 0.0;
     view = glm::lookAt( glm::vec3(0.0, 15.0, -30.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
