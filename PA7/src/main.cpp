@@ -417,8 +417,9 @@ void changeView()
     source[4] = planets[currentView+offset-1].orbitPath.y; 
     source[5] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
 */
-
+    paused = true;
     pan(source, dest);
+
   }
 
   // update the state of the scene
@@ -830,23 +831,13 @@ float getDT()
 
 void pan(float source[], float dest[])
 {
-
-  if (mode == 1)
-  {
-      view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
-              glm::vec3(dest[3], dest[4], dest[5]), //Focus point
-              glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-  }
-  else
-  {
-
     // pre pan movement
     // only do if changing view
-    if (counter < 150 && updateViewFlag)
+    if (counter < 75 && updateViewFlag)
     {
         // increment y pos/focus of source view for time determined by counter
-        source[1] += 0.07;
-        source[4] += 0.05;
+        source[1] += 0.1;
+        source[4] += 0.08;
 
       counter++;
 
@@ -871,17 +862,17 @@ void pan(float source[], float dest[])
             if (i < 3)
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.23;
+                  source[i] += 0.12;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.23; 
+                  source[i] -= 0.12; 
                 glutPostRedisplay(); 
             }
             else
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.18;
+                  source[i] += 0.12;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.18; 
+                  source[i] -= 0.12; 
                 glutPostRedisplay(); 
             }
 
@@ -891,17 +882,17 @@ void pan(float source[], float dest[])
             if (i < 3)
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.2;
+                  source[i] += 0.12;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.2; 
+                  source[i] -= 0.12; 
                 glutPostRedisplay(); 
             }
             else
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.17;
+                  source[i] += 0.12;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.17; 
+                  source[i] -= 0.12; 
                 glutPostRedisplay(); 
             }
           }
@@ -940,15 +931,15 @@ void pan(float source[], float dest[])
         for (int i = 0; i < 6; i++)
         {
             if (source[i] < dest[i]) 
-                source[i] += 0.16;
+                source[i] += 0.35;
             if (source[i] > dest[i]) 
-                source[i] -= 0.16;
+                source[i] -= 0.35;
         }
         // locked view
         view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
                 glm::vec3(dest[3], dest[4], dest[5]), //Focus point
                 glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+        paused = false;
       }
     }
-  }
 }
