@@ -9,26 +9,28 @@ Program Function
 ----------------
 The program models the solar system. Planet information files can be passed through the command line, or default ones will be used. Two files are loaded from, one with scaled planet data and one with actual planet data. Scaled mode provides exaggerated planet sizes and orbits for better user viewing. Actual mode provides a view that demonstrates correct ratios in relation to the solar system. Planet information files must be in the following format:
 
-> int numberOfPlanets
-> string filepathToObject
-> GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
-> string filepathToTexture
-> string nameOfTexture (no spaces)
-> float rotationSpeed
-> float orbitSpeed
-> glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
-> glm::vec3 orbitPath (i.e. "4.0 0.0 4.0" for 4 units x/z axis)
-> int orbitIndex (for index of object orbiting around, 0 for sun)
+```
+int numberOfPlanets
+string filepathToObject
+GLfloat scaleOfPlanet (1.0 for sun, 0.5 for half of sun, etc)
+string filepathToTexture
+string nameOfTexture (no spaces)
+float rotationSpeed
+float orbitSpeed
+glm::vec3 rotationAxis (i.e. "0.0 1.0 0.0" for rotation on y axis)
+glm::vec3 orbitPath (i.e. "4.0 0.0 4.0" for 4 units x/z axis)
+int orbitIndex (for index of object orbiting around, 0 for sun)
+```
 
 Planet information files must be in correct format or undesired results will occur. All files mentioned must be in location specified in planet info files. 
 
 When the program is running, the following commands can be used:
 
-To quit: *Esc*
-To toggle menu display: *m*
-To change view mode: *v*
-To pause simulation: *spacebar*
-To view each planet: *left-arrow* to reset or *right-arrow* to go to next planet
+-To quit: *Esc*
+-To toggle menu display: *m*
+-To change view mode: *v*
+-To pause simulation: *spacebar*
+-To view each planet: *left-arrow* to reset or *right-arrow* to go to next planet
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA07/PA7.php
 
@@ -37,7 +39,7 @@ Extra Credit
 The following features were added beyond project requirements:
 - Option to go from actual data to scaled view (v)
 - Displays name of current planet view and current mode (right arrow)
-- Camera moves smoothly from planet to planet
+- Camera pans from planet to planet
 - Menu display can be toggled on/off (m)
 
 Ubuntu Dependencies
