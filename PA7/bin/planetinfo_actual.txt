@@ -1,4 +1,4 @@
-15
+16
 ../bin/planet.obj
 2.0
 ../bin/sunmap.png
@@ -134,3 +134,12 @@ Stars
 0.0 1.0 0.0
 0.0 0.0 0.0
 0
+../bin/ring.obj
+0.2
+../bin/starsmap.png
+Saturn
+8.0
+0.18
+0.0 1.0 0.0
+16.0 0.0 16.0
+7
