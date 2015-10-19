@@ -383,7 +383,7 @@ void changeView()
 
   if( mode == 1 )
   {
-    zoom = 1.75;
+    zoom = 2.2;
     offset = numPlanets;
   }
   int index = offset + currentView;
@@ -830,96 +830,125 @@ float getDT()
 
 void pan(float source[], float dest[])
 {
-  // pre pan movement
-  // only do if changing view
-  if (counter < 150 && updateViewFlag)
+
+  if (mode == 1)
   {
-    if (mode == 1)
-    {
-      source[1] += 0.12;
-      source[4] += 0.09;
-    }
-    else
-    {
-      // increment y pos/focus of source view for time determined by counter
-      source[1] += 0.07;
-      source[4] += 0.05;
-    }
-
-    counter++;
-
-    // update view coordinates
-    view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
-    glm::vec3(source[3], source[4], source[5]), //Focus point
-    glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+      view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+              glm::vec3(dest[3], dest[4], dest[5]), //Focus point
+              glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
   }
-
-  // pan
   else
   {
-    // make sure we want to move
-    if (updateViewFlag)
+
+    // pre pan movement
+    // only do if changing view
+    if (counter < 150 && updateViewFlag)
     {
-      // check source vs dest coords
-      // increment accordingly
-      for (int i = 0; i < 6; i++)
+        // increment y pos/focus of source view for time determined by counter
+        source[1] += 0.07;
+        source[4] += 0.05;
+
+      counter++;
+
+      // update view coordinates
+      view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+      glm::vec3(source[3], source[4], source[5]), //Focus point
+      glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+    }
+
+    // pan
+    else
+    {
+      // make sure we want to move
+      if (updateViewFlag)
       {
-        if (mode == 1)
+        // check source vs dest coords
+        // increment accordingly
+        for (int i = 0; i < 6; i++)
         {
-          if (source[i] < dest[i]) 
-              source[i] += 0.23;
-          if (source[i] > dest[i]) 
-              source[i] -= 0.23; 
+          if (mode == 1)
+          {
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.23;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.23; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.18;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.18; 
+                glutPostRedisplay(); 
+            }
+
+          }
+          else
+          {
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.2;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.2; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.17;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.17; 
+                glutPostRedisplay(); 
+            }
+          }
+        }
+          
+        // check acceptable ranges
+        if (((dest[0] - source[0] <= 0.5) && (dest[0] - source[0] >= -0.5))&&
+            ((dest[1] - source[1] <= 0.5) && (dest[1] - source[1] >= -0.5))&&
+            ((dest[2] - source[2] <= 0.5) && (dest[2] - source[2] >= -0.5))&&
+            ((dest[3] - source[3] <= 0.5) && (dest[3] - source[3] >= -0.5))&&
+            ((dest[4] - source[4] <= 0.5) && (dest[4] - source[4] >= -0.5))&&
+            ((dest[5] - source[5] <= 0.5) && (dest[5] - source[5] >= -0.5)))
+        {
+          // done with pan
+          updateViewFlag = false;
+          // ready for next move
+          counter = 0;
+          // update view to dest
+          view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                  glm::vec3(dest[3], dest[4], dest[5]), //Focus point
+                  glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
         }
         else
         {
-          if (source[i] < dest[i]) 
-              source[i] += 0.2;
-          if (source[i] > dest[i]) 
-              source[i] -= 0.2;
-        }        
+          // update to incremented view
+          view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+                glm::vec3(source[3], source[4], source[5]), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          glutPostRedisplay();  
+        } 
       }
-        
-      // check acceptable ranges
-      if (((dest[0] - source[0] <= 0.5) && (dest[0] - source[0] >= -0.5))&&
-          ((dest[1] - source[1] <= 0.5) && (dest[1] - source[1] >= -0.5))&&
-          ((dest[2] - source[2] <= 0.5) && (dest[2] - source[2] >= -0.5))&&
-          ((dest[3] - source[3] <= 0.5) && (dest[3] - source[3] >= -0.5))&&
-          ((dest[4] - source[4] <= 0.5) && (dest[4] - source[4] >= -0.5))&&
-          ((dest[5] - source[5] <= 0.5) && (dest[5] - source[5] >= -0.5)))
+      
+      else
       {
-        // done with pan
-        updateViewFlag = false;
-        // ready for next move
-        counter = 0;
-        // update view to dest
+        // keep source data current
+        for (int i = 0; i < 6; i++)
+        {
+            if (source[i] < dest[i]) 
+                source[i] += 0.16;
+            if (source[i] > dest[i]) 
+                source[i] -= 0.16;
+        }
+        // locked view
         view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
                 glm::vec3(dest[3], dest[4], dest[5]), //Focus point
                 glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
       }
-      else
-      {
-        // update to incremented view
-        view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
-              glm::vec3(source[3], source[4], source[5]), //Focus point
-              glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-      } 
-    }
-    
-    else
-    {
-      // keep source data current
-      for (int i = 0; i < 6; i++)
-      {
-          if (source[i] < dest[i]) 
-              source[i] += 0.16;
-          if (source[i] > dest[i]) 
-              source[i] -= 0.16;
-      }
-      // locked view
-      view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
-              glm::vec3(dest[3], dest[4], dest[5]), //Focus point
-              glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
     }
   }
 }
