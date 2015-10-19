@@ -93,7 +93,7 @@ Saturn
 0.6
 ../bin/saturnsrings.jpg
 Rings
--5.0
+-11
 0.0
 0.0 1.0 0.0
 0.0 0.0 0.0
