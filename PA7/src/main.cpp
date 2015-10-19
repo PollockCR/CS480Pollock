@@ -383,7 +383,7 @@ void changeView()
 
   if( mode == 1 )
   {
-    zoom = 2;
+    zoom = 1.75;
     offset = numPlanets;
   }
   int index = offset + currentView;
@@ -864,10 +864,20 @@ void pan(float source[], float dest[])
       // increment accordingly
       for (int i = 0; i < 6; i++)
       {
+        if (mode == 1)
+        {
+          if (source[i] < dest[i]) 
+              source[i] += 0.23;
+          if (source[i] > dest[i]) 
+              source[i] -= 0.23; 
+        }
+        else
+        {
           if (source[i] < dest[i]) 
               source[i] += 0.2;
           if (source[i] > dest[i]) 
-              source[i] -= 0.2;          
+              source[i] -= 0.2;
+        }        
       }
         
       // check acceptable ranges
