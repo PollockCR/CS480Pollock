@@ -1,7 +1,7 @@
 15
 ../bin/planet.obj
 1.0
-../bin/sunmap.png
+../bin/sunmap.jpg
 SolarSystem
 0.2
 0.0
