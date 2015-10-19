@@ -3,7 +3,7 @@
 1.0
 ../bin/sunmap.jpg
 SolarSystem
-0.2
+0.196
 0.0
 0.0 1.0 0.0
 0.0 0.0 0.0
@@ -12,8 +12,8 @@ SolarSystem
 0.12
 ../bin/mercurymap.jpg
 Mercury
-1.5
-2.0
+0.085
+4.151
 0.0 1.0 0.0
 2.0 0.0 2.0
 0
@@ -21,8 +21,8 @@ Mercury
 0.3
 ../bin/venusmap.jpg
 Venus
-1.0
-1.5
+-0.0205
+1.623
 0.0 1.0 0.0
 4.0 0.0 4.0
 0
@@ -30,7 +30,7 @@ Venus
 0.3
 ../bin/earthmap.jpg
 Earth
-5.0
+4.985
 1.0
 0.0 1.0 0.0
 6.0 0.0 6.0
@@ -39,7 +39,7 @@ Earth
 0.08
 ../bin/moonmap.jpg
 Moon
-1.0
+0.1825
 2.0
 0.0 1.0 0.0
 1.0 0.0 1.0
@@ -48,8 +48,8 @@ Moon
 0.2
 ../bin/marsmap.jpg
 Mars
-5.0
-0.8
+4.859
+0.562
 0.0 1.0 0.0
 8.0 0.0 8.0
 0
@@ -57,8 +57,8 @@ Mars
 0.6
 ../bin/jupitermap.jpg
 Jupiter
-8.0
-0.2
+12.16
+0.083
 0.0 1.0 0.0
 12.0 0.0 12.0
 0
@@ -84,8 +84,8 @@ Castillo
 0.6
 ../bin/saturnmap.png
 Saturn
-8.0
-0.18
+11.702
+0.0339
 0.0 1.0 0.0
 18.0 0.0 18.0
 0
@@ -93,7 +93,7 @@ Saturn
 0.6
 ../bin/saturnsrings.jpg
 Rings
--7.0
+-5.0
 0.0
 0.0 1.0 0.0
 0.0 0.0 0.0
@@ -111,8 +111,8 @@ Titan
 0.1
 ../bin/uranusmap.jpg
 Uranus
-5.0
-0.16
+-6.943
+0.0119
 0.0 1.0 0.0
 22.0 0.0 22.0
 0
@@ -120,8 +120,8 @@ Uranus
 0.35
 ../bin/neptunemap.jpg
 Neptune
-5.0
-0.14
+7.43
+0.0061
 0.0 1.0 0.0
 26.0 0.0 26.0
 0
@@ -129,7 +129,7 @@ Neptune
 0.1
 ../bin/plutomap.png
 Pluto
-5.0
+-0.004
 0.12
 0.0 1.0 0.0
 28.0 1.0 28.0
