@@ -395,7 +395,6 @@ void changeView()
   if( currentView == 0 || currentView == numPlanets - 1 )
   {
     updateViewFlag = false;
-    paused = false;
     source[0] = 0.0;
     source[1] = 15.0;
     source[2] = -30.0;
@@ -416,15 +415,6 @@ void changeView()
     dest[4] = planets[index].orbitPath.y;        
     dest[5] = planets[index].orbitPath.z * cos(planets[index].orbitAngle);            
     
-  /*
-    source[0] = (4 + planets[currentView+offset-1].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
-    source[1] = planets[currentView+offset-1].orbitPath.y;
-    source[2] = (4 + planets[currentView+offset-1].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);
-    source[3] = planets[currentView+offset-1].orbitPath.x * sin(planets[currentView+offset].orbitAngle);
-    source[4] = planets[currentView+offset-1].orbitPath.y; 
-    source[5] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
-*/
-    paused = true;
     pan(source, dest);
 
   }
@@ -498,7 +488,7 @@ void special(int key, int xPos, int yPos)
   {
     // increment planet view index
     currentView++;
-
+    paused = true;
     // skip moons
     while( planets[currentView].orbitIndex != 0 )
     {
@@ -921,6 +911,7 @@ void pan(float source[], float dest[])
           view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
                   glm::vec3(dest[3], dest[4], dest[5]), //Focus point
                   glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          paused = false;
         }
         else
         {
@@ -946,7 +937,6 @@ void pan(float source[], float dest[])
         view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
                 glm::vec3(dest[3], dest[4], dest[5]), //Focus point
                 glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
-        paused = false;
       }
     }
 }
