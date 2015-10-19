@@ -26,11 +26,11 @@ Planet information files must be in correct format or undesired results will occ
 
 When the program is running, the following commands can be used:
 
--To quit: *Esc*
--To toggle menu display: *m*
--To change view mode: *v*
--To pause simulation: *spacebar*
--To view each planet: *left-arrow* to reset or *right-arrow* to go to next planet
+- To quit: *Esc*
+- To toggle menu display: *m*
+- To change view mode: *v*
+- To pause simulation: *spacebar*
+- To view each planet: *left-arrow* to reset or *right-arrow* to go to next planet
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA07/PA7.php
 
