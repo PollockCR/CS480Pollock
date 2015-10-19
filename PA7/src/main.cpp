@@ -50,7 +50,6 @@ const char* blankTexture = "../../Resources/white.png";
 
   static float* source = new float[6];
   static float* dest = new float[6];
-  static float* temppos = new float[6];
   static int counter = 0;
 
   // Window size
@@ -60,7 +59,6 @@ const char* blankTexture = "../../Resources/white.png";
   GLuint program[2];
   GLuint textProgram;
   GLuint startProgram;
-  GLuint lines;
   bool updateViewFlag = false;
   int currentView = 0;
   float dt = 0.0;
@@ -82,8 +80,6 @@ const char* blankTexture = "../../Resources/white.png";
   glm::mat4 view;// world->eye
   glm::mat4 projection;// eye->clip
   glm::mat4 temp;
-  glm::mat4 center;
-  glm::mat4 model;
 
   // planets
   std::vector<Planet> planets;
