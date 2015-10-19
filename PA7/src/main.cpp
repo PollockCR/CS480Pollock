@@ -382,7 +382,7 @@ void changeView()
   int zoom = 4;
   if( mode == 1 )
   {
-    zoom = 1.5;
+    zoom = 2;
     offset = numPlanets;
   }
   int index = offset + currentView;
