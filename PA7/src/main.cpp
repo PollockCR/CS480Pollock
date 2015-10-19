@@ -488,7 +488,6 @@ void special(int key, int xPos, int yPos)
   {
     // increment planet view index
     currentView++;
-    paused = true;
     // skip moons
     while( planets[currentView].orbitIndex != 0 )
     {
@@ -850,6 +849,7 @@ void pan(float source[], float dest[])
       // make sure we want to move
       if (updateViewFlag)
       {
+        paused = true;
         // check source vs dest coords
         // increment accordingly
         for (int i = 0; i < 6; i++)
