@@ -379,8 +379,10 @@ void changeView()
 {
   //int index;
   int offset = 0;
+  int zoom = 4;
   if( mode == 1 )
   {
+    zoom = 1.5;
     offset = numPlanets;
   }
   int index = offset + currentView;
@@ -399,9 +401,9 @@ void changeView()
   // view of each planet or moon
   else 
   {
-    dest[0] = (4 + planets[index].orbitPath.x) * sin(planets[index].orbitAngle);
+    dest[0] = (zoom + planets[index].orbitPath.x) * sin(planets[index].orbitAngle);
     dest[1] = planets[index].orbitPath.y;        
-    dest[2] = (4 + planets[index].orbitPath.z) * cos(planets[index].orbitAngle);        
+    dest[2] = (zoom + planets[index].orbitPath.z) * cos(planets[index].orbitAngle);        
     dest[3] = planets[index].orbitPath.x * sin(planets[index].orbitAngle);        
     dest[4] = planets[index].orbitPath.y;        
     dest[5] = planets[index].orbitPath.z * cos(planets[index].orbitAngle);            
