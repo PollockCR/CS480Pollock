@@ -541,7 +541,51 @@ bool initialize( char* objectFilename, const char* textureFilename )
 void cleanUp()
 {
     // delete the pointers
+    dynamicsWorld->removeRigidBody(groundRigidBody);
+    delete groundRigidBody->getMotionState();
+    delete groundRigidBody;
+        
+    dynamicsWorld->removeRigidBody(sphereRigidBody);
+    delete sphereRigidBody->getMotionState();
+    delete sphereRigidBody;
+        
+    dynamicsWorld->removeRigidBody(cubeRigidBody);
+    delete cubeRigidBody->getMotionState();
+    delete cubeRigidBody;
+        
+    dynamicsWorld->removeRigidBody(cylinderRigidBody);
+    delete cylinderRigidBody->getMotionState();
+    delete cylinderRigidBody;
+        
+    dynamicsWorld->removeRigidBody(sideOneRigidBody);
+    delete sideOneRigidBody->getMotionState();
+    delete sideOneRigidBody;
 
+    dynamicsWorld->removeRigidBody(sideTwoRigidBody);
+    delete sideTwoRigidBody->getMotionState();
+    delete sideTwoRigidBody;
+      
+    dynamicsWorld->removeRigidBody(sideThreeRigidBody);
+    delete sideThreeRigidBody->getMotionState();
+    delete sideThreeRigidBody;
+        
+    dynamicsWorld->removeRigidBody(sideFourRigidBody);
+    delete sideFourRigidBody->getMotionState();
+    delete sideFourRigidBody;
+
+    delete ground;
+    delete wallOne;
+    delete wallTwo;
+    delete wallThree;
+    delete wallFour;
+    delete sphere;
+    delete cube;
+    delete cylinder;
+    delete dynamicsWorld;
+    delete solver;
+    delete collisionConfiguration;
+    delete dispatcher;
+    delete broadphase;
 
     // Clean up, Clean up
     glDeleteProgram(program);   
