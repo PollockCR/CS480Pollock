@@ -1,6 +1,6 @@
 # Linux
 CC=g++
-LIBS= -lglut -lGLEW -lGL -lassimp `Magick++-config --cppflags --cxxflags --ldflags --libs`
+LIBS= -lglut -lGLEW -lGL -lassimp -I/usr/include/bullet -lBulletDynamics -lBulletSoftBody -lBulletCollision -lLinearMath `Magick++-config --cppflags --cxxflags --ldflags --libs`
 
 # For Macs uncomment the next line and comment out the previous one
 #CC=clang++

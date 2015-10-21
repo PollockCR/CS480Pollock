@@ -26,6 +26,9 @@
 // MAGICK++
 #include <Magick++.h>
 
+// Bullet library
+#include <btBulletDynamicsCommon.h>
+
 // DATA TYPES
 
 // GLOBAL CONSTANTS
@@ -43,7 +46,8 @@ const char* blankTexture = "../../Resources/white.png";
 
   // The GLSL program handle
   GLuint program;
-  GLuint vbo_geometry;
+  //GLuint vbo_geometry;
+  
   GLuint texture;
 
   // rotations
@@ -59,6 +63,9 @@ const char* blankTexture = "../../Resources/white.png";
 
   // transform matrices
   glm::mat4 model;// obj-> world (planet) 
+  glm::mat4 model2;// obj-> world (planet)
+  glm::mat4 model3;// obj-> world (planet)
+  glm::mat4 model4;// obj-> world (planet)
   glm::mat4 view;// world->eye
   glm::mat4 projection;// eye->clip
   glm::mat4 mvp;// premultiplied modelviewprojection
@@ -88,6 +95,12 @@ const char* blankTexture = "../../Resources/white.png";
   //--Time function
   float getDT();
 
+  //Bullet 
+  btDiscreteDynamicsWorld *dynamicsWorld;
+  btRigidBody *rigidBodySphere;
+  btRigidBody *rigidBodyCube;
+  btRigidBody *rigidBodyCylinder;
+
 
 // MAIN FUNCTION
 int main(int argc, char **argv)
@@ -110,7 +123,7 @@ int main(int argc, char **argv)
     char* objPtr  = argv[1];
     
     // Name and create the Window
-    glutCreateWindow("Model Loader");
+    glutCreateWindow("Bullet Project");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -130,6 +143,167 @@ int main(int argc, char **argv)
 
     // add menus
     manageMenus( false );
+
+//////////////////////////////////////////////////////////////////////////
+    //create brodphase
+    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+
+    //create collision configuration
+    btDefaultCollisionConfiguration* collisionConfiguration = new       btDefaultCollisionConfiguration();
+
+    //create a dispatcher
+    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+    //create a solver
+    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+    //create the physics world
+    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+
+     //set the gravity
+     dynamicsWorld->setGravity(btVector3(0, -10, 0));
+
+    //create a game board which the objects will be on
+    btCollisionShape* ground = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    btCollisionShape* wallOne = new btStaticPlaneShape(btVector3(-1, 0, 0), 1);
+    btCollisionShape* wallTwo = new btStaticPlaneShape(btVector3(1, 0, 0), 1);
+    btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
+    btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
+
+	//create sphere and set radius to 1
+    btCollisionShape* sphere = new btSphereShape(1);
+
+    //create cube and set extents to 0.5 each
+    btCollisionShape* cube = new btBoxShape(btVector3(0.5,0.5,0.5));
+
+    //create a cylinder and set radius of each axis to 1.0
+    btCollisionShape* cylinder = new btCylinderShape(btVector3(1.0,1.0,1.0));
+
+
+/*----------------------this is the gameboard--------------------------------*/        
+	// After we create collision shapes we have to se the default motion state 
+    // for the ground
+    btDefaultMotionState* groundMotionState = NULL;
+    shapeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    //here we construct the ground using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, ground, btVector3(0, 0, 0));
+    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(groundRigidBody);
+        
+    ////make the first wall
+    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5.3, 0, 0)));
+    //here we construct the first wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallOneRigidBodyCI(0, wallOneMotionState, wallOne, btVector3(0, 0, 0));
+    btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallOneRigidBody);
+
+
+    ////make the second wall
+    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-5.3, 0, 0)));
+    //here we construct the second wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallTwoRigidBodyCI(0, wallTwoMotionState, wallTwo, btVector3(0, 0, 0));
+    btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallTwoRigidBody);
+
+
+    ////make the third wall
+    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -5.4)));
+    //here we construct the third wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
+    btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallThreeRigidBody);
+
+
+    ////make the fouth wall
+    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 5.4)));
+    //here we construct the fourth wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
+    btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallFourRigidBody);
+/*-----------------------------------------------------------------------------*/
+
+
+/*----------------------this is the sphere--------------------------------*/        
+	// After we create collision shapes we have to se the default motion state 
+    // for the sphere
+    btDefaultMotionState* sphereMotionState = NULL;
+    sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
+
+    // the sphere must have a mass
+    btScalar mass = 1;
+
+    //we need the inertia of the sphere and we need to calculate it
+    btVector3 sphereInertia(0, 0, 0);
+    sphere->calculateLocalInertia(mass, sphereInertia);
+
+    //Here we construct the sphere with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
+    sphereRigidBody = new btRigidBody(sphereRigidBodyCI);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(sphereRigidBody);
+/*-----------------------------------------------------------------------------*/
+        
+/*----------------------this is the cube--------------------------------*/        
+	// After we create collision shapes we have to se the default motion state 
+    // for the cube
+    btDefaultMotionState* cubeMotionState = NULL;
+    cubeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, 0)));
+
+    //the cube must have a mass
+    mass = 0;
+
+    //we need the inertia of the cube and we need to calculate it
+    btVector3 cubeInertia(0, 0, 0);
+    box->calculateLocalInertia(mass, cubeInertia);
+
+    //Here we construct the cube with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyCI(mass, cubeMotionState, sphere, sphereInertia);
+    cubeRigidBody = new btRigidBody(cubeRigidBodyCI);
+
+    // this is where we make a static object (like the cube) into a kinematic object
+    cubeRigidBody->setCollisionFlags(cubeRigidBody->getCollisionFlags() |  btCollisionObject::CF_KINEMATIC_OBJECT);
+    cubeRigidBody->setActivationState(DISABLE_DEACTIVATION);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(cubeRigidBody);
+/*-----------------------------------------------------------------------------*/
+        
+/*----------------------this is the cylinder--------------------------------*/        
+	// After we create collision shapes we have to se the default motion state 
+    // for the cylinder
+    btDefaultMotionState* cylinderMotionState = NULL;
+    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(1, 20, 1)));
+
+    //the cylinder must have a mass
+    mass = 1;
+
+    //we need the inertia of the cylinder and we need to calculate it
+    btVector3 cylinderInertia(0, 0, 0);
+    cylinder->calculateLocalInertia(mass, cylinderInertia);
+
+    //Here we construct the cylinder with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, cylinder, sphereInertia);
+    cylinderRigidBody = new btRigidBody(cylinderRigidBodyCI);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(cylinderRigidBody);
+/*-----------------------------------------------------------------------------*/
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+
 
     // Initialize all of our resources(shaders, geometry)
     // pass blank texture if not given one 
@@ -366,6 +540,9 @@ bool initialize( char* objectFilename, const char* textureFilename )
 // delete old items
 void cleanUp()
 {
+    // delete the pointers
+
+
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
