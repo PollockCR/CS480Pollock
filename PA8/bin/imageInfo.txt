@@ -1,0 +1,9 @@
+../bin/table.obj
+../bin/tableMap.jpg
+../bin/sphere.obj
+../bin/sphereMap.jpg
+../bin/cube.obj
+../bin/cubeMap.jpg
+../bin/cylinder.obj
+../bin/cylinderMap.jpg
+

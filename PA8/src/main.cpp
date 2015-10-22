@@ -34,6 +34,7 @@
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
 const char* fsFileName = "../bin/shader.fs";
+const char* defaultInfo = "../bin/imageInfo.txt";
 const char* blankTexture = "../../Resources/white.png";
 
 // GLOBAL VARIABLES
@@ -89,7 +90,7 @@ const char* blankTexture = "../../Resources/white.png";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize( char* objectFilename, const char* textureFilename );
+  bool initialize( char* filename);
   void cleanUp();
 
   //--Time function
@@ -305,16 +306,16 @@ int main(int argc, char **argv)
 
 
 
-    // Initialize all of our resources(shaders, geometry)
-    // pass blank texture if not given one 
-    if( argc == 2 )
+ // Initialize all of our resources(shaders, geometry)
+    // pass default planet info if not given one 
+    if( argc != 3 )
     {
-      init = initialize( objPtr, blankTexture );
+      init = initialize( defaultInfo );
     }
-    // or, pass texture given from command line arguments
+    // or, pass planet info given from command line argument
     else
     {
-      init = initialize( objPtr, argv[2] );
+      init = initialize( argv[1] );
     }
 
     // if initialized, begin glut main loop
@@ -430,7 +431,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* objectFilename, const char* textureFilename )
+bool initialize( char* filename)
 {
     // define model with model loader
     bool geometryLoadedCorrectly;
