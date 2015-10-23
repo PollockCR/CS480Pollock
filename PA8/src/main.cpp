@@ -91,6 +91,7 @@ const char* blankTexture = "../../Resources/white.png";
   void Menu1(int num);
   void Menu2(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
+  void ArrowKeys(int button, int x_pos, int y_pos);
 
   //--Resource management
   bool initialize( const char* filename);
@@ -101,6 +102,8 @@ const char* blankTexture = "../../Resources/white.png";
 
   //Load Image info
   bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
+
+  void Sprint( float x, float y, char *st);
 
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
@@ -114,6 +117,10 @@ const char* blankTexture = "../../Resources/white.png";
   bool goLeft = false;
   bool goRight = false;
   double rotationDegrees = 0.0;
+  bool cylforward = false;
+  bool cylbackward = false;
+  bool cylgoLeft = false;
+  bool cylgoRight = false;
 
 
 // MAIN FUNCTION
@@ -152,6 +159,7 @@ int main(int argc, char **argv)
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
     glutMouseFunc(mouse);//Called if there is mouse input
+    glutSpecialFunc(ArrowKeys);
 	int index = glutCreateMenu(Menu1);
 	glutAddMenuEntry("Rotate Clockwise", 1);
 	glutAddMenuEntry("Rotate Counterclockwise", 2);
@@ -270,6 +278,7 @@ int main(int argc, char **argv)
     //Here we construct the sphere with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
+    rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodySphere);
@@ -316,6 +325,7 @@ int main(int argc, char **argv)
     //Here we construct the cylinder with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, cylinder, sphereInertia);
     rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
+    rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyCylinder);
@@ -443,6 +453,12 @@ void render()
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glUseProgram(0);
+    char* Text = new char[100];
+    
+    Text = (char*) "WASD to move sphere, Arrow keys to move cylinder";
+    Sprint(-0.7,0.9,Text);
+
   // enable the shader program
   glUseProgram(program);
 
@@ -518,6 +534,26 @@ void update()
         rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
         goRight = false;
     }
+    if(cylforward)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
+        cylforward = false;
+    }
+    if(cylbackward)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
+        cylbackward = false;
+    }
+    if(cylgoLeft)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
+        cylgoLeft = false;
+    }
+    if(cylgoRight)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
+        cylgoRight = false;
+    }
 
     
     dynamicsWorld->stepSimulation(dt, 10);
@@ -529,7 +565,6 @@ void update()
     btScalar m1[16];
     btScalar m2[16];
 
-<<<<<<< HEAD
     //set the sphere to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
@@ -547,18 +582,6 @@ void update()
     trans.getOpenGLMatrix(m2);
     images[3].model = glm::make_mat4(m2);
     images[3].model = glm::scale( images[3].model, glm::vec3(.7,.7,.7));
-=======
-    // rotation of cube around itself
-    images[1].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    images[1].model = glm::scale(images[1].model, glm::vec3(1.0, 1.0, 1.0));
-    images[2].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    images[2].model = glm::scale(images[2].model, glm::vec3(1.0, 1.0, 1.0));
-    images[3].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    images[3].model = glm::scale(images[3].model, glm::vec3(1.0, 1.0, 1.0));
-    images[1].model = glm::translate( glm::mat4(1.0f), glm::vec3(3, 1.0, 3));
-    images[2].model = glm::translate( glm::mat4(1.0f), glm::vec3(0, 1.35, 0));
-    images[3].model = glm::translate( glm::mat4(1.0f), glm::vec3(3, 1.0, 0));
->>>>>>> d55a882bee655eaeba398b2056443ab5450fda0f
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -847,3 +870,38 @@ float getDT()
     return ret;
 }
 
+void ArrowKeys(int button, int x_pos, int y_pos)
+{
+    if (button == GLUT_KEY_LEFT)
+    {
+        cylgoLeft = true;
+    }
+
+    if (button == GLUT_KEY_RIGHT)
+    {
+        cylgoRight = true;
+    }
+
+    if (button == GLUT_KEY_UP)
+    {
+        cylforward = true;
+    }
+
+    if (button == GLUT_KEY_DOWN)
+    {
+        cylbackward = true;
+    }
+}
+
+// This prints a string to the screen
+void Sprint( float x, float y, char *st)
+{
+    int l,i;
+
+    l=strlen( st ); // see how many characters are in text string.
+    glRasterPos2f(x, y); // location to start printing text
+    for( i=0; i < l; i++) // loop until i is greater then l
+    {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, st[i]); // Print a character on the screen
+    }
+}
