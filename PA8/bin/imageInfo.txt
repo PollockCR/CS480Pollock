@@ -1,10 +1,10 @@
 4
 ../bin/table.obj
-../bin/tableMap.jpg
+../bin/metal.jpg
 ../bin/sphere.obj
-../bin/sphereMap.jpg
+../bin/glass.jpg
 ../bin/cube.obj
-../bin/cubeMap.jpg
+../bin/bricks.jpg
 ../bin/cylinder.obj
-../bin/cylinderMap.jpg
+../bin/marble.jpg
 
