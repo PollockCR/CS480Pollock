@@ -35,7 +35,7 @@ class Mesh
 public:
    Mesh();
    ~Mesh();
-   bool loadMesh( char* objectFilename );
+   bool loadMesh( const char* objectFilename );
    void render();
    std::vector<Vertex> geometry;
 private:   

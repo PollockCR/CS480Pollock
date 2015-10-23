@@ -1,3 +1,4 @@
+4
 ../bin/table.obj
 ../bin/tableMap.jpg
 ../bin/sphere.obj

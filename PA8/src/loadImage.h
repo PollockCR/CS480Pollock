@@ -1,5 +1,5 @@
-#ifndef PLANET_H
-#define PLANET_H
+#ifndef LOADIMAGE_H
+#define LOADIMAGE_H
 
 // Resource used: http://ogldev.atspace.co.uk/www/tutorial22/tutorial22.html
 #include <GL/glew.h> // glew must be included before the main gl libs
@@ -29,9 +29,6 @@ public:
    Image();
    ~Image();
    bool loadImage( const char* imageFilepath );
-   Magick::Blob m_blob;	
-   GLuint imageCols;
-   GLuint imageRows;
    glm::mat4 model;
    glm::mat4 mvp;
    Magick::Blob m_blob;
