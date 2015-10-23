@@ -1,15 +1,8 @@
 4
-<<<<<<< HEAD
-../bin/ground.obj
-../bin/glass.jpg
-../bin/sphere.obj
-../bin/metal.jpg
-=======
 ../bin/table.obj
-../bin/metal.jpg
-../bin/sphere.obj
 ../bin/glass.jpg
->>>>>>> d55a882bee655eaeba398b2056443ab5450fda0f
+../bin/sphere.obj
+../bin/metal.jpg
 ../bin/cube.obj
 ../bin/bricks.jpg
 ../bin/cylinder.obj
