@@ -88,6 +88,8 @@ const char* blankTexture = "../../Resources/white.png";
   void keyboard(unsigned char key, int x_pos, int y_pos);
   void manageMenus(bool quitCall);
   void menu(int id);
+  void Menu1(int num);
+  void Menu2(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
@@ -105,6 +107,13 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
+
+  //directions
+  bool forward = false;
+  bool backward = false;
+  bool goLeft = false;
+  bool goRight = false;
+  double rotationDegrees = 0.0;
 
 
 // MAIN FUNCTION
@@ -142,6 +151,16 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutMouseFunc(mouse);//Called if there is mouse input
+	int index = glutCreateMenu(Menu1);
+	glutAddMenuEntry("Rotate Clockwise", 1);
+	glutAddMenuEntry("Rotate Counterclockwise", 2);
+	glutAddMenuEntry("Don't Rotate", 3);
+	glutCreateMenu(Menu2);
+	glutAddSubMenu("Rotation options", index);
+	glutAddMenuEntry("Exit Program", 2);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	srand(getDT());
 
     // add menus
     manageMenus( false );
@@ -383,6 +402,40 @@ int main(int argc, char **argv)
 
 // FUNCTION IMPLEMENTATION
 
+//the first menu that appears
+void Menu1(int num)
+    {
+	switch(num)
+		{
+		case 1: 
+			rotationDegrees = 45.0;
+			break;
+		case 2: 
+			rotationDegrees =-45.0;
+			break;
+		case 3: 
+			rotationDegrees = 0.0;
+			break;
+		}
+	glutPostRedisplay();
+	}
+
+//the second sub-menu
+void Menu2(int num)
+    {
+	switch (num)
+		{
+		case 1:
+			Menu1(num);
+			break;
+		case 2:
+			exit(0);
+			break;
+		}
+	glutPostRedisplay();
+	}
+
+
 // render the scene
 void render()
 {
@@ -440,23 +493,65 @@ void render()
 void update()
 {
   // update object
+    float dt = getDT();
+    float force = 10.0;
+    
 
-    //total time
-    static float rotationAngle = 0.0;
-    static float orbitAngle = 0.0;
+    // add the forces to the sphere for movement
+    if(forward)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
+        forward = false;
+    }
+    if(backward)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
+        backward = false;
+    }
+    if(goLeft)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
+        goLeft = false;
+    }
+    if(goRight)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
+        goRight = false;
+    }
 
-    float dt = getDT(); 
+    
+    dynamicsWorld->stepSimulation(dt, 10);
 
-    // move object 90 degrees a second
-    orbitAngle += dt * M_PI/2; // orbit
-    rotationAngle += dt * M_PI/2; // rotate
 
-    // rotation of cube around itself
-    model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+    btTransform trans;
+
+    btScalar m[16];
+    btScalar m1[16];
+    btScalar m2[16];
+
+    //set the sphere to it's respective model
+    rigidBodySphere->getMotionState()->getWorldTransform(trans);
+    trans.getOpenGLMatrix(m);
+    images[1].model = glm::make_mat4(m);
+
+   
+    //set the cube to it's respective model
+    rigidBodyCube->getMotionState()->getWorldTransform(trans);
+    trans.getOpenGLMatrix(m1);
+    images[2].model = glm::make_mat4(m1);
+
+   
+    //set the cylinder to it's respective model
+    rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
+    trans.getOpenGLMatrix(m2);
+    images[3].model = glm::make_mat4(m2);
+    images[3].model = glm::scale( images[3].model, glm::vec3(.7,.7,.7));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
+
+  // clean up!
+  rigidBodySphere->clearForces();
 }
 
 // resize window
@@ -478,10 +573,26 @@ void reshape(int n_w, int n_h)
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
   // Handle keyboard input - end program
-  if(key == 27) // esc
-  {
-    glutLeaveMainLoop();
-  }   
+    if((key == 27)||(key == 'q')||(key == 'Q'))
+        {
+        glutLeaveMainLoop();
+        }
+    else if((key == 'w')||(key == 'W'))
+        {
+        forward = true;
+        }
+    else if((key == 'a')||(key == 'A'))
+        {
+        goLeft = true;
+        }
+    else if((key == 's')||(key == 'S'))
+        {
+        backward = true;
+        }
+    else if((key == 'd')||(key == 'D'))
+        {
+        goRight = true;
+        }
 }
 
 // initialize basic geometry and shaders for this example
@@ -707,8 +818,8 @@ void menu(int id)
 // actions for left mouse click
 void mouse(int button, int state, int x_pos, int y_pos)
 {
-  // redraw screen without menu
-  glutPostRedisplay();
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
+	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
 }
 
 //returns the time delta
