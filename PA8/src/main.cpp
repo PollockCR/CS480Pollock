@@ -127,13 +127,6 @@ const char* blankTexture = "../../Resources/white.png";
 int main(int argc, char **argv)
 {
     bool init = false;
-    // If the user didn't provide a filename command line argument,
-    // print an error and exit.
-    if (argc <= 1)
-    {
-        std::cout << "ERROR: Usage: " << argv[0] << " <Filename>. Please try again." << std::endl;
-        exit(1);
-    }
 
     // Initialize glut
     glutInit(&argc, argv);
@@ -222,7 +215,7 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(groundRigidBody);
         
     ////make the first wall
-    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5.3, 0, 0)));
+    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5.6, 0, 0)));
     //here we construct the first wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallOneRigidBodyCI(0, wallOneMotionState, wallOne, btVector3(0, 0, 0));
     btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
@@ -232,7 +225,7 @@ int main(int argc, char **argv)
 
 
     ////make the second wall
-    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-5.3, 0, 0)));
+    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-5.6, 0, 0)));
     //here we construct the second wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallTwoRigidBodyCI(0, wallTwoMotionState, wallTwo, btVector3(0, 0, 0));
     btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
@@ -241,8 +234,8 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(wallTwoRigidBody);
 
 
-    ////make the third wall
-    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -5.4)));
+    ////make the third wall FRONTBACK
+    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -5.6)));
     //here we construct the third wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
@@ -251,8 +244,8 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(wallThreeRigidBody);
 
 
-    ////make the fouth wall
-    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 5.4)));
+    ////make the fouth wall FRONTBACK
+    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 5.6)));
     //here we construct the fourth wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
@@ -512,7 +505,6 @@ void update()
     float dt = getDT();
     float force = 10.0;
     
-
     // add the forces to the sphere for movement
     if(forward)
     {
@@ -575,13 +567,11 @@ void update()
     rigidBodyCube->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m1);
     images[2].model = glm::make_mat4(m1);
-
    
     //set the cylinder to it's respective model
     rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m2);
     images[3].model = glm::make_mat4(m2);
-    images[3].model = glm::scale( images[3].model, glm::vec3(.7,.7,.7));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -697,7 +687,7 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 4.0, -7.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 5.0, -10.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
