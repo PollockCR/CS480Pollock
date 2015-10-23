@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
-	//create sphere and set radius to 1
+  //create sphere and set radius to 1
     btCollisionShape* sphere = new btSphereShape(1);
 
     //create cube and set extents to 0.5 each
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 
 
 /*----------------------this is the gameboard--------------------------------*/        
-	// After we create collision shapes we have to se the default motion state 
+  // After we create collision shapes we have to se the default motion state 
     // for the ground
     btDefaultMotionState* groundMotionState = NULL;
     groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 
 
 /*----------------------this is the sphere--------------------------------*/        
-	// After we create collision shapes we have to se the default motion state 
+  // After we create collision shapes we have to se the default motion state 
     // for the sphere
     btDefaultMotionState* sphereMotionState = NULL;
     sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
@@ -257,7 +257,7 @@ int main(int argc, char **argv)
 /*-----------------------------------------------------------------------------*/
         
 /*----------------------this is the cube--------------------------------*/        
-	// After we create collision shapes we have to se the default motion state 
+  // After we create collision shapes we have to se the default motion state 
     // for the cube
     btDefaultMotionState* cubeMotionState = NULL;
     cubeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, 0)));
@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 /*-----------------------------------------------------------------------------*/
         
 /*----------------------this is the cylinder--------------------------------*/        
-	// After we create collision shapes we have to se the default motion state 
+  // After we create collision shapes we have to se the default motion state 
     // for the cylinder
     btDefaultMotionState* cylinderMotionState = NULL;
     cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(1, 20, 1)));
@@ -452,8 +452,15 @@ void update()
     rotationAngle += dt * M_PI/2; // rotate
 
     // rotation of cube around itself
-    model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-    model = glm::scale(model, glm::vec3(1.0, 1.0, 1.0));
+    images[1].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+    images[1].model = glm::scale(images[1].model, glm::vec3(1.0, 1.0, 1.0));
+    images[2].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+    images[2].model = glm::scale(images[2].model, glm::vec3(1.0, 1.0, 1.0));
+    images[3].model = glm::rotate( glm::mat4(1.0f), rotationAngle, glm::vec3(0.0, 1.0, 0.0));
+    images[3].model = glm::scale(images[3].model, glm::vec3(1.0, 1.0, 1.0));
+    images[1].model = glm::translate( glm::mat4(1.0f), glm::vec3(3, 1.0, 3));
+    images[2].model = glm::translate( glm::mat4(1.0f), glm::vec3(0, 1.35, 0));
+    images[3].model = glm::translate( glm::mat4(1.0f), glm::vec3(3, 1.0, 0));
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -550,7 +557,7 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 15.0, -30.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 4.0, -7.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
