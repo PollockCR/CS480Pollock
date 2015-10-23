@@ -11,7 +11,7 @@ Mesh::~Mesh()
 {
 }
 
-bool Mesh::loadMesh( char * objectFilename )
+bool Mesh::loadMesh( const char * objectFilename )
 {
   Assimp::Importer importer;
   unsigned int index, vertexNum;

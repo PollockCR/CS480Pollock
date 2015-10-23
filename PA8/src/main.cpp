@@ -2,6 +2,7 @@
 // created seperate files for fragment and vertex shader
 #include "shader.h" // header file of shader loaders
 #include "mesh.h" // header file of object loader
+#include "loadImage.h" // header file for image class
 #include <GL/glew.h> // glew must be included before the main gl libs
 #include <GL/freeglut.h>
 #include <iostream>
@@ -71,6 +72,10 @@ const char* blankTexture = "../../Resources/white.png";
   glm::mat4 projection;// eye->clip
   glm::mat4 mvp;// premultiplied modelviewprojection
 
+  // Images
+  std::vector<Image> images;
+  int numImages = 0;
+
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
@@ -90,11 +95,14 @@ const char* blankTexture = "../../Resources/white.png";
   void mouse(int button, int state, int x_pos, int y_pos);
 
   //--Resource management
-  bool initialize( char* filename);
+  bool initialize( const char* filename);
   void cleanUp();
 
   //--Time function
   float getDT();
+
+  //Load Image info
+  bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
 
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
@@ -119,9 +127,6 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(w, h);
-
-    // Get filename of object
-    char* objPtr  = argv[1];
     
     // Name and create the Window
     glutCreateWindow("Bullet Project");
@@ -185,7 +190,7 @@ int main(int argc, char **argv)
 	// After we create collision shapes we have to se the default motion state 
     // for the ground
     btDefaultMotionState* groundMotionState = NULL;
-    shapeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
     //here we construct the ground using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, ground, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
@@ -249,10 +254,10 @@ int main(int argc, char **argv)
 
     //Here we construct the sphere with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
-    sphereRigidBody = new btRigidBody(sphereRigidBodyCI);
+    rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(sphereRigidBody);
+    dynamicsWorld->addRigidBody(rigidBodySphere);
 /*-----------------------------------------------------------------------------*/
         
 /*----------------------this is the cube--------------------------------*/        
@@ -266,18 +271,18 @@ int main(int argc, char **argv)
 
     //we need the inertia of the cube and we need to calculate it
     btVector3 cubeInertia(0, 0, 0);
-    box->calculateLocalInertia(mass, cubeInertia);
+    cube->calculateLocalInertia(mass, cubeInertia);
 
     //Here we construct the cube with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyCI(mass, cubeMotionState, sphere, sphereInertia);
-    cubeRigidBody = new btRigidBody(cubeRigidBodyCI);
+    rigidBodyCube = new btRigidBody(cubeRigidBodyCI);
 
     // this is where we make a static object (like the cube) into a kinematic object
-    cubeRigidBody->setCollisionFlags(cubeRigidBody->getCollisionFlags() |  btCollisionObject::CF_KINEMATIC_OBJECT);
-    cubeRigidBody->setActivationState(DISABLE_DEACTIVATION);
+    rigidBodyCube->setCollisionFlags(rigidBodyCube->getCollisionFlags() |  btCollisionObject::CF_KINEMATIC_OBJECT);
+    rigidBodyCube->setActivationState(DISABLE_DEACTIVATION);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(cubeRigidBody);
+    dynamicsWorld->addRigidBody(rigidBodyCube);
 /*-----------------------------------------------------------------------------*/
         
 /*----------------------this is the cylinder--------------------------------*/        
@@ -295,10 +300,10 @@ int main(int argc, char **argv)
 
     //Here we construct the cylinder with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, cylinder, sphereInertia);
-    cylinderRigidBody = new btRigidBody(cylinderRigidBodyCI);
+    rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(cylinderRigidBody);
+    dynamicsWorld->addRigidBody(rigidBodyCylinder);
 /*-----------------------------------------------------------------------------*/
 
 /////////////////////////////////////////////////////////////////////////////
@@ -328,7 +333,54 @@ int main(int argc, char **argv)
     // remove menus
     manageMenus( true );
 
-    // clean up and end program
+    //////////// clean up and end program
+    // delete the pointers
+    dynamicsWorld->removeRigidBody(groundRigidBody);
+    delete groundRigidBody->getMotionState();
+    delete groundRigidBody;
+        
+    dynamicsWorld->removeRigidBody(rigidBodySphere);
+    delete rigidBodySphere->getMotionState();
+    delete rigidBodySphere;
+        
+    dynamicsWorld->removeRigidBody(rigidBodyCube);
+    delete rigidBodyCube->getMotionState();
+    delete rigidBodyCube;
+        
+    dynamicsWorld->removeRigidBody(rigidBodyCylinder);
+    delete rigidBodyCylinder->getMotionState();
+    delete rigidBodyCylinder;
+        
+    dynamicsWorld->removeRigidBody(wallOneRigidBody);
+    delete wallOneRigidBody->getMotionState();
+    delete wallOneRigidBody;
+
+    dynamicsWorld->removeRigidBody(wallTwoRigidBody);
+    delete wallTwoRigidBody->getMotionState();
+    delete wallTwoRigidBody;
+      
+    dynamicsWorld->removeRigidBody(wallThreeRigidBody);
+    delete wallThreeRigidBody->getMotionState();
+    delete wallThreeRigidBody;
+        
+    dynamicsWorld->removeRigidBody(wallFourRigidBody);
+    delete wallFourRigidBody->getMotionState();
+    delete wallFourRigidBody;
+
+    delete ground;
+    delete wallOne;
+    delete wallTwo;
+    delete wallThree;
+    delete wallFour;
+    delete sphere;
+    delete cube;
+    delete cylinder;
+    delete dynamicsWorld;
+    delete solver;
+    delete collisionConfiguration;
+    delete dispatcher;
+    delete broadphase;
+
     cleanUp();
     return 0;
 }
@@ -431,12 +483,23 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 }
 
 // initialize basic geometry and shaders for this example
-bool initialize( char* filename)
+bool initialize( const char* filename)
 {
     // define model with model loader
-    bool geometryLoadedCorrectly;
+    /*bool geometryLoadedCorrectly;
     Mesh object;
+    ShaderLoader programLoad;*/
+    int index;
+    std::vector<Mesh> meshes;
     ShaderLoader programLoad;
+
+    // load the image info
+    if( !loadInfo( filename, meshes, numImages ) )
+    {
+      return false;
+    }
+
+
     // Image blob
     Magick::Blob m_blob;
 
@@ -451,7 +514,7 @@ bool initialize( char* filename)
     try
     {
       // save image to image pointer
-      m_pImage = new Magick::Image( textureFilename );
+      m_pImage = new Magick::Image( filename );
     }
     // output error if not loaded
     catch(Magick::Error& err)
@@ -538,56 +601,84 @@ bool initialize( char* filename)
     return true;
 }
 
+// load info from file into Images
+bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages )
+{
+  // initialize variables
+  std::ifstream ifs(infoFilepath, std::ifstream::in);
+  bool geometryLoadedCorrectly;
+  bool imageLoadedCorrectly;
+  int index;
+
+  // check for open file
+  if( !ifs.is_open() )
+  {
+    std::cerr << "[F] FAILED TO READ FILE!" << infoFilepath << std::endl;
+    return false;    
+  }
+
+  // read in number of Images
+  ifs >> numOfImages;
+
+  // check for invalid file format
+  if( numOfImages == -1 )
+  {
+    std::cerr << "[F] FAILED TO READ FILE! INVALID FORMAT" << std::endl;
+    return false; 
+  }
+
+  // loop through each image
+  for( index = 0; index < numOfImages; index++ )
+  {
+    // create new Image
+    Image tempImage;
+    images.push_back(tempImage);
+
+    // create new mesh
+    Mesh tempMesh;
+    meshes.push_back(tempMesh);
+
+    // read from file
+
+      // load obj file
+      std::string objFilepath;
+      ifs >> objFilepath;
+      geometryLoadedCorrectly = meshes[index].loadMesh( objFilepath.c_str());
+
+        // return false if not loaded
+        if( !geometryLoadedCorrectly )
+        {
+          std::cerr << "[F] GEOMETRY NOT LOADED CORRECTLY" << std::endl;
+          return false;
+        }
+
+      // load texture
+      std::string textureFilepath;
+      ifs >> textureFilepath;
+      imageLoadedCorrectly = images[index].loadImage(textureFilepath.c_str());
+
+        // return false if not loaded
+        if( !imageLoadedCorrectly )
+        {
+          return false;
+        }
+
+      // save size of geometry
+      images[index].geometrySize = meshes[index].geometry.size();
+    
+  }
+
+  // update image count
+  numImages = images.size();       
+
+
+  // return success
+  return true;
+}
+
 // delete old items
 void cleanUp()
 {
-    // delete the pointers
-    dynamicsWorld->removeRigidBody(groundRigidBody);
-    delete groundRigidBody->getMotionState();
-    delete groundRigidBody;
-        
-    dynamicsWorld->removeRigidBody(sphereRigidBody);
-    delete sphereRigidBody->getMotionState();
-    delete sphereRigidBody;
-        
-    dynamicsWorld->removeRigidBody(cubeRigidBody);
-    delete cubeRigidBody->getMotionState();
-    delete cubeRigidBody;
-        
-    dynamicsWorld->removeRigidBody(cylinderRigidBody);
-    delete cylinderRigidBody->getMotionState();
-    delete cylinderRigidBody;
-        
-    dynamicsWorld->removeRigidBody(sideOneRigidBody);
-    delete sideOneRigidBody->getMotionState();
-    delete sideOneRigidBody;
-
-    dynamicsWorld->removeRigidBody(sideTwoRigidBody);
-    delete sideTwoRigidBody->getMotionState();
-    delete sideTwoRigidBody;
-      
-    dynamicsWorld->removeRigidBody(sideThreeRigidBody);
-    delete sideThreeRigidBody->getMotionState();
-    delete sideThreeRigidBody;
-        
-    dynamicsWorld->removeRigidBody(sideFourRigidBody);
-    delete sideFourRigidBody->getMotionState();
-    delete sideFourRigidBody;
-
-    delete ground;
-    delete wallOne;
-    delete wallTwo;
-    delete wallThree;
-    delete wallFour;
-    delete sphere;
-    delete cube;
-    delete cylinder;
-    delete dynamicsWorld;
-    delete solver;
-    delete collisionConfiguration;
-    delete dispatcher;
-    delete broadphase;
-
     // Clean up, Clean up
     glDeleteProgram(program);   
     glDeleteBuffers(1, &vbo_geometry);
