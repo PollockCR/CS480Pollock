@@ -23,7 +23,8 @@ Planet information files must be in correct format or undesired results will occ
 When the program is running, the following commands can be used:
 
 - To quit: *Esc*
-- To interact with objects: *Arrow keys*
+- To interact with cylinder: *Arrow keys*
+- To interact with the sphere: *WASD*
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA08/PA8.php
 
