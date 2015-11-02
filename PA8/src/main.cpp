@@ -108,6 +108,7 @@ const char* blankTexture = "../../Resources/white.png";
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
   btRigidBody *rigidBodySphere;
+  btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
 
   //directions
@@ -192,10 +193,13 @@ int main(int argc, char **argv)
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
   //create sphere and set radius to 1
-    btCollisionShape* sphere = new btCylinderShape(btVector3(1.0,0.3,1.0));
+    btCollisionShape* sphere = new btSphereShape(1);
 
-    //create a puck and set radius of each axis to 1.0
-    btCollisionShape* puck = new btCylinderShape(btVector3(1.0,0.3,1.0));
+    //create cube and set extents to 0.5 each
+    btCollisionShape* cube = new btBoxShape(btVector3(0.5,0.5,0.5));
+
+    //create a cylinder and set radius of each axis to 1.0
+    btCollisionShape* cylinder = new btCylinderShape(btVector3(1.0,1.0,1.0));
 
 
 /*----------------------this is the gameboard--------------------------------*/        
@@ -258,10 +262,10 @@ int main(int argc, char **argv)
     sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
 
     // the sphere must have a mass
-    btScalar mass = 20;
+    btScalar mass = 1;
 
     //we need the inertia of the sphere and we need to calculate it
-    btVector3 sphereInertia(0, 10, 15);
+    btVector3 sphereInertia(0, 0, 0);
     sphere->calculateLocalInertia(mass, sphereInertia);
 
     //Here we construct the sphere with a mass, motion state, and inertia
@@ -273,21 +277,46 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(rigidBodySphere);
 /*-----------------------------------------------------------------------------*/
         
-/*----------------------this is the puck1--------------------------------*/        
+/*----------------------this is the cube--------------------------------*/        
   // After we create collision shapes we have to se the default motion state 
-    // for the puck
+    // for the cube
+    btDefaultMotionState* cubeMotionState = NULL;
+    cubeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, 0)));
+
+    //the cube must have a mass
+    mass = 0;
+
+    //we need the inertia of the cube and we need to calculate it
+    btVector3 cubeInertia(0, 0, 0);
+    cube->calculateLocalInertia(mass, cubeInertia);
+
+    //Here we construct the cube with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyCI(mass, cubeMotionState, sphere, sphereInertia);
+    rigidBodyCube = new btRigidBody(cubeRigidBodyCI);
+
+    // this is where we make a static object (like the cube) into a kinematic object
+    rigidBodyCube->setCollisionFlags(rigidBodyCube->getCollisionFlags() |  btCollisionObject::CF_KINEMATIC_OBJECT);
+    rigidBodyCube->setActivationState(DISABLE_DEACTIVATION);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(rigidBodyCube);
+/*-----------------------------------------------------------------------------*/
+        
+/*----------------------this is the cylinder--------------------------------*/        
+  // After we create collision shapes we have to se the default motion state 
+    // for the cylinder
     btDefaultMotionState* cylinderMotionState = NULL;
-    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5, 1, 2)));
+    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(1, 20, 1)));
 
     //the cylinder must have a mass
-    mass = 20;
+    mass = 1;
 
     //we need the inertia of the cylinder and we need to calculate it
-    btVector3 cylinderInertia(0, 10, 15);
-    puck->calculateLocalInertia(mass, cylinderInertia);
+    btVector3 cylinderInertia(0, 0, 0);
+    cylinder->calculateLocalInertia(mass, cylinderInertia);
 
     //Here we construct the cylinder with a mass, motion state, and inertia
-    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, puck, cylinderInertia);
+    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, cylinder, sphereInertia);
     rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
     rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
 
@@ -332,6 +361,10 @@ int main(int argc, char **argv)
     delete rigidBodySphere->getMotionState();
     delete rigidBodySphere;
         
+    dynamicsWorld->removeRigidBody(rigidBodyCube);
+    delete rigidBodyCube->getMotionState();
+    delete rigidBodyCube;
+        
     dynamicsWorld->removeRigidBody(rigidBodyCylinder);
     delete rigidBodyCylinder->getMotionState();
     delete rigidBodyCylinder;
@@ -358,7 +391,8 @@ int main(int argc, char **argv)
     delete wallThree;
     delete wallFour;
     delete sphere;
-    delete puck;
+    delete cube;
+    delete cylinder;
     delete dynamicsWorld;
     delete solver;
     delete collisionConfiguration;
@@ -471,27 +505,6 @@ void update()
     float dt = getDT();
     float force = 10.0;
     
-    if(forward && goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,force));
-        forward = false;
-    }
-    if(backward && goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,-force));
-        backward = false;
-    }
-    if(forward && goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,force));
-        goLeft = false;
-    }
-    if(backward && goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,-force));
-        goRight = false;
-    }
-
     // add the forces to the sphere for movement
     if(forward)
     {
@@ -513,8 +526,6 @@ void update()
         rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
         goRight = false;
     }
-
-
     if(cylforward)
     {
         rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
@@ -543,17 +554,24 @@ void update()
     btTransform trans;
 
     btScalar m[16];
+    btScalar m1[16];
     btScalar m2[16];
 
     //set the sphere to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
+
+   
+    //set the cube to it's respective model
+    rigidBodyCube->getMotionState()->getWorldTransform(trans);
+    trans.getOpenGLMatrix(m1);
+    images[2].model = glm::make_mat4(m1);
    
     //set the cylinder to it's respective model
     rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m2);
-    images[2].model = glm::make_mat4(m2);
+    images[3].model = glm::make_mat4(m2);
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -585,19 +603,19 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
         {
         glutLeaveMainLoop();
         }
-    if((key == 'w')||(key == 'W'))
+    else if((key == 'w')||(key == 'W'))
         {
         forward = true;
         }
-    if((key == 'a')||(key == 'A'))
+    else if((key == 'a')||(key == 'A'))
         {
         goLeft = true;
         }
-    if((key == 's')||(key == 'S'))
+    else if((key == 's')||(key == 'S'))
         {
         backward = true;
         }
-    if((key == 'd')||(key == 'D'))
+    else if((key == 'd')||(key == 'D'))
         {
         goRight = true;
         }
