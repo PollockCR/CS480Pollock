@@ -1,0 +1,10 @@
+4
+../bin/table.obj
+../bin/metal.jpg
+../bin/sphere.obj
+../bin/glass.jpg
+../bin/cube.obj
+../bin/bricks.jpg
+../bin/cylinder.obj
+../bin/marble.jpg
+
