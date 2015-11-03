@@ -343,7 +343,7 @@ int main(int argc, char **argv)
 
     //Here we construct the puck with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo puckRigidBodyCI(mass, puckMotionState, puck, puckInertia);
-    rigidBodyPuck = new btRigidBody(cylinderRigidBodyCI);
+    rigidBodyPuck = new btRigidBody(puckRigidBodyCI);
     rigidBodyPuck->setActivationState(DISABLE_DEACTIVATION);
 
     //display dynamic body in our world
@@ -604,16 +604,22 @@ void update()
 
     btScalar m[16];
     btScalar m2[16];
+    btScalar m3[16];
 
     //set the paddlePlayer1 to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
    
-    //set the cylinder to it's respective model
+    //set the paddleplayer2 to it's respective model
     rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m2);
     images[2].model = glm::make_mat4(m2);
+
+    //set the paddleplayer2 to it's respective model
+    rigidBodyPuck->getMotionState()->getWorldTransform(trans);
+    trans.getOpenGLMatrix(m3);
+    images[3].model = glm::make_mat4(m3);
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback

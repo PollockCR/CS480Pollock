@@ -1,8 +1,9 @@
-3
+4
 ../bin/table.obj
 ../bin/metal.jpg
 ../bin/hockeypaddle.obj
 ../bin/wood.jpg
 ../bin/hockeypaddle.obj
 ../bin/wood.jpg
-
+../bin/sphere.obj
+../bin/glass.jpg
