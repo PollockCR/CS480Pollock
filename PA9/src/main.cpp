@@ -620,7 +620,7 @@ void update()
     trans.getOpenGLMatrix(m2);
     images[2].model = glm::make_mat4(m2);
 
-    //set the paddleplayer2 to it's respective model
+    //set the puck to it's respective model
     rigidBodyPuck->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m3);
     images[3].model = glm::make_mat4(m3);
