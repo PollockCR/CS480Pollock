@@ -1,8 +1,8 @@
 3
 ../bin/table.obj
 ../bin/metal.jpg
-../bin/hockeypuck.obj
+../bin/hockeypaddle.obj
 ../bin/wood.jpg
-../bin/hockeypuck.obj
+../bin/hockeypaddle.obj
 ../bin/wood.jpg
 

@@ -92,6 +92,7 @@ const char* blankTexture = "../../Resources/white.png";
   void Menu2(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
   void ArrowKeys(int button, int x_pos, int y_pos);
+  void moveMouse (int x, int y);///
 
   //--Resource management
   bool initialize( const char* filename);
@@ -109,6 +110,7 @@ const char* blankTexture = "../../Resources/white.png";
   btDiscreteDynamicsWorld *dynamicsWorld;
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCylinder;
+  btRigidBody *rigidBodyCube;///
 
   //directions
   bool forward = false;
@@ -120,6 +122,14 @@ const char* blankTexture = "../../Resources/white.png";
   bool cylbackward = false;
   bool cylgoLeft = false;
   bool cylgoRight = false;
+
+  //mouse stuff
+  bool mouseCanMove = false;///
+  int mouseXAxis, mouseYAxis;///
+
+  //scores
+  int player1Counter = 0;///
+  int player2Counter =0;///
 
 
 // MAIN FUNCTION
@@ -133,7 +143,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
     
     // Name and create the Window
-    glutCreateWindow("Bullet Project");
+    glutCreateWindow("Welcome to Air Hockey");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -182,7 +192,7 @@ int main(int argc, char **argv)
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
 
      //set the gravity
-     dynamicsWorld->setGravity(btVector3(0, -10, 0));
+     dynamicsWorld->setGravity(btVector3(0, -9.85, 0));
 
     //create a game board which the objects will be on
     btCollisionShape* ground = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
@@ -191,11 +201,11 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
-  //create sphere and set radius to 1
-    btCollisionShape* sphere = new btCylinderShape(btVector3(1.0,0.3,1.0));
+  //create paddlePlayer1 and set radius to 1
+    btCollisionShape* paddlePlayer1 = new btCylinderShape(btVector3(1.0,0.3,1.0));
 
-    //create a puck and set radius of each axis to 1.0
-    btCollisionShape* puck = new btCylinderShape(btVector3(1.0,0.3,1.0));
+    //create a paddlePlayer2 and set radius of each axis to 1.0
+    btCollisionShape* paddlePlayer2 = new btCylinderShape(btVector3(1.0,0.3,1.0));
 
 
 /*----------------------this is the gameboard--------------------------------*/        
@@ -251,21 +261,21 @@ int main(int argc, char **argv)
 /*-----------------------------------------------------------------------------*/
 
 
-/*----------------------this is the sphere--------------------------------*/        
+/*----------------------this is the paddlePlayer1--------------------------------*/        
   // After we create collision shapes we have to se the default motion state 
-    // for the sphere
+    // for the paddlePlayer1
     btDefaultMotionState* sphereMotionState = NULL;
     sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
 
-    // the sphere must have a mass
+    // the paddlePlayer1 must have a mass
     btScalar mass = 20;
 
-    //we need the inertia of the sphere and we need to calculate it
+    //we need the inertia of the paddlePlayer1 and we need to calculate it
     btVector3 sphereInertia(0, 10, 15);
-    sphere->calculateLocalInertia(mass, sphereInertia);
+    paddlePlayer1->calculateLocalInertia(mass, sphereInertia);
 
-    //Here we construct the sphere with a mass, motion state, and inertia
-    btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
+    //Here we construct the paddlePlayer1 with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, paddlePlayer1, sphereInertia);
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
 
@@ -273,9 +283,9 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(rigidBodySphere);
 /*-----------------------------------------------------------------------------*/
         
-/*----------------------this is the puck1--------------------------------*/        
+/*----------------------this is the paddlePlayer2--------------------------------*/        
   // After we create collision shapes we have to se the default motion state 
-    // for the puck
+    // for the paddlePlayer2
     btDefaultMotionState* cylinderMotionState = NULL;
     cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5, 1, 2)));
 
@@ -284,10 +294,10 @@ int main(int argc, char **argv)
 
     //we need the inertia of the cylinder and we need to calculate it
     btVector3 cylinderInertia(0, 10, 15);
-    puck->calculateLocalInertia(mass, cylinderInertia);
+    paddlePlayer2->calculateLocalInertia(mass, cylinderInertia);
 
     //Here we construct the cylinder with a mass, motion state, and inertia
-    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, puck, cylinderInertia);
+    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, paddlePlayer2, cylinderInertia);
     rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
     rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
 
@@ -357,8 +367,8 @@ int main(int argc, char **argv)
     delete wallTwo;
     delete wallThree;
     delete wallFour;
-    delete sphere;
-    delete puck;
+    delete paddlePlayer1;
+    delete paddlePlayer2;
     delete dynamicsWorld;
     delete solver;
     delete collisionConfiguration;
@@ -415,7 +425,7 @@ void render()
     glUseProgram(0);
     char* Text = new char[100];
     
-    Text = (char*) "WASD to move sphere, Arrow keys to move cylinder";
+    Text = (char*) "WASD to move paddlePlayer1, Arrow keys to move cylinder";
     Sprint(-0.7,0.9,Text);
 
   // enable the shader program
@@ -492,7 +502,7 @@ void update()
         goRight = false;
     }
 
-    // add the forces to the sphere for movement
+    // add the forces to the paddlePlayer1 for movement
     if(forward)
     {
         rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
@@ -545,7 +555,7 @@ void update()
     btScalar m[16];
     btScalar m2[16];
 
-    //set the sphere to it's respective model
+    //set the paddlePlayer1 to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
