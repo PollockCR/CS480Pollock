@@ -118,12 +118,12 @@ const char* blankTexture = "../../Resources/white.png";
     paddle = BIT(0), 
     wall = BIT(1), 
     barrier = BIT(2), 
-    puck = BIT(3), 
+    PUCK = BIT(3), 
     };
 
-    int puckBouncesOff = wall | paddle | puck;
-    int paddleBouncesOff = wall | paddle | puck | barrier;
-    int wallDeflects = paddle | puck;
+    int puckBouncesOff = wall | paddle | PUCK;
+    int paddleBouncesOff = wall | paddle | PUCK | barrier;
+    int wallDeflects = paddle | PUCK;
     int barrierDeflects = paddle;
 
   //directions
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
     btCollisionShape* middleBarrier = new btBoxShape(btVector3(8,8,0.0001));
 
     // create a puck
-    btCollisionShape* puck = new btCylinderShape(btVector3(1,1,1));
+    btCollisionShape* puck = new btCylinderShape(btVector3(1.0,1.0,1.0));
    
 
 
@@ -248,7 +248,7 @@ int main(int argc, char **argv)
     btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
         
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallOneRigidBody);
+    dynamicsWorld->addRigidBody(wallOneRigidBody, wall, wallDeflects );
 
 
     ////make the second wall
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
     btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
         
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallTwoRigidBody);
+    dynamicsWorld->addRigidBody(wallTwoRigidBody, wall, wallDeflects);
 
 
     ////make the third wall FRONTBACK
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
         
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallThreeRigidBody);
+    dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
 
 
     ////make the fouth wall FRONTBACK
@@ -278,7 +278,7 @@ int main(int argc, char **argv)
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
         
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallFourRigidBody);
+    dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
 /*-----------------------------------------------------------------------------*/
 
 
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
     rigidBodySphere->setFriction(0.0);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodySphere);
+    dynamicsWorld->addRigidBody(rigidBodySphere, paddle, paddleBouncesOff);
 /*-----------------------------------------------------------------------------*/
         
 /*----------------------this is the paddlePlayer2--------------------------------*/        
@@ -325,8 +325,9 @@ int main(int argc, char **argv)
     rigidBodyCylinder->setFriction(0.0);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodyCylinder);
+    dynamicsWorld->addRigidBody(rigidBodyCylinder, paddle, paddleBouncesOff);
 /*-----------------------------------------------------------------------------*/
+
 
 /*----------------------this is the puck--------------------------------*/        
   // After we create collision shapes we have to se the default motion state 
@@ -351,7 +352,24 @@ int main(int argc, char **argv)
     rigidBodyPuck->setRestitution(0);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodyPuck);
+    dynamicsWorld->addRigidBody(rigidBodyPuck, PUCK, puckBouncesOff);
+/*-----------------------------------------------------------------------------*/
+
+
+
+/*----------------------this is the barrier--------------------------------*/        
+  // After we create collision shapes we have to se the default motion state 
+    // for the barrier
+    btDefaultMotionState* barrierMotionState = NULL;
+    barrierMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -.5)));
+
+    //Here we construct the barrier with no mass and no inertia
+    btRigidBody::btRigidBodyConstructionInfo barrierRigidBodyCI(0, barrierMotionState, middleBarrier, btVector3(0, 0, 0));
+
+    btRigidBody* barrierRigidBody = new btRigidBody(barrierRigidBodyCI);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(barrierRigidBody, barrier, barrierDeflects);
 /*-----------------------------------------------------------------------------*/
 
 /////////////////////////////////////////////////////////////////////////////
@@ -415,6 +433,10 @@ int main(int argc, char **argv)
     delete rigidBodyPuck->getMotionState();
     delete rigidBodyPuck;
 
+    dynamicsWorld->removeRigidBody(barrierRigidBody);
+    delete barrierRigidBody->getMotionState();
+    delete barrierRigidBody;
+
     delete ground;
     delete wallOne;
     delete wallTwo;
@@ -428,6 +450,7 @@ int main(int argc, char **argv)
     delete collisionConfiguration;
     delete dispatcher;
     delete broadphase;
+    delete middleBarrier;
 
     cleanUp();
     return 0;
