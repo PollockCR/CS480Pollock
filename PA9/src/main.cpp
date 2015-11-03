@@ -110,7 +110,21 @@ const char* blankTexture = "../../Resources/white.png";
   btDiscreteDynamicsWorld *dynamicsWorld;
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCylinder;
-  btRigidBody *rigidBodyCube;///
+  btRigidBody *rigidBodyPuck;///
+
+  #define BIT(x) (1<<(x))
+  enum collisionObject 
+    {
+    paddle = BIT(0), 
+    wall = BIT(1), 
+    barrier = BIT(2), 
+    puck = BIT(3), 
+    };
+
+    int puckBouncesOff = wall | paddle | puck;
+    int paddleBouncesOff = wall | paddle | puck | barrier;
+    int wallDeflects = paddle | puck;
+    int barrierDeflects = paddle;
 
   //directions
   bool forward = false;
@@ -201,11 +215,18 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
-  //create paddlePlayer1 and set radius to 1
+    //create paddlePlayer1 and set radius to 1
     btCollisionShape* paddlePlayer1 = new btCylinderShape(btVector3(1.0,0.3,1.0));
 
     //create a paddlePlayer2 and set radius of each axis to 1.0
     btCollisionShape* paddlePlayer2 = new btCylinderShape(btVector3(1.0,0.3,1.0));
+
+    // create a middle barrier for the paddles
+    btCollisionShape* middleBarrier = new btBoxShape(btVector3(8,8,0.0001));
+
+    // create a puck
+    btCollisionShape* puck = new btCylinderShape(btVector3(1,1,1));
+   
 
 
 /*----------------------this is the gameboard--------------------------------*/        
@@ -305,6 +326,30 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(rigidBodyCylinder);
 /*-----------------------------------------------------------------------------*/
 
+/*----------------------this is the puck--------------------------------*/        
+  // After we create collision shapes we have to se the default motion state 
+    // for the puck
+    btDefaultMotionState* puckMotionState = NULL;
+    puckMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5, 1, 2)));
+
+    //the puck must have a mass
+    // we make the mass less so it moves 
+    // faster than the paddles
+    mass = 10;
+
+    //we need the inertia of the puck and we need to calculate it
+    btVector3 puckInertia(0, 10, 15);
+    puck->calculateLocalInertia(mass, puckInertia);
+
+    //Here we construct the puck with a mass, motion state, and inertia
+    btRigidBody::btRigidBodyConstructionInfo puckRigidBodyCI(mass, puckMotionState, puck, puckInertia);
+    rigidBodyPuck = new btRigidBody(cylinderRigidBodyCI);
+    rigidBodyPuck->setActivationState(DISABLE_DEACTIVATION);
+
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(rigidBodyPuck);
+/*-----------------------------------------------------------------------------*/
+
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -362,6 +407,10 @@ int main(int argc, char **argv)
     delete wallFourRigidBody->getMotionState();
     delete wallFourRigidBody;
 
+    dynamicsWorld->removeRigidBody(rigidBodyPuck);
+    delete rigidBodyPuck->getMotionState();
+    delete rigidBodyPuck;
+
     delete ground;
     delete wallOne;
     delete wallTwo;
@@ -370,6 +419,7 @@ int main(int argc, char **argv)
     delete paddlePlayer1;
     delete paddlePlayer2;
     delete dynamicsWorld;
+    delete puck;
     delete solver;
     delete collisionConfiguration;
     delete dispatcher;
