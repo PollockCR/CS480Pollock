@@ -475,7 +475,7 @@ void render()
     glUseProgram(0);
     char* Text = new char[100];
     
-    Text = (char*) "WASD to move paddlePlayer1, Arrow keys to move cylinder";
+    Text = (char*) "WASD to move Player 1 Paddle, Arrow keys to move Player 2 Paddle";
     Sprint(-0.7,0.9,Text);
 
   // enable the shader program
