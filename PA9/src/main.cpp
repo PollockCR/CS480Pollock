@@ -286,7 +286,7 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the paddlePlayer1
     btDefaultMotionState* sphereMotionState = NULL;
-    sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
+    sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, -6)));
 
     // the paddlePlayer1 must have a mass
     btScalar mass = 20;
@@ -299,6 +299,7 @@ int main(int argc, char **argv)
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, paddlePlayer1, sphereInertia);
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
+    rigidBodySphere->setFriction(0.0);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodySphere);
@@ -308,7 +309,7 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the paddlePlayer2
     btDefaultMotionState* cylinderMotionState = NULL;
-    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5, 1, 2)));
+    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, 3)));
 
     //the cylinder must have a mass
     mass = 20;
@@ -321,6 +322,7 @@ int main(int argc, char **argv)
     btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, paddlePlayer2, cylinderInertia);
     rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
     rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
+    rigidBodyCylinder->setFriction(0.0);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyCylinder);
@@ -330,21 +332,23 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the puck
     btDefaultMotionState* puckMotionState = NULL;
-    puckMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5, 1, 2)));
+    puckMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, -1)));
 
     //the puck must have a mass
     // we make the mass less so it moves 
     // faster than the paddles
-    mass = 10;
+    mass = 5;
 
     //we need the inertia of the puck and we need to calculate it
-    btVector3 puckInertia(0, 10, 15);
+    btVector3 puckInertia(0, 20, 20);
     puck->calculateLocalInertia(mass, puckInertia);
 
     //Here we construct the puck with a mass, motion state, and inertia
     btRigidBody::btRigidBodyConstructionInfo puckRigidBodyCI(mass, puckMotionState, puck, puckInertia);
     rigidBodyPuck = new btRigidBody(puckRigidBodyCI);
     rigidBodyPuck->setActivationState(DISABLE_DEACTIVATION);
+    rigidBodyPuck->setFriction(0.0);
+    rigidBodyPuck->setRestitution(0);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyPuck);
