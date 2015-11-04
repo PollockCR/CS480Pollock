@@ -86,12 +86,14 @@ const char* blankTexture = "../../Resources/white.png";
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
+  void keyboardUP(unsigned char key, int x_pos, int y_pos );
   void manageMenus(bool quitCall);
   void menu(int id);
   void Menu1(int num);
   void Menu2(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
   void ArrowKeys(int button, int x_pos, int y_pos);
+  void ArrowKeysUP(int button, int x_pos, int y_pos);
   void moveMouse (int x, int y);///
 
   //--Resource management
@@ -176,6 +178,8 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
     glutMouseFunc(mouse);//Called if there is mouse input
     glutSpecialFunc(ArrowKeys);
+    glutKeyboardUpFunc(keyboardUP);
+    glutSpecialUpFunc(ArrowKeysUP);
 	int index = glutCreateMenu(Menu1);
 	glutAddMenuEntry("Rotate Clockwise", 1);
 	glutAddMenuEntry("Rotate Counterclockwise", 2);
@@ -265,19 +269,10 @@ int main(int argc, char **argv)
 
 
     ////make the third wall FRONTBACK
-    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-7, 0, -12.0)));
+    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -12.0)));
     //here we construct the third wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
-
-        ////make the third wall FRONTBACK
-    btDefaultMotionState* wallThreeMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -12.0)));
-    //here we construct the third wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI2(0, wallThreeMotionState2, wallThree2, btVector3(0, 0, 0));
-    btRigidBody* wallThreeRigidBody2 = new btRigidBody(wallThreeRigidBodyCI2);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
@@ -288,15 +283,6 @@ int main(int argc, char **argv)
     //here we construct the fourth wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
-
-        ////make the fouth wall FRONTBACK
-    btDefaultMotionState* wallFourMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 12.0)));
-    //here we construct the fourth wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI2(0, wallFourMotionState2, wallFour2, btVector3(0, 0, 0));
-    btRigidBody* wallFourRigidBody2 = new btRigidBody(wallFourRigidBodyCI2);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
@@ -580,65 +566,65 @@ void update()
   // update object
     float dt = getDT();
     float force = 10.0;
-
-    // add the forces to the paddlePlayer1 for movement
-    if(forward)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
-        forward = false;
-    }
-    if(backward)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        backward = false;
-    }
-    if(goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
-        goLeft = false;
-    }
-    if(goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        goRight = false;
-    }
-
-
-    if(cylforward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
-        cylforward = false;
-    }
-    if(cylbackward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        cylbackward = false;
-    }
-    if(cylgoLeft)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
-        cylgoLeft = false;
-    }
-    if(cylgoRight)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        cylgoRight = false;
-    }
-
-    
-    dynamicsWorld->stepSimulation(dt, 10);
-
-
     btTransform trans;
 
     btScalar m[16];
     btScalar m2[16];
     btScalar m3[16];
 
-    //set the paddlePlayer1 to it's respective model
+    // add the forces to the paddlePlayer1 for movement
+    if(forward)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
+        //forward = false;
+    }
+    if(backward)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
+        //backward = false;
+    }
+    if(goLeft)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
+        //goLeft = false;
+    }
+    if(goRight)
+    {
+        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
+        //goRight = false;
+    }
+
+        //set the paddlePlayer1 to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
+
+
+    if(cylforward)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
+        //cylforward = false;
+    }
+    if(cylbackward)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
+        //cylbackward = false;
+    }
+    if(cylgoLeft)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
+        //cylgoLeft = false;
+    }
+    if(cylgoRight)
+    {
+        rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
+        //cylgoRight = false;
+    }
+
+    
+    dynamicsWorld->stepSimulation(dt, 10);
+
+
    
     //set the paddleplayer2 to it's respective model
     rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
@@ -672,6 +658,26 @@ void reshape(int n_w, int n_h)
     // update the projection matrix
     projection = glm::perspective(45.0f, float(w)/float(h), 0.01f, 100.0f);
 
+}
+
+void keyboardUP(unsigned char key, int x_pos, int y_pos )
+{
+    if((key == 'w')||(key == 'W'))
+        {
+        forward = false;
+        }
+    if((key == 'a')||(key == 'A'))
+        {
+        goLeft = false;
+        }
+    if((key == 's')||(key == 'S'))
+        {
+        backward = false;
+        }
+    if((key == 'd')||(key == 'D'))
+        {
+        goRight = false;
+        }
 }
 
 // called on keyboard input
@@ -939,6 +945,29 @@ float getDT()
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
     return ret;
+}
+
+void ArrowKeysUP(int button, int x_pos, int y_pos)
+{
+    if (button == GLUT_KEY_LEFT)
+    {
+        cylgoLeft = false;
+    }
+
+    if (button == GLUT_KEY_RIGHT)
+    {
+        cylgoRight = false;
+    }
+
+    if (button == GLUT_KEY_UP)
+    {
+        cylforward = false;
+    }
+
+    if (button == GLUT_KEY_DOWN)
+    {
+        cylbackward = false;
+    }
 }
 
 void ArrowKeys(int button, int x_pos, int y_pos)
