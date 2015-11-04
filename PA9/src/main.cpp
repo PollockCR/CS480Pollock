@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <stdlib.h>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
@@ -72,6 +73,16 @@ const char* blankTexture = "../../Resources/white.png";
   std::vector<Image> images;
   int numImages = 0;
 
+  // Scores
+  char* team1score = (char*)"0";
+  char* team2score = (char*)"0";
+
+  // Time Flag
+  bool timeflag = true;
+
+  // Menu Flag
+  bool menuflag = true;
+
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
@@ -113,6 +124,7 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCylinder;
   btRigidBody *rigidBodyPuck;///
+  btTransform puckStart;
 
   #define BIT(x) (1<<(x))
   enum collisionObject 
@@ -146,6 +158,8 @@ const char* blankTexture = "../../Resources/white.png";
   //scores
   int player1Counter = 0;///
   int player2Counter =0;///
+  int t1score = 0;
+  int t2score = 0;
 
 
 // MAIN FUNCTION
@@ -232,7 +246,7 @@ int main(int argc, char **argv)
     btCollisionShape* middleBarrier = new btBoxShape(btVector3(8,8,0.0001));
 
     // create a puck
-    btCollisionShape* puck = new btCylinderShape(btVector3(1.0,1.0,1.0));
+    btCollisionShape* puck = new btCylinderShape(btVector3(1.0,0.3,1.0));
    
 
 
@@ -240,7 +254,7 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the ground
     btDefaultMotionState* groundMotionState = NULL;
-    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     //here we construct the ground using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, ground, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
@@ -253,6 +267,7 @@ int main(int argc, char **argv)
     //here we construct the first wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallOneRigidBodyCI(0, wallOneMotionState, wallOne, btVector3(0, 0, 0));
     btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
+    wallOneRigidBody->setRestitution(0.9f);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallOneRigidBody, wall, wallDeflects );
@@ -263,6 +278,7 @@ int main(int argc, char **argv)
     //here we construct the second wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallTwoRigidBodyCI(0, wallTwoMotionState, wallTwo, btVector3(0, 0, 0));
     btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
+    wallTwoRigidBody->setRestitution(0.9f);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallTwoRigidBody, wall, wallDeflects);
@@ -273,6 +289,7 @@ int main(int argc, char **argv)
     //here we construct the third wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
+    wallThreeRigidBody->setRestitution(0.9f);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
@@ -283,6 +300,7 @@ int main(int argc, char **argv)
     //here we construct the fourth wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
+    wallFourRigidBody->setRestitution(0.9f);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
@@ -293,10 +311,10 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the paddlePlayer1
     btDefaultMotionState* sphereMotionState = NULL;
-    sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, -6)));
+    sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -6)));
 
     // the paddlePlayer1 must have a mass
-    btScalar mass = 20;
+    btScalar mass = 100;
 
     //we need the inertia of the paddlePlayer1 and we need to calculate it
     btVector3 sphereInertia(0, 10, 15);
@@ -307,6 +325,7 @@ int main(int argc, char **argv)
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
     rigidBodySphere->setFriction(0.0);
+    rigidBodySphere->setLinearFactor(btVector3(1,0,1));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodySphere, paddle, paddleBouncesOff);
@@ -316,10 +335,10 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the paddlePlayer2
     btDefaultMotionState* cylinderMotionState = NULL;
-    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, 3)));
+    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 6)));
 
     //the cylinder must have a mass
-    mass = 20;
+    mass = 100;
 
     //we need the inertia of the cylinder and we need to calculate it
     btVector3 cylinderInertia(0, 10, 15);
@@ -330,6 +349,7 @@ int main(int argc, char **argv)
     rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
     rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
     rigidBodyCylinder->setFriction(0.0);
+    rigidBodyCylinder->setLinearFactor(btVector3(1,0,1));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyCylinder, paddle, paddleBouncesOff);
@@ -340,7 +360,7 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the puck
     btDefaultMotionState* puckMotionState = NULL;
-    puckMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, -1)));
+    puckMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
 
     //the puck must have a mass
     // we make the mass less so it moves 
@@ -348,7 +368,7 @@ int main(int argc, char **argv)
     mass = 5;
 
     //we need the inertia of the puck and we need to calculate it
-    btVector3 puckInertia(0, 20, 20);
+    btVector3 puckInertia(0, 0, 0);
     puck->calculateLocalInertia(mass, puckInertia);
 
     //Here we construct the puck with a mass, motion state, and inertia
@@ -356,7 +376,8 @@ int main(int argc, char **argv)
     rigidBodyPuck = new btRigidBody(puckRigidBodyCI);
     rigidBodyPuck->setActivationState(DISABLE_DEACTIVATION);
     rigidBodyPuck->setFriction(0.0);
-    rigidBodyPuck->setRestitution(0);
+    rigidBodyPuck->setRestitution(0.9f);
+    rigidBodyPuck->setLinearFactor(btVector3(1,0,1));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyPuck, PUCK, puckBouncesOff);
@@ -508,9 +529,31 @@ void render()
 
     glUseProgram(0);
     char* Text = new char[100];
+    char* Text2 = new char[100];
+    char* Text3 = new char[100];
+    char* Text4 = new char[100];
+    char* Text5 = new char[100];
     
-    Text = (char*) "WASD to move Player 1 Paddle, Arrow keys to move Player 2 Paddle";
-    Sprint(-0.7,0.9,Text);
+    if (menuflag)
+    {
+      Text = (char*) "WASD to move Player 1 Paddle, Arrow keys to move Player 2 Paddle";
+      Text2 = (char*)team1score;
+      Text3 = (char*)team2score;
+      Text4 = (char*)"Press Spacebar to Pause";
+      Text5 = (char*)"Press h to hide menu.";
+      Sprint(-1.0,0.9,Text);
+      Sprint(-0.7,-0.9,Text2);
+      Sprint(0.7,-0.9,Text3);
+      Sprint(-1.0,0.0,Text4);
+      Sprint(-1.0,-0.2,Text5);
+    }
+    else
+    {
+      Text2 = (char*)team1score;
+      Text3 = (char*)team2score;
+      Sprint(-0.7,-0.9,Text2);
+      Sprint(0.7,-0.9,Text3);
+    }
 
   // enable the shader program
   glUseProgram(program);
@@ -562,80 +605,156 @@ void render()
 void update()
 {
 
+  if (timeflag)
+  {
 
-  // update object
-    float dt = getDT();
-    float force = 10.0;
-    btTransform trans;
+    // update object
+      float dt = getDT();
+      float force = 10.0;
+      btTransform trans;
 
-    btScalar m[16];
-    btScalar m2[16];
-    btScalar m3[16];
+      btScalar m[16];
+      btScalar m2[16];
+      btScalar m3[16];
 
-    // add the forces to the paddlePlayer1 for movement
-    if(forward)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
-        //forward = false;
-    }
-    if(backward)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        //backward = false;
-    }
-    if(goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
-        //goLeft = false;
-    }
-    if(goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        //goRight = false;
-    }
+      // add the forces to the paddlePlayer1 for movement
+      if(forward)
+      {
+          rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
+          //forward = false;
+      }
+      if(backward)
+      {
+          rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
+          //backward = false;
+      }
+      if(goLeft)
+      {
+          rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
+          //goLeft = false;
+      }
+      if(goRight)
+      {
+          rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
+          //goRight = false;
+      }
 
-        //set the paddlePlayer1 to it's respective model
-    rigidBodySphere->getMotionState()->getWorldTransform(trans);
-    trans.getOpenGLMatrix(m);
-    images[1].model = glm::make_mat4(m);
-
-
-    if(cylforward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
-        //cylforward = false;
-    }
-    if(cylbackward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        //cylbackward = false;
-    }
-    if(cylgoLeft)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
-        //cylgoLeft = false;
-    }
-    if(cylgoRight)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        //cylgoRight = false;
-    }
-
-    
-    dynamicsWorld->stepSimulation(dt, 10);
+          //set the paddlePlayer1 to it's respective model
+      rigidBodySphere->getMotionState()->getWorldTransform(trans);
+      trans.getOpenGLMatrix(m);
+      images[1].model = glm::make_mat4(m);
 
 
-   
-    //set the paddleplayer2 to it's respective model
-    rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
-    trans.getOpenGLMatrix(m2);
-    images[2].model = glm::make_mat4(m2);
+      if(cylforward)
+      {
+          rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
+          //cylforward = false;
+      }
+      if(cylbackward)
+      {
+          rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
+          //cylbackward = false;
+      }
+      if(cylgoLeft)
+      {
+          rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
+          //cylgoLeft = false;
+      }
+      if(cylgoRight)
+      {
+          rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
+          //cylgoRight = false;
+      }
 
-    //set the puck to it's respective model
-    rigidBodyPuck->getMotionState()->getWorldTransform(trans);
-    trans.getOpenGLMatrix(m3);
-    images[3].model = glm::make_mat4(m3);
+      
+      dynamicsWorld->stepSimulation(dt, 10);
 
+
+     
+      //set the paddleplayer2 to it's respective model
+      rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
+      trans.getOpenGLMatrix(m2);
+      images[2].model = glm::make_mat4(m2);
+
+
+
+      //set the puck to it's respective model
+      rigidBodyPuck->getMotionState()->getWorldTransform(trans);
+      trans.getOpenGLMatrix(m3);
+      images[3].model = glm::make_mat4(m3);
+      glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
+
+      if (puckPos.z < -10.0 &&  puckPos.x < 1.0 && puckPos.x > -1.0)
+      {
+          t1score++;
+          if (t1score == 0)
+          {
+            team1score = (char*) "0";
+          }
+          if (t1score == 1)
+          {
+            team1score = (char*) "1";
+          }
+          if (t1score == 2)
+          {
+            team1score = (char*) "2";
+          }
+          if (t1score == 3)
+          {
+            team1score = (char*) "3";
+          }   
+          if (t1score == 4)
+          {
+            team1score = (char*) "4";
+          }  
+          if (t1score == 5)
+          {
+            team1score = (char*) "5";
+          }                                               
+        
+          if (t1score == 5)
+          {
+            t1score = 0;
+          }
+          rigidBodyPuck->setWorldTransform(puckStart);
+          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+      }
+      if (puckPos.z > 10.0 &&  puckPos.x < 1.0 && puckPos.x > -1.0)
+      {
+          t2score++;
+          if (t2score == 0)
+          {
+            team2score = (char*) "0";
+          }
+          if (t2score == 1)
+          {
+            team2score = (char*) "1";
+          }
+          if (t2score == 2)
+          {
+            team2score = (char*) "2";
+          }
+          if (t2score == 3)
+          {
+            team2score = (char*) "3";
+          }   
+          if (t2score == 4)
+          {
+            team2score = (char*) "4";
+          }  
+          if (t2score == 5)
+          {
+            team2score = (char*) "5";
+          }       
+          if (t2score == 5)
+          {
+            t2score = 0;
+          }
+          rigidBodyPuck->setWorldTransform(puckStart);
+          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+      }
+
+  }
 
 
   // update the state of the scene
@@ -703,6 +822,14 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'd')||(key == 'D'))
         {
         goRight = true;
+        }
+    if((key == ' '))
+        {
+        timeflag = !timeflag;
+        }
+    if((key == 'h')||(key == 'H'))
+        {
+        menuflag = !menuflag;
         }
 }
 
@@ -781,6 +908,8 @@ bool initialize( const char* filename)
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane
 
+
+    rigidBodyPuck->getMotionState()->getWorldTransform(puckStart);
     images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
 
     //enable depth testing
