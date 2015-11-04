@@ -233,9 +233,6 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
-    btCollisionShape* wallThree2 = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
-    btCollisionShape* wallFour2 = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
-
     //create paddlePlayer1 and set radius to 1
     btCollisionShape* paddlePlayer1 = new btCylinderShape(btVector3(1.0,0.3,1.0));
 
