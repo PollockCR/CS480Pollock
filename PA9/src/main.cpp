@@ -215,6 +215,9 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
+    btCollisionShape* wallThree2 = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
+    btCollisionShape* wallFour2 = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
+
     //create paddlePlayer1 and set radius to 1
     btCollisionShape* paddlePlayer1 = new btCylinderShape(btVector3(1.0,0.3,1.0));
 
@@ -242,7 +245,7 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(groundRigidBody);
         
     ////make the first wall
-    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5.6, 0, 0)));
+    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(7.0, 0, 0)));
     //here we construct the first wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallOneRigidBodyCI(0, wallOneMotionState, wallOne, btVector3(0, 0, 0));
     btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
@@ -252,7 +255,7 @@ int main(int argc, char **argv)
 
 
     ////make the second wall
-    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-5.6, 0, 0)));
+    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-7.0, 0, 0)));
     //here we construct the second wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallTwoRigidBodyCI(0, wallTwoMotionState, wallTwo, btVector3(0, 0, 0));
     btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
@@ -262,7 +265,7 @@ int main(int argc, char **argv)
 
 
     ////make the third wall FRONTBACK
-    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -5.6)));
+    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-7, 0, -12.0)));
     //here we construct the third wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
@@ -270,12 +273,30 @@ int main(int argc, char **argv)
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
 
+        ////make the third wall FRONTBACK
+    btDefaultMotionState* wallThreeMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -12.0)));
+    //here we construct the third wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI2(0, wallThreeMotionState2, wallThree2, btVector3(0, 0, 0));
+    btRigidBody* wallThreeRigidBody2 = new btRigidBody(wallThreeRigidBodyCI2);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallThreeRigidBody, wall, wallDeflects);
+
 
     ////make the fouth wall FRONTBACK
-    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 5.6)));
+    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 12.0)));
     //here we construct the fourth wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
+        
+    //display dynamic body in our world
+    dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
+
+        ////make the fouth wall FRONTBACK
+    btDefaultMotionState* wallFourMotionState2 = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 12.0)));
+    //here we construct the fourth wall using the motion state and shape
+    btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI2(0, wallFourMotionState2, wallFour2, btVector3(0, 0, 0));
+    btRigidBody* wallFourRigidBody2 = new btRigidBody(wallFourRigidBodyCI2);
         
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(wallFourRigidBody, wall, wallDeflects);
@@ -745,7 +766,7 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 20.0, -10.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 25.0, -10.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -754,7 +775,7 @@ bool initialize( const char* filename)
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane
 
-    images[0].model = glm::scale(images[0].model, glm::vec3(2.0, 2.0, 2.0));
+    images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
