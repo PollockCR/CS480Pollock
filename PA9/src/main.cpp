@@ -554,30 +554,11 @@ void render()
 // called on idle to update display
 void update()
 {
+
+
   // update object
     float dt = getDT();
     float force = 10.0;
-    
-    if(forward && goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,force));
-        forward = false;
-    }
-    if(backward && goLeft)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,-force));
-        backward = false;
-    }
-    if(forward && goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,force));
-        goLeft = false;
-    }
-    if(backward && goRight)
-    {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,-force));
-        goRight = false;
-    }
 
     // add the forces to the paddlePlayer1 for movement
     if(forward)
@@ -647,6 +628,8 @@ void update()
     rigidBodyPuck->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m3);
     images[3].model = glm::make_mat4(m3);
+
+
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -762,7 +745,7 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 5.0, -10.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 20.0, -10.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -770,6 +753,8 @@ bool initialize( const char* filename)
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane
+
+    images[0].model = glm::scale(images[0].model, glm::vec3(2.0, 2.0, 2.0));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
