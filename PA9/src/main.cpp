@@ -194,14 +194,7 @@ int main(int argc, char **argv)
     glutSpecialFunc(ArrowKeys);
     glutKeyboardUpFunc(keyboardUP);
     glutSpecialUpFunc(ArrowKeysUP);
-	int index = glutCreateMenu(Menu1);
-	glutAddMenuEntry("Rotate Clockwise", 1);
-	glutAddMenuEntry("Rotate Counterclockwise", 2);
-	glutAddMenuEntry("Don't Rotate", 3);
-	glutCreateMenu(Menu2);
-	glutAddSubMenu("Rotation options", index);
-	glutAddMenuEntry("Exit Program", 2);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
+
 	srand(getDT());
 
     // add menus
@@ -1013,14 +1006,19 @@ void cleanUp()
 // adds and removes menus
 void manageMenus( bool quitCall )
 {
-  int main_menu = 0;
+  int index = 0;
 
   // upon initialization
   if( !quitCall )
   {
     // create main menu
-    main_menu = glutCreateMenu(menu); // Call menu function
-    glutAddMenuEntry("Quit", 1);
+    index = glutCreateMenu(Menu1);
+    glutAddMenuEntry("Rotate Clockwise", 1);
+    glutAddMenuEntry("Rotate Counterclockwise", 2);
+    glutAddMenuEntry("Don't Rotate", 3);
+    glutCreateMenu(Menu2);
+    glutAddSubMenu("Rotation options", index);
+    glutAddMenuEntry("Exit Program", 2);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -1028,7 +1026,7 @@ void manageMenus( bool quitCall )
   else
   {
     // clean up after ourselves
-    glutDestroyMenu(main_menu);
+    glutDestroyMenu(index);
   }
 
   // update display
