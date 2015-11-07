@@ -1,6 +1,6 @@
 4
-../bin/playtable.obj
-../bin/tabletex.jpg
+../bin/airhockeytable.obj
+../bin/tabletex3.jpg
 ../bin/hockeypaddle.obj
 ../bin/wood.jpg
 ../bin/hockeypaddle.obj
