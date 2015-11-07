@@ -92,12 +92,14 @@ const char* blankTexture = "../../Resources/white.png";
     wall = BIT(1), 
     barrier = BIT(2), 
     PUCK = BIT(3), 
+    TABLE = BIT(4),
   };
 
   int puckBouncesOff = wall | paddle | PUCK;
   int paddleBouncesOff = wall | paddle | PUCK | barrier;
   int wallDeflects = paddle | PUCK;
   int barrierDeflects = paddle;
+  int tableDeflects = paddle | PUCK;
 
   //directions
   bool forward = false;
@@ -245,13 +247,13 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the ground
     btDefaultMotionState* groundMotionState = NULL;
-    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 2, 0)));
     //here we construct the ground using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, ground, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(groundRigidBody);
+    dynamicsWorld->addRigidBody(groundRigidBody, TABLE, tableDeflects);
         
     ////make the first wall
     btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(7.0, 0, 0)));
@@ -317,6 +319,7 @@ int main(int argc, char **argv)
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
     rigidBodySphere->setFriction(0.0);
     rigidBodySphere->setLinearFactor(btVector3(1,0,1));
+    rigidBodySphere->setAngularFactor(btVector3(0,1,0));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodySphere, paddle, paddleBouncesOff);
@@ -341,6 +344,7 @@ int main(int argc, char **argv)
     rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
     rigidBodyCylinder->setFriction(0.0);
     rigidBodyCylinder->setLinearFactor(btVector3(1,0,1));
+    rigidBodyCylinder->setAngularFactor(btVector3(0,1,0));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyCylinder, paddle, paddleBouncesOff);
@@ -369,6 +373,7 @@ int main(int argc, char **argv)
     rigidBodyPuck->setFriction(0.0);
     rigidBodyPuck->setRestitution(0.9f);
     rigidBodyPuck->setLinearFactor(btVector3(1,0,1));
+    rigidBodyPuck->setAngularFactor(btVector3(0,1,0));
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodyPuck, PUCK, puckBouncesOff);
