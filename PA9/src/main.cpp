@@ -520,7 +520,7 @@ void render()
     }
 
     // display scores
-    sPrint(-0.8,-0.9,scoreText1.c_str(), 18);
+    sPrint(-0.85,-0.9,scoreText1.c_str(), 18);
     sPrint(0.6,-0.9,scoreText2.c_str(), 18);
 
   // enable the shader program
@@ -580,6 +580,9 @@ void update()
       float dt = getDT();
       float force = 10.0;
       btTransform trans;
+      float rotationAngle = 0.00;
+      float rotationSpeed = 0.03;
+
 
       btScalar m[16];
       btScalar m2[16];
@@ -668,6 +671,10 @@ void update()
           rigidBodyPuck->setWorldTransform(puckStart);
           rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));          
       }
+
+      rotationAngle = dt * rotationSpeed;
+
+      images[numImages-1].model = glm::rotate( images[numImages-1].model, rotationAngle, glm::vec3(0.0, 1.0, 0.0));
 
   }
 
@@ -842,11 +849,11 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 25.0, -15.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 18.0, -22.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
-    projection = glm::perspective( 40.0f, //the FoV typically 90 degrees is good which is what this is set to
+    projection = glm::perspective( 45.0f, //the FoV typically 90 degrees is good which is what this is set to
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane
@@ -854,6 +861,7 @@ bool initialize( const char* filename)
 
     rigidBodyPuck->getMotionState()->getWorldTransform(puckStart);
     //images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
+    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(17, 17, 17));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -1037,6 +1045,13 @@ float getDT()
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
+
+    // check if paused
+    if( !timeflag )
+    {
+      return 0.0;
+    }
+
     return ret;
 }
 
