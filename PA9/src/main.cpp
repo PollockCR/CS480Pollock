@@ -73,72 +73,31 @@ const char* blankTexture = "../../Resources/white.png";
   std::vector<Image> images;
   int numImages = 0;
 
-  // Scores
-  char* team1score = (char*)"0";
-  char* team2score = (char*)"0";
-
   // Time Flag
   bool timeflag = true;
 
   // Menu Flag
   bool menuflag = true;
 
+  // New game flag
+  bool newGame = false;
+
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
-// FUNCTION PROTOTYPES
-
-  //--GLUT Callbacks
-  void render();
-
-  // update display functions
-  void update();
-  void reshape(int n_w, int n_h);
-
-  // called upon input
-  void keyboard(unsigned char key, int x_pos, int y_pos);
-  void keyboardUP(unsigned char key, int x_pos, int y_pos );
-  void manageMenus(bool quitCall);
-  void menu(int id);
-  void Menu1(int num);
-  void Menu2(int num);
-  void mouse(int button, int state, int x_pos, int y_pos);
-  void ArrowKeys(int button, int x_pos, int y_pos);
-  void ArrowKeysUP(int button, int x_pos, int y_pos);
-  void moveMouse (int x, int y);///
-
-  //--Resource management
-  bool initialize( const char* filename);
-  void cleanUp();
-
-  //--Time function
-  float getDT();
-
-  //Load Image info
-  bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
-
-  void Sprint( float x, float y, char *st);
-
-  //Bullet 
-  btDiscreteDynamicsWorld *dynamicsWorld;
-  btRigidBody *rigidBodySphere;
-  btRigidBody *rigidBodyCylinder;
-  btRigidBody *rigidBodyPuck;///
-  btTransform puckStart;
-
   #define BIT(x) (1<<(x))
   enum collisionObject 
-    {
+  {
     paddle = BIT(0), 
     wall = BIT(1), 
     barrier = BIT(2), 
     PUCK = BIT(3), 
-    };
+  };
 
-    int puckBouncesOff = wall | paddle | PUCK;
-    int paddleBouncesOff = wall | paddle | PUCK | barrier;
-    int wallDeflects = paddle | PUCK;
-    int barrierDeflects = paddle;
+  int puckBouncesOff = wall | paddle | PUCK;
+  int paddleBouncesOff = wall | paddle | PUCK | barrier;
+  int wallDeflects = paddle | PUCK;
+  int barrierDeflects = paddle;
 
   //directions
   bool forward = false;
@@ -162,50 +121,92 @@ const char* blankTexture = "../../Resources/white.png";
   int t2score = 0;
 
 
+
+// FUNCTION PROTOTYPES
+
+  //--GLUT Callbacks
+  void render();
+
+  // update display functions
+  void update();
+  void reshape(int n_w, int n_h);
+
+  // called upon input
+  void keyboard(unsigned char key, int x_pos, int y_pos);
+  void keyboardUP(unsigned char key, int x_pos, int y_pos );
+  void manageMenus(bool quitCall);
+  void subMenu(int id);
+  void subMenu(int num);
+  void mainMenu(int num);
+  void mouse(int button, int state, int x_pos, int y_pos);
+  void arrowKeys(int button, int x_pos, int y_pos);
+  void arrowKeysUp(int button, int x_pos, int y_pos);
+  void moveMouse (int x, int y);
+
+  //--Resource management
+  bool initialize( const char* filename);
+  void cleanUp();
+
+  //--Time function
+  float getDT();
+
+  //Load Image info
+  bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
+
+  void sPrint( float xPos, float yPos, const char *str, int fontSize);
+
+  //Bullet 
+  btDiscreteDynamicsWorld *dynamicsWorld;
+  btRigidBody *rigidBodySphere;
+  btRigidBody *rigidBodyCylinder;
+  btRigidBody *rigidBodyPuck;///
+  btTransform puckStart;
+
+
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
-    bool init = false;
+  bool init = false;
 
-    // Initialize glut
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowSize(w, h);
-    
-    // Name and create the Window
-    glutCreateWindow("Welcome to Air Hockey");
+  // Initialize glut
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
+  glutInitWindowSize(w, h);
+  
+  // Name and create the Window
+  glutCreateWindow("Welcome to Air Hockey");
 
-    // Now that the window is created the GL context is fully set up
-    // Because of that we can now initialize GLEW to prepare work with shaders
-    GLenum status = glewInit();
-    if( status != GLEW_OK)
-    {
-        std::cerr << "[F] GLEW NOT INITIALIZED: ";
-        std::cerr << glewGetErrorString(status) << std::endl;
-        return -1;
-    }
+  // Now that the window is created the GL context is fully set up
+  // Because of that we can now initialize GLEW to prepare work with shaders
+  GLenum status = glewInit();
+  if( status != GLEW_OK)
+  {
+      std::cerr << "[F] GLEW NOT INITIALIZED: ";
+      std::cerr << glewGetErrorString(status) << std::endl;
+      return -1;
+  }
 
-    // Set all of the callbacks to GLUT that we need
-    glutDisplayFunc(render);// Called when its time to display
-    glutReshapeFunc(reshape);// Called if the window is resized
-    glutIdleFunc(update);// Called if there is nothing else to do
-    glutKeyboardFunc(keyboard);// Called if there is keyboard input
-    glutMouseFunc(mouse);//Called if there is mouse input
-    glutSpecialFunc(ArrowKeys);
-    glutKeyboardUpFunc(keyboardUP);
-    glutSpecialUpFunc(ArrowKeysUP);
+  // Set all of the callbacks to GLUT that we need
+  glutDisplayFunc(render);// Called when its time to display
+  glutReshapeFunc(reshape);// Called if the window is resized
+  glutIdleFunc(update);// Called if there is nothing else to do
+  glutKeyboardFunc(keyboard);// Called if there is keyboard input
+  glutMouseFunc(mouse);//Called if there is mouse input
+  glutSpecialFunc(arrowKeys);
+  glutKeyboardUpFunc(keyboardUP);
+  glutSpecialUpFunc(arrowKeysUp);
 
 	srand(getDT());
 
-    // add menus
-    manageMenus( false );
+  // add menus
+  manageMenus( false );
 
 //////////////////////////////////////////////////////////////////////////
     //create brodphase
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
     //create collision configuration
-    btDefaultCollisionConfiguration* collisionConfiguration = new       btDefaultCollisionConfiguration();
+    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
     //create a dispatcher
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -275,7 +276,7 @@ int main(int argc, char **argv)
 
 
     ////make the third wall FRONTBACK
-    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -12.0)));
+    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -13.0)));
     //here we construct the third wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
     btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
@@ -286,7 +287,7 @@ int main(int argc, char **argv)
 
 
     ////make the fouth wall FRONTBACK
-    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 12.0)));
+    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 13.0)));
     //here we construct the fourth wall using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
     btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
@@ -392,9 +393,6 @@ int main(int argc, char **argv)
 
 /////////////////////////////////////////////////////////////////////////////
 
-
-
-
  // Initialize all of our resources(shaders, geometry)
     // pass default planet info if not given one 
     if( argc != 3 )
@@ -476,74 +474,54 @@ int main(int argc, char **argv)
 
 // FUNCTION IMPLEMENTATION
 
-//the first menu that appears
-void Menu1(int num)
-    {
-	switch(num)
-		{
-		case 1: 
-			rotationDegrees = 45.0;
-			break;
-		case 2: 
-			rotationDegrees =-45.0;
-			break;
-		case 3: 
-			rotationDegrees = 0.0;
-			break;
-		}
-	glutPostRedisplay();
-	}
-
-//the second sub-menu
-void Menu2(int num)
-    {
-	switch (num)
-		{
-		case 1:
-			Menu1(num);
-			break;
-		case 2:
-			exit(0);
-			break;
-		}
-	glutPostRedisplay();
-	}
-
 
 // render the scene
 void render()
 {
+  // initialize variables
+  int winner;
+
   // clear the screen
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(0);
-    char* Text = new char[100];
-    char* Text2 = new char[100];
-    char* Text3 = new char[100];
-    char* Text4 = new char[100];
-    char* Text5 = new char[100];
+
+    std::string scoreText1 = "Player 1: " + std::to_string(t1score);
+    std::string scoreText2 = "Player 2: " + std::to_string(t2score);
+
+    // if it is time for a new game
+    if( newGame )
+    {
+      // pause game
+      timeflag = false;
+
+      // check for winner
+      if( t1score > t2score )
+      {
+        winner = 1;
+      }
+      else
+      {
+        winner = 2;
+      }
+
+      // print results
+      std::string winnerStr = "Player " + std::to_string(winner) + " wins! Press space to play again.";
+
+      sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
+    }
     
-    if (menuflag)
+    if (menuflag && !newGame)
     {
-      Text = (char*) "WASD to move Player 1 Paddle, Arrow keys to move Player 2 Paddle";
-      Text2 = (char*)team1score;
-      Text3 = (char*)team2score;
-      Text4 = (char*)"Press Spacebar to Pause";
-      Text5 = (char*)"Press h to hide menu.";
-      Sprint(-1.0,0.9,Text);
-      Sprint(-0.7,-0.9,Text2);
-      Sprint(0.7,-0.9,Text3);
-      Sprint(-1.0,0.0,Text4);
-      Sprint(-1.0,-0.2,Text5);
+      sPrint(-0.9,0.9,(char*)"WASD to Move Player 1 Paddle, Arrow Keys to Move Player 2 Paddle", 12);
+      sPrint(-0.9,0.8,(char*)"Press Spacebar to Pause/Resume", 12);
+      sPrint(-0.9,0.7,(char*)"Press h to Hide Menu", 12);
     }
-    else
-    {
-      Text2 = (char*)team1score;
-      Text3 = (char*)team2score;
-      Sprint(-0.7,-0.9,Text2);
-      Sprint(0.7,-0.9,Text3);
-    }
+
+    // display scores
+    sPrint(-0.8,-0.9,scoreText1.c_str(), 18);
+    sPrint(0.6,-0.9,scoreText2.c_str(), 18);
 
   // enable the shader program
   glUseProgram(program);
@@ -659,14 +637,10 @@ void update()
       
       dynamicsWorld->stepSimulation(dt, 10);
 
-
-     
       //set the paddleplayer2 to it's respective model
       rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
       trans.getOpenGLMatrix(m2);
       images[2].model = glm::make_mat4(m2);
-
-
 
       //set the puck to it's respective model
       rigidBodyPuck->getMotionState()->getWorldTransform(trans);
@@ -674,74 +648,25 @@ void update()
       images[3].model = glm::make_mat4(m3);
       glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
 
-      if (puckPos.z < -10.0 &&  puckPos.x < 1.0 && puckPos.x > -1.0)
+      if (puckPos.z < -10.3 &&  puckPos.x < 1.3 && puckPos.x > -1.3)
       {
-          t1score++;
-          if (t1score == 0)
-          {
-            team1score = (char*) "0";
-          }
-          if (t1score == 1)
-          {
-            team1score = (char*) "1";
-          }
-          if (t1score == 2)
-          {
-            team1score = (char*) "2";
-          }
-          if (t1score == 3)
-          {
-            team1score = (char*) "3";
-          }   
-          if (t1score == 4)
-          {
-            team1score = (char*) "4";
-          }  
+          t1score++;                                              
           if (t1score == 5)
           {
-            team1score = (char*) "5";
-          }                                               
-        
-          if (t1score == 5)
-          {
-            t1score = 0;
+            newGame = true;
           }
           rigidBodyPuck->setWorldTransform(puckStart);
           rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
       }
-      if (puckPos.z > 10.0 &&  puckPos.x < 1.0 && puckPos.x > -1.0)
+      if (puckPos.z > 10.3 &&  puckPos.x < 1.3 && puckPos.x > -1.3)
       {
-          t2score++;
-          if (t2score == 0)
-          {
-            team2score = (char*) "0";
-          }
-          if (t2score == 1)
-          {
-            team2score = (char*) "1";
-          }
-          if (t2score == 2)
-          {
-            team2score = (char*) "2";
-          }
-          if (t2score == 3)
-          {
-            team2score = (char*) "3";
-          }   
-          if (t2score == 4)
-          {
-            team2score = (char*) "4";
-          }  
+          t2score++;     
           if (t2score == 5)
           {
-            team2score = (char*) "5";
-          }       
-          if (t2score == 5)
-          {
-            t2score = 0;
+            newGame = true;
           }
           rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));          
       }
 
   }
@@ -772,21 +697,21 @@ void reshape(int n_w, int n_h)
 void keyboardUP(unsigned char key, int x_pos, int y_pos )
 {
     if((key == 'w')||(key == 'W'))
-        {
-        forward = false;
-        }
+    {
+      forward = false;
+    }
     if((key == 'a')||(key == 'A'))
-        {
-        goLeft = false;
-        }
+    {
+      goLeft = false;
+    }
     if((key == 's')||(key == 'S'))
-        {
-        backward = false;
-        }
+    {
+      backward = false;
+    }
     if((key == 'd')||(key == 'D'))
-        {
-        goRight = false;
-        }
+    {
+      goRight = false;
+    }
 }
 
 // called on keyboard input
@@ -794,33 +719,61 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
 {
   // Handle keyboard input - end program
     if((key == 27)||(key == 'q')||(key == 'Q'))
-        {
-        glutLeaveMainLoop();
-        }
+    {
+      glutLeaveMainLoop();
+    }
+    // for score cheat - debug purposes
+    if(key == 'O')
+    {
+      t1score++;                                              
+      if (t1score == 5)
+      {
+        newGame = true;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+      }
+    }
+    if(key == 'P')
+    {
+      t2score++;                                              
+      if (t2score == 5)
+      {
+        newGame = true;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+      }
+    }
     if((key == 'w')||(key == 'W'))
-        {
-        forward = true;
-        }
+    {
+      forward = true;
+    }
     if((key == 'a')||(key == 'A'))
-        {
-        goLeft = true;
-        }
+    {
+      goLeft = true;
+    }
     if((key == 's')||(key == 'S'))
-        {
-        backward = true;
-        }
+    {
+      backward = true;
+    }
     if((key == 'd')||(key == 'D'))
-        {
-        goRight = true;
-        }
+    {
+      goRight = true;
+    }
     if((key == ' '))
-        {
-        timeflag = !timeflag;
-        }
+    {
+      if( newGame )
+      {
+        newGame = false;
+        t1score = 0;
+        t2score = 0;
+      }
+      timeflag = !timeflag;
+    }
     if((key == 'h')||(key == 'H'))
-        {
-        menuflag = !menuflag;
-        }
+    {
+      menuflag = !menuflag;
+    }
+    glutPostRedisplay();
 }
 
 // initialize basic geometry and shaders for this example
@@ -841,7 +794,7 @@ bool initialize( const char* filename)
     }
 
 
-     // loop through each planet
+     // loop through each object
       for( index = 0; index < numImages; index++ )
       {
         // Create a Vertex Buffer object to store this vertex info on the GPU
@@ -889,7 +842,7 @@ bool initialize( const char* filename)
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 25.0, -10.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 25.0, -20.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -900,7 +853,7 @@ bool initialize( const char* filename)
 
 
     rigidBodyPuck->getMotionState()->getWorldTransform(puckStart);
-    images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
+    //images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -1012,12 +965,12 @@ void manageMenus( bool quitCall )
   if( !quitCall )
   {
     // create main menu
-    index = glutCreateMenu(Menu1);
+    index = glutCreateMenu(subMenu);
     glutAddMenuEntry("Rotate Clockwise", 1);
     glutAddMenuEntry("Rotate Counterclockwise", 2);
     glutAddMenuEntry("Don't Rotate", 3);
-    glutCreateMenu(Menu2);
-    glutAddSubMenu("Rotation options", index);
+    glutCreateMenu(mainMenu);
+    glutAddSubMenu("Rotation Options", index);
     glutAddMenuEntry("Exit Program", 2);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
@@ -1033,24 +986,40 @@ void manageMenus( bool quitCall )
   glutPostRedisplay();
 }
 
-// menu choices 
-void menu(int id)
-{
-  // switch case for menu options
-  switch(id)
-  {
-    // call the rotation menu function
-    case 1:
-      glutLeaveMainLoop();
-      break;
 
-    // default do nothing
-    default:
+//the first menu that appears
+void subMenu(int num)
+{
+  switch(num)
+    {
+    case 1: 
+      rotationDegrees = 45.0;
       break;
-  }
-  // redraw screen without menu
+    case 2: 
+      rotationDegrees =-45.0;
+      break;
+    case 3: 
+      rotationDegrees = 0.0;
+      break;
+    }
   glutPostRedisplay();
 }
+
+//the second sub-menu
+void mainMenu(int num)
+{
+  switch (num)
+    {
+    case 1:
+      subMenu(num);
+      break;
+    case 2:
+      exit(0);
+      break;
+    }
+  glutPostRedisplay();
+}
+
 
 // actions for left mouse click
 void mouse(int button, int state, int x_pos, int y_pos)
@@ -1071,7 +1040,7 @@ float getDT()
     return ret;
 }
 
-void ArrowKeysUP(int button, int x_pos, int y_pos)
+void arrowKeysUp(int button, int x_pos, int y_pos)
 {
     if (button == GLUT_KEY_LEFT)
     {
@@ -1094,7 +1063,7 @@ void ArrowKeysUP(int button, int x_pos, int y_pos)
     }
 }
 
-void ArrowKeys(int button, int x_pos, int y_pos)
+void arrowKeys(int button, int x_pos, int y_pos)
 {
     if (button == GLUT_KEY_LEFT)
     {
@@ -1117,15 +1086,38 @@ void ArrowKeys(int button, int x_pos, int y_pos)
     }
 }
 
-// This prints a string to the screen
-void Sprint( float x, float y, char *st)
+// prints a string to the screen
+void sPrint( float xPos, float yPos, const char *str, int fontSize)
 {
-    int l,i;
+  int length;
+  int index;
 
-    l=strlen( st ); // see how many characters are in text string.
-    glRasterPos2f(x, y); // location to start printing text
-    for( i=0; i < l; i++) // loop until i is greater then l
+  // see how many characters are in text string.
+  length = strlen( str ); 
+
+  // location to start printing text
+  glRasterPos2f(xPos, yPos); 
+
+  if( fontSize <= 12 )
+  {
+    // loop for small text
+    // until index is greater then length
+    for( index = 0; index < length; index++) 
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, st[i]); // Print a character on the screen
+      // Print a character on the screen
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, str[index]); 
     }
+  }
+  else
+  {
+    // loop for large text
+    // until index is greater then length
+    for( index = 0; index < length; index++) 
+    {
+      // Print a character on the screen
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, str[index]); 
+    }  
+  }
 }
+
+
