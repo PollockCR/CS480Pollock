@@ -74,10 +74,11 @@ const char* blankTexture = "../../Resources/white.png";
   int numImages = 0;
 
   // Time Flag
-  bool timeflag = true;
+  bool started = false;
+  bool timeflag = false;
 
   // Menu Flag
-  bool menuflag = true;
+  bool menuflag = false;
 
   // New game flag
   bool newGame = false;
@@ -497,7 +498,24 @@ void render()
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(0);
+  glUseProgram(0);
+
+  if( !started )
+  {
+    // place text 
+    if( !timeflag )
+    {
+      sPrint(-0.95,0.9, (char*)"Spacebar to Start Simulation", 18);
+      sPrint(-0.95,0.8, (char*)"Esc to Quit", 18);
+    }
+    else
+    {
+      menuflag = true;
+      started = true;
+      timeflag = true;
+    }
+
+  }
 
     std::string scoreText1 = "Player 1: " + std::to_string(t1score);
     std::string scoreText2 = "Player 2: " + std::to_string(t2score);
@@ -524,7 +542,7 @@ void render()
       sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
     }
     
-    if (menuflag && !newGame)
+    if (menuflag && !newGame && started)
     {
       sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
       sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
@@ -535,16 +553,17 @@ void render()
       sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
       sPrint(-0.95,0.2,(char*)"Right Click for More Options", 12);      
       sPrint(-0.95,0.1,(char*)"H to Hide Menu", 12);
+      sPrint(-0.95,0.0,(char*)"Esc to Quit", 12);
     }
 
     // display scores
     sPrint(-0.85,-0.9,scoreText1.c_str(), 18);
     sPrint(0.6,-0.9,scoreText2.c_str(), 18);
+    
+    // enable the shader program
+    glUseProgram(program);
 
-  // enable the shader program
-  glUseProgram(program);
-
- // loop through each planet
+    // loop through each planet
     for( int index = 0; index < numImages; index++ )
     {
       // premultiply the matrix for this example
@@ -578,10 +597,10 @@ void render()
       glDrawArrays(GL_TRIANGLES, 0, images[index].geometrySize);//mode, starting index, count
     }
 
-  //clean up
-  glDisableVertexAttribArray(loc_position);
-  glDisableVertexAttribArray(loc_texture);
-               
+    //clean up
+    glDisableVertexAttribArray(loc_position);
+    glDisableVertexAttribArray(loc_texture);
+
   //swap the buffers
   glutSwapBuffers();
 
