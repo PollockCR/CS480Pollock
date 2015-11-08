@@ -104,6 +104,12 @@ Additionally, ensure that the latest version of the Developer Tools is installed
 Building this Project
 ---------------------
 
+To clean repository:
+
+>$ cd build
+
+>$ make clean
+
 To build this project just 
 
 >$ cd build
