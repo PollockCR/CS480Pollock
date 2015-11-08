@@ -110,7 +110,7 @@ To clean repository:
 
 >$ make clean
 
-To build this project just 
+To build project:
 
 >$ cd build
 
