@@ -528,10 +528,10 @@ void render()
     {
       sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
       sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
-      sPrint(-0.95,0.7,(char*)"K to pan to Player 1 POV (Default)", 12);
-      sPrint(-0.95,0.6,(char*)"I to pan to Player 2 POV", 12);
-      sPrint(-0.95,0.5,(char*)"J to pan to Left Side of Board", 12);
-      sPrint(-0.95,0.4,(char*)"L to pan to Right Side of Board", 12);
+      sPrint(-0.95,0.7,(char*)"K to Pan to Player 1 POV (Default)", 12);
+      sPrint(-0.95,0.6,(char*)"I to Pan to Player 2 POV", 12);
+      sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
+      sPrint(-0.95,0.4,(char*)"L to Pan to Right Side of Board", 12);
       sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
       sPrint(-0.95,0.2,(char*)"H to Hide Menu", 12);
     }
@@ -1208,17 +1208,17 @@ void pan()
             if (i < 3)
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.12;
+                  source[i] += 0.18;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.12; 
+                  source[i] -= 0.18; 
                 glutPostRedisplay(); 
             }
             else
             {
               if (source[i] < dest[i]) 
-                  source[i] += 0.12;
+                  source[i] += 0.18;
               if (source[i] > dest[i]) 
-                  source[i] -= 0.12; 
+                  source[i] -= 0.18; 
                 glutPostRedisplay(); 
             }
         }
