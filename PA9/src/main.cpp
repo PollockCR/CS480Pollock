@@ -491,9 +491,6 @@ int main(int argc, char **argv)
 // render the scene
 void render()
 {
-  // initialize variables
-  int winner;
-
   // clear the screen
   glClearColor(0.0, 0.0, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -527,19 +524,24 @@ void render()
       timeflag = false;
 
       // check for winner
-      if( t1score > t2score )
+      if( t1score == t2score )
       {
-        winner = 1;
+        // print results
+        std::string winnerStr = "Game restarted. Press space to play.";
+        sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
+      }
+      else if( t1score > t2score )
+      {
+        // print results
+        std::string winnerStr = "Player 2 wins! Press space to play again.";
+        sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
       }
       else
       {
-        winner = 2;
+        // print results
+        std::string winnerStr = "Player 2 wins! Press space to play again.";
+        sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
       }
-
-      // print results
-      std::string winnerStr = "Player " + std::to_string(winner) + " wins! Press space to play again.";
-
-      sPrint(-0.9, 0.9, winnerStr.c_str(), 18);
     }
     
     if (menuflag && !newGame && started)
@@ -559,7 +561,7 @@ void render()
     // display scores
     sPrint(-0.85,-0.9,scoreText1.c_str(), 18);
     sPrint(0.6,-0.9,scoreText2.c_str(), 18);
-    
+
     // enable the shader program
     glUseProgram(program);
 
@@ -1057,7 +1059,9 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Right Side View", 4);
     glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
-    glutAddMenuEntry("Exit Program", 2);
+    glutAddMenuEntry("Restart Game", 2);
+    glutAddMenuEntry("Pause/Resume Game", 3);
+    glutAddMenuEntry("Exit Program", 4);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -1130,7 +1134,23 @@ void mainMenu(int num)
     case 1: // view options
       subMenu(num);
       break;
-    case 2: // quit program
+    case 2: // restart game
+      newGame = true;
+      t1score = 0;
+      t2score = 0;
+      rigidBodyPuck->setWorldTransform(puckStart);
+      rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));      
+      break;
+    case 3: // pause
+      if( newGame )
+      {
+        newGame = false;
+        t1score = 0;
+        t2score = 0;
+      }
+      timeflag = !timeflag;
+      break;
+    case 4: // quit program
       exit(0);
       break;
     }
