@@ -82,6 +82,10 @@ const char* blankTexture = "../../Resources/white.png";
   // New game flag
   bool newGame = false;
 
+  // Update view flag
+  bool updateViewFlag = false;
+
+
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
 
@@ -122,6 +126,8 @@ const char* blankTexture = "../../Resources/white.png";
   int t1score = 0;
   int t2score = 0;
 
+  static float* source = new float[3];
+  static float* dest = new float[3];
 
 
 // FUNCTION PROTOTYPES
@@ -156,6 +162,7 @@ const char* blankTexture = "../../Resources/white.png";
   bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
 
   void sPrint( float xPos, float yPos, const char *str, int fontSize);
+  void pan();
 
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
@@ -519,9 +526,14 @@ void render()
     
     if (menuflag && !newGame)
     {
-      sPrint(-0.9,0.9,(char*)"WASD to Move Player 1 Paddle, Arrow Keys to Move Player 2 Paddle", 12);
-      sPrint(-0.9,0.8,(char*)"Press Spacebar to Pause/Resume", 12);
-      sPrint(-0.9,0.7,(char*)"Press h to Hide Menu", 12);
+      sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      sPrint(-0.95,0.7,(char*)"K to pan to Player 1 POV (Default)", 12);
+      sPrint(-0.95,0.6,(char*)"I to pan to Player 2 POV", 12);
+      sPrint(-0.95,0.5,(char*)"J to pan to Left Side of Board", 12);
+      sPrint(-0.95,0.4,(char*)"L to pan to Right Side of Board", 12);
+      sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
+      sPrint(-0.95,0.2,(char*)"H to Hide Menu", 12);
     }
 
     // display scores
@@ -771,6 +783,38 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     {
       goRight = true;
     }
+    if((key == 'i')||(key == 'I'))
+    {
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = 18.0;
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'j')||(key == 'J'))
+    {
+      dest[0] = 18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0; 
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'k')||(key == 'K'))
+    {
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = -18.0; 
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'l')||(key == 'L'))
+    {
+      dest[0] = -18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0; 
+      updateViewFlag = true;        
+      pan(); 
+    }
     if((key == ' '))
     {
       if( newGame )
@@ -850,11 +894,19 @@ bool initialize( const char* filename)
         return false;
       }      
 
+    // set view variables
+    source[0] = 0.0;
+    source[1] = 18.0;
+    source[2] = -18.0;  
+    dest[0] = 0.0;
+    dest[1] = 18.0;
+    dest[2] = -18.0;      
+
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 18.0, -22.0), //Eye Position
+    view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -866,7 +918,7 @@ bool initialize( const char* filename)
 
     rigidBodyPuck->getMotionState()->getWorldTransform(puckStart);
     //images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
-    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(17, 17, 17));
+    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(40, 40, 40));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -1141,3 +1193,73 @@ void sPrint( float xPos, float yPos, const char *str, int fontSize)
 }
 
 
+void pan()
+{
+    // pre pan movement
+      // make sure we want to move
+      if (updateViewFlag)
+      {
+        //paused = true;
+        // check source vs dest coords
+        // increment accordingly
+        for (int i = 0; i < 3; i++)
+        {
+
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+        }
+          
+        // check acceptable ranges
+        if (((dest[0] - source[0] <= 0.5) && (dest[0] - source[0] >= -0.5))&&
+            ((dest[1] - source[1] <= 0.5) && (dest[1] - source[1] >= -0.5))&&
+            ((dest[2] - source[2] <= 0.5) && (dest[2] - source[2] >= -0.5)))
+        {
+          // done with pan
+          updateViewFlag = false;
+
+          // update view to dest
+          view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                  glm::vec3(0.0, 0.0, 0.0), //Focus point
+                  glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+        }
+        else
+        {
+          // update to incremented view
+          view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+                glm::vec3(0.0, 0.0, 0.0), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          glutPostRedisplay();  
+        } 
+      }
+      
+      else
+      {
+        // keep source data current
+        for (int i = 0; i < 3; i++)
+        {
+            if (source[i] < dest[i]) 
+                source[i] += 0.35;
+            if (source[i] > dest[i]) 
+                source[i] -= 0.35;
+        }
+        // locked view
+        view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                glm::vec3(0.0, 0.0, 0.0), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+      }
+    //}
+}
