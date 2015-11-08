@@ -526,14 +526,14 @@ void render()
     
     if (menuflag && !newGame)
     {
-      sPrint(-0.9,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
-      sPrint(-0.9,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
-      sPrint(-0.9,0.7,(char*)"K to pan to Player 1 POV (Default)", 12);
-      sPrint(-0.9,0.6,(char*)"I to pan to Player 2 POV", 12);
-      sPrint(-0.9,0.5,(char*)"J to pan to Left Side of Board", 12);
-      sPrint(-0.9,0.4,(char*)"L to pan to Right Side of Board", 12);
-      sPrint(-0.9,0.3,(char*)"Spacebar to Pause/Resume", 12);
-      sPrint(-0.9,0.2,(char*)"H to Hide Menu", 12);
+      sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      sPrint(-0.95,0.7,(char*)"K to pan to Player 1 POV (Default)", 12);
+      sPrint(-0.95,0.6,(char*)"I to pan to Player 2 POV", 12);
+      sPrint(-0.95,0.5,(char*)"J to pan to Left Side of Board", 12);
+      sPrint(-0.95,0.4,(char*)"L to pan to Right Side of Board", 12);
+      sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
+      sPrint(-0.95,0.2,(char*)"H to Hide Menu", 12);
     }
 
     // display scores
