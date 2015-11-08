@@ -918,7 +918,7 @@ bool initialize( const char* filename)
 
     rigidBodyPuck->getMotionState()->getWorldTransform(puckStart);
     //images[0].model = glm::scale(images[0].model, glm::vec3(2.3, 2.3, 2.3));
-    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(40, 40, 40));
+    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(25, 25, 25));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
