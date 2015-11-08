@@ -669,7 +669,7 @@ void update()
       images[3].model = glm::make_mat4(m3);
       glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
 
-      if (puckPos.z < -10.3 &&  puckPos.x < 1.3 && puckPos.x > -1.3)
+      if (puckPos.z < -9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
       {
           t1score++;                                              
           if (t1score == 5)
@@ -679,7 +679,7 @@ void update()
           rigidBodyPuck->setWorldTransform(puckStart);
           rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
       }
-      if (puckPos.z > 10.3 &&  puckPos.x < 1.3 && puckPos.x > -1.3)
+      if (puckPos.z > 9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
       {
           t2score++;     
           if (t2score == 5)
