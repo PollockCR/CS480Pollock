@@ -42,7 +42,7 @@ const char* blankTexture = "../../Resources/white.png";
 // GLOBAL VARIABLES
 
   // Window size
-  int w = 640, h = 480;
+  int w = 1280, h = 768;
 
   // geomerty size
   int geometrySize;
@@ -533,7 +533,8 @@ void render()
       sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
       sPrint(-0.95,0.4,(char*)"L to Pan to Right Side of Board", 12);
       sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
-      sPrint(-0.95,0.2,(char*)"H to Hide Menu", 12);
+      sPrint(-0.95,0.2,(char*)"Right Click for More Options", 12);      
+      sPrint(-0.95,0.1,(char*)"H to Hide Menu", 12);
     }
 
     // display scores
@@ -1031,11 +1032,12 @@ void manageMenus( bool quitCall )
   {
     // create main menu
     index = glutCreateMenu(subMenu);
-    glutAddMenuEntry("Rotate Clockwise", 1);
-    glutAddMenuEntry("Rotate Counterclockwise", 2);
-    glutAddMenuEntry("Don't Rotate", 3);
+    glutAddMenuEntry("Player 1 POV (Default)", 1);
+    glutAddMenuEntry("Player 2 POV", 2);
+    glutAddMenuEntry("Left Side View", 3);
+    glutAddMenuEntry("Right Side View", 4);
     glutCreateMenu(mainMenu);
-    glutAddSubMenu("Rotation Options", index);
+    glutAddSubMenu("View Options", index);
     glutAddMenuEntry("Exit Program", 2);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
@@ -1057,15 +1059,46 @@ void subMenu(int num)
 {
   switch(num)
     {
-    case 1: 
-      rotationDegrees = 45.0;
+    case 1: // Player 1 POV 
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = -18.0;
+      source[0] = 0.0;
+      source[1] = 18.0;
+      source[2] = -18.0;
+      updateViewFlag = true;        
+      pan();
       break;
-    case 2: 
-      rotationDegrees =-45.0;
+    case 2: // Player 2 POV
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = 18.0;
+      source[0] = 0.0;
+      source[1] = 18.0;
+      source[2] = 18.0;
+      updateViewFlag = true;        
+      pan();
       break;
-    case 3: 
-      rotationDegrees = 0.0;
+    case 3: // Left side POV
+      dest[0] = 18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0;
+      source[0] = 18.0;
+      source[1] = 18.0;
+      source[2] = 0.0;
+      updateViewFlag = true;        
+      pan();
       break;
+    case 4: // Right side POV
+      dest[0] = -18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0;
+      source[0] = -18.0;
+      source[1] = 18.0;
+      source[2] = 0.0;
+      updateViewFlag = true;        
+      pan();
+      break;      
     }
   glutPostRedisplay();
 }
@@ -1075,10 +1108,10 @@ void mainMenu(int num)
 {
   switch (num)
     {
-    case 1:
+    case 1: // view options
       subMenu(num);
       break;
-    case 2:
+    case 2: // quit program
       exit(0);
       break;
     }
