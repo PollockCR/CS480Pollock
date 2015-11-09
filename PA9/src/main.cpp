@@ -119,6 +119,7 @@ const char* blankTexture = "../../Resources/white.png";
 
   //mouse stuff
   bool mouseCanMove = false;///
+  bool mouseOn = true;
   int mouseXAxis, mouseYAxis;///
 
   //scores
@@ -556,16 +557,31 @@ void render()
     
     if (menuflag && !newGame && started)
     {
-      sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      if( mouseOn )
+      {
+        sPrint(-0.95,0.9,(char*)"Use Mouse to Move Player 1 Paddle", 12);        
+      }
+      else
+      {
+        sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      }
       sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
       sPrint(-0.95,0.7,(char*)"K to Pan to Player 1 POV (Default)", 12);
       sPrint(-0.95,0.6,(char*)"I to Pan to Player 2 POV", 12);
       sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
       sPrint(-0.95,0.4,(char*)"L to Pan to Right Side of Board", 12);
       sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
-      sPrint(-0.95,0.2,(char*)"Right Click for More Options", 12);      
-      sPrint(-0.95,0.1,(char*)"H to Hide Menu", 12);
-      sPrint(-0.95,0.0,(char*)"Esc to Quit", 12);
+      if( mouseOn )
+      {
+        sPrint(-0.95,0.2,(char*)"G to Use WASD for Player 1 Controls", 12);
+      }
+      else
+      {
+        sPrint(-0.95,0.2,(char*)"G to Use Mouse for Player 1 Controls", 12);        
+      }
+      sPrint(-0.95,0.1,(char*)"Right Click for More Options", 12);      
+      sPrint(-0.95,0.0,(char*)"H to Hide Menu", 12);
+      sPrint(-0.95,-0.1,(char*)"Esc to Quit", 12);
     }
 
     // display scores
@@ -661,137 +677,138 @@ void update()
  
 
      float forceXDir,forceZDir;
+     if( mouseOn )
+     {
+      // check if the mouse can move 
+      if(mouseCanMove)
+      {
+        if (player1POV)
+          {
+          if(mouseXAxis < (w/2))
+              {
+                  forceXDir = force;
+              }
+          else if (mouseXAxis > (2*w/3))
+              {
+                  forceXDir = -force;
+              }
+          else
+              {
+                  forceXDir = 0;
+              }
+          if(mouseYAxis < (h/2))
+              {
+                  forceZDir = force;
+              }
+          else if (mouseYAxis > (2*h/3))
+              {
+                  forceZDir = -force;
+              }
+          else
+              {
+                  forceZDir = 0;
+              }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+          }
 
-    // check if the mouse can move 
-    if(mouseCanMove)
-    {
-      if (player1POV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceXDir = force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceXDir = -force;
-            }
-        else
-            {
-                forceXDir = 0;
-            }
-        if(mouseYAxis < (h/2))
-            {
-                forceZDir = force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-                forceZDir = -force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
+      if (player2POV)
+          {
+          if(mouseXAxis < (w/2))
+              {
+                  forceXDir = -force;
+              }
+          else if (mouseXAxis > (2*w/3))
+              {
+                  forceXDir = force;
+              }
+          else
+              {
+                  forceXDir = 0;
+              }
+          if(mouseYAxis < (h/2))
+              {
+                  forceZDir = -force;
+              }
+          else if (mouseYAxis > (2*h/3))
+              {
+                  forceZDir = force;
+              }
+          else
+              {
+                  forceZDir = 0;
+              }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+          }
+     
+
+      if (leftSidePOV)
+          {
+          if(mouseXAxis < (w/2))
+              {
+                  forceZDir = force;
+              }
+          else if (mouseXAxis > (2*w/3))
+              {
+                  forceZDir = -force;
+              }
+          else
+              {
+                  forceZDir = 0;
+              }
+
+         if(mouseYAxis < (h/2))
+              {
+                  forceXDir = -force;
+              }
+          else if (mouseYAxis > (2*h/3))
+              {
+                 forceXDir = force;
+              }
+
+          else
+              {
+                  forceXDir = 0;
+              }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+          }
+
+
+      if (rightSidePOV)
+          {
+          if(mouseXAxis < (w/2))
+              {
+                  forceZDir = -force;
+              }
+          else if (mouseXAxis > (2*w/3))
+              {
+                  forceZDir = force;
+              }
+          else
+              {
+                  forceZDir = 0;
+              }
+
+         if(mouseYAxis < (h/2))
+              {
+                  forceXDir = force;
+              }
+          else if (mouseYAxis > (2*h/3))
+              {
+                 forceXDir = -force;
+              }
+
+          else
+              {
+                  forceXDir = 0;
+              }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+          }
         }
-
-    if (player2POV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceXDir = -force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceXDir = force;
-            }
-        else
-            {
-                forceXDir = 0;
-            }
-        if(mouseYAxis < (h/2))
-            {
-                forceZDir = -force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-                forceZDir = force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-        }
-   
-
-    if (leftSidePOV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceZDir = force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceZDir = -force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-
-       if(mouseYAxis < (h/2))
-            {
-                forceXDir = -force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-               forceXDir = force;
-            }
-
-        else
-            {
-                forceXDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-        }
-
-
-    if (rightSidePOV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceZDir = -force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceZDir = force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-
-       if(mouseYAxis < (h/2))
-            {
-                forceXDir = force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-               forceXDir = -force;
-            }
-
-        else
-            {
-                forceXDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-        }
-
-    }
+      }
 
    
 
@@ -1016,6 +1033,10 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       }
       timeflag = !timeflag;
     }
+    if((key == 'g')||(key == 'G'))
+    {
+      mouseOn = !mouseOn;
+    }    
     if((key == 'h')||(key == 'H'))
     {
       menuflag = !menuflag;
@@ -1231,8 +1252,9 @@ void manageMenus( bool quitCall )
     glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
     glutAddMenuEntry("Restart Game", 2);
-    glutAddMenuEntry("Pause/Resume Game", 3);
-    glutAddMenuEntry("Exit Program", 4);
+    glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
+    glutAddMenuEntry("Pause/Resume Game", 4);
+    glutAddMenuEntry("Exit Program", 5);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -1331,7 +1353,10 @@ void mainMenu(int num)
       rigidBodyPuck->setWorldTransform(puckStart);
       rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));      
       break;
-    case 3: // pause
+    case 3: // swap controls for player 1
+      mouseOn = !mouseOn;
+      break;
+    case 4: // pause
       if( newGame )
       {
         newGame = false;
@@ -1340,7 +1365,7 @@ void mainMenu(int num)
       }
       timeflag = !timeflag;
       break;
-    case 4: // quit program
+    case 5: // quit program
       exit(0);
       break;
     }
