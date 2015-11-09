@@ -653,7 +653,7 @@ void moveMouse(int x, int y){
 void update()
 {
 
-  if (timeflag)
+  if (timeflag )
   {
 
     // update object
@@ -851,9 +851,6 @@ void update()
           //cylgoRight = false;
       }
 
-      
-      dynamicsWorld->stepSimulation(dt, 10);
-
       //set the paddleplayer2 to it's respective model
       rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
       trans.getOpenGLMatrix(m2);
@@ -865,26 +862,29 @@ void update()
       images[3].model = glm::make_mat4(m3);
       glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
 
-      if (puckPos.z < -9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
+      if (puckPos.z < -9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
       {
-          t1score++;                                              
+          rigidBodyPuck->setWorldTransform(puckStart);
+          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+          t1score = t1score + 1;                                              
           if (t1score == 5)
           {
             newGame = true;
           }
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
       }
-      if (puckPos.z > 9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
+      if (puckPos.z > 9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
       {
-          t2score++;     
+          rigidBodyPuck->setWorldTransform(puckStart);
+          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));       
+          t2score = t2score + 1;     
           if (t2score == 5)
           {
             newGame = true;
-          }
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));          
+          }          
       }
+
+      // step simluation
+      dynamicsWorld->stepSimulation(dt, 10);
 
       // background rotation
       rotationAngle = dt * rotationSpeed;
