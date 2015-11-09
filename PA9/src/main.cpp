@@ -121,6 +121,13 @@ const char* blankTexture = "../../Resources/white.png";
   bool mouseCanMove = false;///
   int mouseXAxis, mouseYAxis;///
 
+  //ai stuff
+  bool aiCanMove = true;
+  int aiXAxis, aiYAxis;
+  bool level1 = false;
+  bool level2 = false;
+  bool level3 = false; 
+
   //scores
   int player1Counter = 0;///
   int player2Counter =0;///
@@ -158,6 +165,7 @@ const char* blankTexture = "../../Resources/white.png";
   void arrowKeys(int button, int x_pos, int y_pos);
   void arrowKeysUp(int button, int x_pos, int y_pos);
   void moveMouse (int x, int y);
+  void moveAI (int x, int y);
 
   //--Resource management
   bool initialize( const char* filename);
@@ -627,7 +635,8 @@ void mouse(int button, int state, int x_pos, int y_pos)
 }
 
 //Move mouse
-void moveMouse(int x, int y){
+void moveMouse(int x, int y)
+{
 
     //update x and y positions
     mouseXAxis = x;
@@ -635,6 +644,8 @@ void moveMouse(int x, int y){
     mouseCanMove = true;
 
 }
+
+
 
 
 
@@ -662,16 +673,16 @@ void update()
 
      float forceXDir,forceZDir;
 
-    // check if the mouse can move 
+    /////////// mouse motion 
     if(mouseCanMove)
     {
       if (player1POV)
         {
-        if(mouseXAxis < (w/2))
+        if(mouseXAxis < (w/2.1))
             {
                 forceXDir = force;
             }
-        else if (mouseXAxis > (2*w/3))
+        else if (mouseXAxis > (1.6*w/3))
             {
                 forceXDir = -force;
             }
@@ -679,7 +690,7 @@ void update()
             {
                 forceXDir = 0;
             }
-        if(mouseYAxis < (h/2))
+        if(mouseYAxis < (h/1.8))
             {
                 forceZDir = force;
             }
@@ -852,12 +863,248 @@ void update()
       rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
       trans.getOpenGLMatrix(m2);
       images[2].model = glm::make_mat4(m2);
+      glm::vec4 paddlePos = images[2].model * glm::vec4(1.0f);
 
       //set the puck to it's respective model
       rigidBodyPuck->getMotionState()->getWorldTransform(trans);
       trans.getOpenGLMatrix(m3);
       images[3].model = glm::make_mat4(m3);
       glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
+
+
+    ///// artificial intelligence motion
+    if(aiCanMove)
+    {
+      if (player1POV)
+        {
+        if( paddlePos.x < puckPos.x )
+            {
+            if (level1)
+                {
+                forceXDir = force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = force*5;
+                }
+            }
+        else if (paddlePos.x > puckPos.x)
+            {
+            if (level1)
+                { 
+                forceXDir = -force*2;
+                }
+
+            if (level2)
+                { 
+                forceXDir = -force*3;
+                }
+
+            if (level3)
+                { 
+                forceXDir = -force*5;
+                }
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(paddlePos.z < puckPos.z)
+            {
+                forceZDir = force;
+            }
+        else if (paddlePos.z > puckPos.z)
+            {
+                forceZDir = -force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        aiCanMove = false;
+        }    
+
+
+        if (player2POV)
+        {
+        if( paddlePos.x < puckPos.x )
+            {
+            if (level1)
+                {
+                forceXDir = -force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = -force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = -force*5;
+                }
+            }
+        else if (paddlePos.x > puckPos.x)
+            {
+            if (level1)
+                {
+                forceXDir = force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = force*5;
+                }
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(paddlePos.z < puckPos.z)
+            {
+                forceZDir = -force;
+            }
+        else if (paddlePos.z > puckPos.z)
+            {
+                forceZDir = force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        aiCanMove = false;
+        }  
+
+
+        if (leftSidePOV)
+        {
+        if( paddlePos.x < puckPos.x )
+            {
+            if (level1)
+                {
+                forceXDir = force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = force*5;
+                }
+            }
+        else if (paddlePos.x > puckPos.x)
+            {
+            if (level1)
+                {
+                forceXDir = -force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = -force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = -force*5;
+                }
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(paddlePos.z < puckPos.z)
+            {
+                forceZDir = -force;
+            }
+        else if (paddlePos.z > puckPos.z)
+            {
+                forceZDir = force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        aiCanMove = false;
+        } 
+
+
+
+        if (rightSidePOV)
+        {
+        if( paddlePos.x < puckPos.x )
+            {
+            if (level1)
+                {
+                forceXDir = -force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = -force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = -force*5;
+                }
+            }
+        else if (paddlePos.x > puckPos.x)
+            {
+            if (level1)
+                {
+                forceXDir = force*2;
+                }
+
+            if (level2)
+                {
+                forceXDir = force*3;
+                }
+
+            if (level3)
+                {
+                forceXDir = force*5;
+                }
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(paddlePos.z < puckPos.z)
+            {
+                forceZDir = force;
+            }
+        else if (paddlePos.z > puckPos.z)
+            {
+                forceZDir = -force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        aiCanMove = false;
+        } 
+    }
+
+
 
       if (puckPos.z < -9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
       {
@@ -893,6 +1140,11 @@ void update()
   // clean up!
   rigidBodySphere->clearForces();
 }
+
+
+
+
+
 
 // resize window
 void reshape(int n_w, int n_h)
@@ -958,22 +1210,32 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
         rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
       }
     }
-    if((key == 'w')||(key == 'W'))
-    {
-      forward = true;
-    }
-    if((key == 'a')||(key == 'A'))
-    {
-      goLeft = true;
-    }
-    if((key == 's')||(key == 'S'))
-    {
-      backward = true;
-    }
-    if((key == 'd')||(key == 'D'))
-    {
-      goRight = true;
-    }
+    
+
+
+    if (!aiCanMove)
+        {
+
+        if((key == 'w')||(key == 'W'))
+        {
+        forward = true;
+        }
+        if((key == 'a')||(key == 'A'))
+        {
+        goLeft = true;
+        }
+        if((key == 's')||(key == 'S'))
+        {
+        backward = true;
+        }
+        if((key == 'd')||(key == 'D'))
+        {
+        goRight = true;
+        }
+
+        }
+
+
     if((key == 'i')||(key == 'I'))
     {
       dest[0] = 0.0;
