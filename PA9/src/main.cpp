@@ -123,9 +123,9 @@ const char* blankTexture = "../../Resources/white.png";
   int mouseXAxis, mouseYAxis;///
 
   //ai stuff
-  bool aiCanMove = true;
+  bool aiCanMove = false;
   int aiXAxis, aiYAxis;
-  bool level1 = false;
+  bool level1 = true;
   bool level2 = false;
   bool level3 = false; 
 
@@ -158,7 +158,7 @@ const char* blankTexture = "../../Resources/white.png";
   void keyboard(unsigned char key, int x_pos, int y_pos);
   void keyboardUP(unsigned char key, int x_pos, int y_pos );
   void manageMenus(bool quitCall);
-  void subMenu(int id);
+  void subMenu2 (int num);
   void subMenu(int num);
   void mainMenu(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
@@ -880,6 +880,7 @@ void update()
 
 
     ///// artificial intelligence motion
+    //aiCanMove = true;
     if(aiCanMove)
     {
       if (player1POV)
@@ -1176,6 +1177,8 @@ void reshape(int n_w, int n_h)
 
 void keyboardUP(unsigned char key, int x_pos, int y_pos )
 {
+  if (mouseCanMove)
+  {
     if((key == 'w')||(key == 'W'))
     {
       forward = false;
@@ -1192,6 +1195,7 @@ void keyboardUP(unsigned char key, int x_pos, int y_pos )
     {
       goRight = false;
     }
+  }
 }
 
 // called on keyboard input
@@ -1225,8 +1229,14 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     }
     
 
+    if ( ( key == 't') )
+        {
+        aiCanMove = !aiCanMove;
+        }
+    
+ 
 
-    if (!aiCanMove)
+    if (mouseCanMove)
         {
 
         if((key == 'w')||(key == 'W'))
@@ -1297,6 +1307,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'g')||(key == 'G'))
     {
       mouseOn = !mouseOn;
+      mouseCanMove = !mouseCanMove;
     }    
     if((key == 'h')||(key == 'H'))
     {
@@ -1499,6 +1510,7 @@ void cleanUp()
 void manageMenus( bool quitCall )
 {
   int index = 0;
+  int index2 = 0;
   int mainIndex = 0;
 
   // upon initialization
@@ -1510,8 +1522,15 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Player 2 POV", 2);
     glutAddMenuEntry("Left Side View", 3);
     glutAddMenuEntry("Right Side View", 4);
+
+    index2 = glutCreateMenu(subMenu2);
+    glutAddMenuEntry("AI Level 1", 1);
+    glutAddMenuEntry("AI Level 2", 2);
+    glutAddMenuEntry("AI Level 3", 3);
+
     mainIndex = glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
+    glutAddSubMenu("View AI Difficulty", index2);
     glutAddMenuEntry("Restart Game", 2);
     glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
     glutAddMenuEntry("Pause/Resume Game", 4);
@@ -1531,6 +1550,34 @@ void manageMenus( bool quitCall )
   // update display
   glutPostRedisplay();
 }
+
+
+void subMenu2 (int num)
+{
+  switch(num)
+    {
+    case 1: // Player 1 POV 
+      level1 = true;
+      level2 = false;
+      level3 = false;
+      break;
+    case 2: // Player 2 POV
+      level1 = false;
+      level2 = true;
+      level3 = false;
+      break;
+    case 3: // Left side POV
+      level1 = false;
+      level2 = false;
+      level3 = true;
+      break;      
+    }
+
+}
+
+
+
+
 
 
 //the first menu that appears
@@ -1659,47 +1706,53 @@ float getDT()
 
 void arrowKeysUp(int button, int x_pos, int y_pos)
 {
-    if (button == GLUT_KEY_LEFT)
+  if (!aiCanMove)
     {
+    if (button == GLUT_KEY_LEFT)
+        {
         cylgoLeft = false;
-    }
+        }
 
     if (button == GLUT_KEY_RIGHT)
-    {
+        {
         cylgoRight = false;
-    }
+        }
 
     if (button == GLUT_KEY_UP)
-    {
+        {
         cylforward = false;
-    }
+        }
 
     if (button == GLUT_KEY_DOWN)
-    {
+        {
         cylbackward = false;
+        }
     }
 }
 
 void arrowKeys(int button, int x_pos, int y_pos)
 {
+  if (!aiCanMove)
+    {
     if (button == GLUT_KEY_LEFT)
-    {
+        {
         cylgoLeft = true;
-    }
-
+        }
+    
     if (button == GLUT_KEY_RIGHT)
-    {
+        {
         cylgoRight = true;
-    }
+        }
 
     if (button == GLUT_KEY_UP)
-    {
+        {
         cylforward = true;
-    }
+        }
 
     if (button == GLUT_KEY_DOWN)
-    {
+        {
         cylbackward = true;
+        }
     }
 }
 
