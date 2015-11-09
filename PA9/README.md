@@ -25,7 +25,7 @@ When the program starts, press spacebar to start or Esc to quit.
 When the program is running, the following commands can be used:
 
 - Mouse/WASD to Move Player 1 Paddle
-- Arrow Keys to Move Player 2 Paddle
+- Arrow Keys to Move Player 2 Paddle (When AI is disabled)
 - K to Pan to Player 1 POV (Default)
 - I to Pan to Player 2 POV
 - J to Pan to Left Side of Board
@@ -36,12 +36,13 @@ When the program is running, the following commands can be used:
   - Change View 
   - Pause/Resume Game
   - Switch Player 1 Controls
+  - Enable/Disable AI
   - Restart Game
   - Quit     
 - H to Hide Menu
 - Esc to Quit
 
-Note: The keyboard controls do not change with the view. The mouse controls changes with view.
+Note: The keyboard controls do not change with the view. The mouse controls changes with view. AI only works from Player 1 POV.
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA09/PA9.php
 

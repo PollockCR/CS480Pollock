@@ -573,7 +573,14 @@ void render()
       {
         sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
       }
-      sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      if(aiCanMove)
+      {
+        sPrint(-0.95,0.8,(char*)"AI Moves Player 2 Paddle", 12);
+      }
+      else
+      {
+        sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      }
       sPrint(-0.95,0.7,(char*)"K to Pan to Player 1 POV (Default)", 12);
       sPrint(-0.95,0.6,(char*)"I to Pan to Player 2 POV", 12);
       sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
@@ -889,34 +896,34 @@ void update()
             {
             if (level1)
                 {
-                forceXDir = force*2;
+                forceXDir = force*1;
                 }
 
             if (level2)
                 {
-                forceXDir = force*3;
+                forceXDir = force*2;
                 }
 
             if (level3)
                 {
-                forceXDir = force*5;
+                forceXDir = force*4;
                 }
             }
         else if (paddlePos.x > puckPos.x)
             {
             if (level1)
                 { 
-                forceXDir = -force*2;
+                forceXDir = -force*1;
                 }
 
             if (level2)
                 { 
-                forceXDir = -force*3;
+                forceXDir = -force*2;
                 }
 
             if (level3)
                 { 
-                forceXDir = -force*5;
+                forceXDir = -force*4;
                 }
             }
         else
@@ -1533,9 +1540,9 @@ void manageMenus( bool quitCall )
   else
   {
     // clean up after ourselves
-
+    glutDestroyMenu(index2);
     glutDestroyMenu(mainIndex);
-        glutDestroyMenu(index);
+    glutDestroyMenu(index);
   }
 
   // update display
