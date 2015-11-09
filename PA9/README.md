@@ -32,6 +32,7 @@ When the program is running, the following commands can be used:
 - L to Pan to Right Side of Board
 - Spacebar to Pause/Resume
 - G to Switch Player 1 Controls (Mouse/WASD)
+- T to Toggle Between AI/Player 2
 - Right Click for:
   - Change View 
   - Pause/Resume Game
@@ -51,6 +52,9 @@ The following features were added beyond project requirements:
 
 - 2D Text Display
 - Toggle Menu Display On/Off
+- 2 Humans or Human/AI
+- Toggle for AI/Player 2 Control
+- Game Replay
 
 Ubuntu Dependencies
 -------------------
