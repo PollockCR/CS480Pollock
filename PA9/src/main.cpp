@@ -130,6 +130,13 @@ const char* blankTexture = "../../Resources/white.png";
   static float* source = new float[3];
   static float* dest = new float[3];
 
+  
+  ////point of view
+  bool player1POV = false;
+  bool player2POV = false;
+  bool leftSidePOV = false;
+  bool rightSidePOV = false;
+
 
 // FUNCTION PROTOTYPES
 
@@ -173,6 +180,8 @@ const char* blankTexture = "../../Resources/white.png";
   btTransform puckStart;
 
 
+
+
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
@@ -201,7 +210,8 @@ int main(int argc, char **argv)
   glutReshapeFunc(reshape);// Called if the window is resized
   glutIdleFunc(update);// Called if there is nothing else to do
   glutKeyboardFunc(keyboard);// Called if there is keyboard input
-  glutMouseFunc(mouse);//Called if there is mouse input
+  glutPassiveMotionFunc(moveMouse);
+  //glutMouseFunc(mouse);//Called if there is mouse input
   glutSpecialFunc(arrowKeys);
   glutKeyboardUpFunc(keyboardUP);
   glutSpecialUpFunc(arrowKeysUp);
@@ -608,6 +618,28 @@ void render()
 
 }
 
+
+// actions for left mouse click
+void mouse(int button, int state, int x_pos, int y_pos)
+{
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
+	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
+}
+
+//Move mouse
+void moveMouse(int x, int y){
+
+    //update x and y positions
+    mouseXAxis = x;
+    mouseYAxis = y;
+    mouseCanMove = true;
+
+}
+
+
+
+
+
 // called on idle to update display
 void update()
 {
@@ -626,6 +658,143 @@ void update()
       btScalar m[16];
       btScalar m2[16];
       btScalar m3[16];
+ 
+
+     float forceXDir,forceZDir;
+
+    // check if the mouse can move 
+    if(mouseCanMove)
+    {
+      if (player1POV)
+        {
+        if(mouseXAxis < (w/2))
+            {
+                forceXDir = force;
+            }
+        else if (mouseXAxis > (2*w/3))
+            {
+                forceXDir = -force;
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(mouseYAxis < (h/2))
+            {
+                forceZDir = force;
+            }
+        else if (mouseYAxis > (2*h/3))
+            {
+                forceZDir = -force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+        }
+
+    if (player2POV)
+        {
+        if(mouseXAxis < (w/2))
+            {
+                forceXDir = -force;
+            }
+        else if (mouseXAxis > (2*w/3))
+            {
+                forceXDir = force;
+            }
+        else
+            {
+                forceXDir = 0;
+            }
+        if(mouseYAxis < (h/2))
+            {
+                forceZDir = -force;
+            }
+        else if (mouseYAxis > (2*h/3))
+            {
+                forceZDir = force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+        }
+   
+
+    if (leftSidePOV)
+        {
+        if(mouseXAxis < (w/2))
+            {
+                forceZDir = force;
+            }
+        else if (mouseXAxis > (2*w/3))
+            {
+                forceZDir = -force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+
+       if(mouseYAxis < (h/2))
+            {
+                forceXDir = -force;
+            }
+        else if (mouseYAxis > (2*h/3))
+            {
+               forceXDir = force;
+            }
+
+        else
+            {
+                forceXDir = 0;
+            }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+        }
+
+
+    if (rightSidePOV)
+        {
+        if(mouseXAxis < (w/2))
+            {
+                forceZDir = -force;
+            }
+        else if (mouseXAxis > (2*w/3))
+            {
+                forceZDir = force;
+            }
+        else
+            {
+                forceZDir = 0;
+            }
+
+       if(mouseYAxis < (h/2))
+            {
+                forceXDir = force;
+            }
+        else if (mouseYAxis > (2*h/3))
+            {
+               forceXDir = -force;
+            }
+
+        else
+            {
+                forceXDir = 0;
+            }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+        }
+
+    }
+
+   
+
 
       // add the forces to the paddlePlayer1 for movement
       if(forward)
@@ -922,7 +1091,9 @@ bool initialize( const char* filename)
     source[2] = -18.0;  
     dest[0] = 0.0;
     dest[1] = 18.0;
-    dest[2] = -18.0;      
+    dest[2] = -18.0;   
+
+    player1POV = true;   
 
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
@@ -1089,37 +1260,56 @@ void subMenu(int num)
       source[0] = 0.0;
       source[1] = 18.0;
       source[2] = -18.0;
-      updateViewFlag = true;        
+      updateViewFlag = true; 
+      player1POV = true;
+      player2POV = false;  
+      leftSidePOV = false; 
+      rightSidePOV = false;    
       pan();
       break;
     case 2: // Player 2 POV
+
       dest[0] = 0.0;
       dest[1] = 18.0;
       dest[2] = 18.0;
       source[0] = 0.0;
       source[1] = 18.0;
       source[2] = 18.0;
-      updateViewFlag = true;        
+      updateViewFlag = true; 
+      player1POV = false;
+      player2POV = true;  
+      leftSidePOV = false; 
+      rightSidePOV = false;        
       pan();
       break;
     case 3: // Left side POV
+  
       dest[0] = 18.0;
       dest[1] = 18.0;
       dest[2] = 0.0;
       source[0] = 18.0;
       source[1] = 18.0;
       source[2] = 0.0;
-      updateViewFlag = true;        
+      updateViewFlag = true;  
+      player1POV = false;
+      player2POV = false;  
+      leftSidePOV = true; 
+      rightSidePOV = false;        
       pan();
       break;
     case 4: // Right side POV
+      
       dest[0] = -18.0;
       dest[1] = 18.0;
       dest[2] = 0.0;
       source[0] = -18.0;
       source[1] = 18.0;
       source[2] = 0.0;
-      updateViewFlag = true;        
+      updateViewFlag = true;
+      player1POV = false;
+      player2POV = false;  
+      leftSidePOV = false; 
+      rightSidePOV = true;          
       pan();
       break;      
     }
@@ -1158,12 +1348,7 @@ void mainMenu(int num)
 }
 
 
-// actions for left mouse click
-void mouse(int button, int state, int x_pos, int y_pos)
-{
-  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
-	else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
-}
+
 
 //returns the time delta
 float getDT()
@@ -1271,6 +1456,42 @@ void pan()
       // make sure we want to move
       if (updateViewFlag)
       {
+
+
+
+        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == -18.0) )
+            {
+            player1POV = true;
+            player2POV = false;  
+            leftSidePOV = false; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == 18.0) )
+            {
+            player1POV = false;
+            player2POV = true;  
+            leftSidePOV = false; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == 18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
+            {
+            player1POV = false;
+            player2POV = false;  
+            leftSidePOV = true; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == -18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
+            {
+            player1POV = false;
+            player2POV = false;  
+            leftSidePOV = false; 
+            rightSidePOV = true; 
+            }
+
+
         //paused = true;
         // check source vs dest coords
         // increment accordingly
@@ -1307,6 +1528,7 @@ void pan()
           view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
                   glm::vec3(0.0, 0.0, 0.0), //Focus point
                   glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+
         }
         else
         {
