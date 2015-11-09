@@ -652,10 +652,6 @@ void moveMouse(int x, int y){
 
 }
 
-
-
-
-
 // called on idle to update display
 void update()
 {
@@ -683,135 +679,131 @@ void update()
       if(mouseCanMove)
       {
         if (player1POV)
-          {
+        {
           if(mouseXAxis < (w/2))
-              {
-                  forceXDir = force;
-              }
+          {
+            forceXDir = force;
+          }
           else if (mouseXAxis > (2*w/3))
-              {
-                  forceXDir = -force;
-              }
+          {
+            forceXDir = -force;
+          }
           else
-              {
-                  forceXDir = 0;
-              }
+          {
+            forceXDir = 0;
+          }
           if(mouseYAxis < (h/2))
-              {
-                  forceZDir = force;
-              }
+          {
+            forceZDir = force;
+          }
           else if (mouseYAxis > (2*h/3))
-              {
-                  forceZDir = -force;
-              }
+          {
+            forceZDir = -force;
+          }
           else
-              {
-                  forceZDir = 0;
-              }
+          {
+            forceZDir = 0;
+          }
           rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
           mouseCanMove = false;
-          }
+        }
 
       if (player2POV)
-          {
-          if(mouseXAxis < (w/2))
-              {
-                  forceXDir = -force;
-              }
-          else if (mouseXAxis > (2*w/3))
-              {
-                  forceXDir = force;
-              }
-          else
-              {
-                  forceXDir = 0;
-              }
-          if(mouseYAxis < (h/2))
-              {
-                  forceZDir = -force;
-              }
-          else if (mouseYAxis > (2*h/3))
-              {
-                  forceZDir = force;
-              }
-          else
-              {
-                  forceZDir = 0;
-              }
-          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-          mouseCanMove = false;
-          }
+      {
+        if(mouseXAxis < (w/2))
+        {
+          forceXDir = -force;
+        }
+        else if (mouseXAxis > (2*w/3))
+        {
+            forceXDir = force;
+        }
+        else
+        {
+          forceXDir = 0;
+        }
+        if(mouseYAxis < (h/2))
+        {
+          forceZDir = -force;
+        }
+        else if (mouseYAxis > (2*h/3))
+        {
+          forceZDir = force;
+        }
+        else
+        {
+          forceZDir = 0;
+        }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+      }
      
 
       if (leftSidePOV)
-          {
-          if(mouseXAxis < (w/2))
-              {
-                  forceZDir = force;
-              }
-          else if (mouseXAxis > (2*w/3))
-              {
-                  forceZDir = -force;
-              }
-          else
-              {
-                  forceZDir = 0;
-              }
+      {
+        if(mouseXAxis < (w/2))
+        {
+            forceZDir = force;
+        }
+        else if (mouseXAxis > (2*w/3))
+        {
+          forceZDir = -force;
+        }
+        else
+        {
+          forceZDir = 0;
+        }
+        if(mouseYAxis < (h/2))
+        {
+            forceXDir = -force;
+        }
+        else if (mouseYAxis > (2*h/3))
+        {
+          forceXDir = force;
+        }
 
-         if(mouseYAxis < (h/2))
-              {
-                  forceXDir = -force;
-              }
-          else if (mouseYAxis > (2*h/3))
-              {
-                 forceXDir = force;
-              }
-
-          else
-              {
-                  forceXDir = 0;
-              }
-          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-          mouseCanMove = false;
-          }
+        else
+        {
+            forceXDir = 0;
+        }
+        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+        mouseCanMove = false;
+      }
 
 
       if (rightSidePOV)
-          {
+      {
           if(mouseXAxis < (w/2))
-              {
-                  forceZDir = -force;
-              }
+          {
+              forceZDir = -force;
+          }
           else if (mouseXAxis > (2*w/3))
-              {
-                  forceZDir = force;
-              }
+          {
+              forceZDir = force;
+          }
           else
-              {
-                  forceZDir = 0;
-              }
+          {
+              forceZDir = 0;
+           }
 
-         if(mouseYAxis < (h/2))
-              {
-                  forceXDir = force;
-              }
+          if(mouseYAxis < (h/2))
+          {
+              forceXDir = force;
+          }
           else if (mouseYAxis > (2*h/3))
-              {
-                 forceXDir = -force;
-              }
+          {
+              forceXDir = -force;
+          }
 
           else
-              {
-                  forceXDir = 0;
-              }
+          {
+              forceXDir = 0;
+          }
           rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
           mouseCanMove = false;
           }
         }
       }
-
-   
-
 
       // add the forces to the paddlePlayer1 for movement
       if(forward)

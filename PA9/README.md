@@ -24,22 +24,24 @@ When the program starts, press spacebar to start or Esc to quit.
 
 When the program is running, the following commands can be used:
 
-- WASD to Move Player 1 Paddle
+- Mouse/WASD to Move Player 1 Paddle
 - Arrow Keys to Move Player 2 Paddle
 - K to Pan to Player 1 POV (Default)
 - I to Pan to Player 2 POV
 - J to Pan to Left Side of Board
 - L to Pan to Right Side of Board
 - Spacebar to Pause/Resume
+- G to Switch Player 1 Controls (Mouse/WASD)
 - Right Click for:
   - Change View 
   - Pause/Resume Game
+  - Switch Player 1 Controls
   - Restart Game
   - Quit     
 - H to Hide Menu
 - Esc to Quit
 
-Note: The controls do not change with the view.
+Note: The keyboard controls do not change with the view. The mouse controls changes with view.
 
 Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA09/PA9.php
 
