@@ -128,6 +128,7 @@ const char* blankTexture = "../../Resources/white.png";
   bool level1 = true;
   bool level2 = false;
   bool level3 = false; 
+  bool keyTPressed = false;
 
   //scores
   int t1score = 0;
@@ -880,7 +881,6 @@ void update()
 
 
     ///// artificial intelligence motion
-    //aiCanMove = true;
     if(aiCanMove)
     {
       if (player1POV)
@@ -936,7 +936,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         }    
 
 
@@ -993,7 +992,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         }  
 
 
@@ -1050,7 +1048,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         } 
 
 
@@ -1108,7 +1105,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         } 
     }
 
@@ -1227,12 +1223,6 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
         rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
       }
     }
-    
-
-    if ( ( key == 't') )
-        {
-        aiCanMove = !aiCanMove;
-        }
     
  
 
@@ -1524,13 +1514,14 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Right Side View", 4);
 
     index2 = glutCreateMenu(subMenu2);
-    glutAddMenuEntry("AI Level 1", 1);
-    glutAddMenuEntry("AI Level 2", 2);
-    glutAddMenuEntry("AI Level 3", 3);
+    glutAddMenuEntry("Start/Stop AI", 1);
+    glutAddMenuEntry("AI Difficulty Level 1", 2);
+    glutAddMenuEntry("AI Difficulty Level 2", 3);
+    glutAddMenuEntry("AI Difficulty Level 3", 4);
 
     mainIndex = glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
-    glutAddSubMenu("View AI Difficulty", index2);
+    glutAddSubMenu("View AI Menu", index2);
     glutAddMenuEntry("Restart Game", 2);
     glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
     glutAddMenuEntry("Pause/Resume Game", 4);
@@ -1556,17 +1547,20 @@ void subMenu2 (int num)
 {
   switch(num)
     {
-    case 1: // Player 1 POV 
+    case 1: 
+      aiCanMove = !aiCanMove;
+      break;
+    case 2:
       level1 = true;
       level2 = false;
       level3 = false;
       break;
-    case 2: // Player 2 POV
+    case 3: 
       level1 = false;
       level2 = true;
       level3 = false;
       break;
-    case 3: // Left side POV
+    case 4: 
       level1 = false;
       level2 = false;
       level3 = true;
