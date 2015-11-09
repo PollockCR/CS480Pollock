@@ -125,6 +125,8 @@ const char* blankTexture = "../../Resources/white.png";
   //scores
   int t1score = 0;
   int t2score = 0;
+  bool justScored = false;
+  int timer = 0;
 
   // current view positions
   static float* source = new float[3];
@@ -652,26 +654,31 @@ void moveMouse(int x, int y){
 // called on idle to update display
 void update()
 {
-
-  if (timeflag )
+  if( timer > 0 )
   {
-
+    timer = timer - 1;
+    float dt = getDT();
+    rigidBodyPuck->setWorldTransform(puckStart);
+    rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+    dynamicsWorld->stepSimulation(dt, 10);
+  }
+  else if ( timeflag )
+  {
     // update object
-      float dt = getDT();
-      float force = 10.0;
-      btTransform trans;
-      float rotationAngle = 0.00;
-      float rotationSpeed = 0.03;
+    float dt = getDT();
+    float force = 10.0;
+    btTransform trans;
+    float rotationAngle = 0.00;
+    float rotationSpeed = 0.03;
 
-
-      btScalar m[16];
-      btScalar m2[16];
-      btScalar m3[16];
+    btScalar m[16];
+    btScalar m2[16];
+    btScalar m3[16];
  
 
-     float forceXDir,forceZDir;
-     if( mouseOn )
-     {
+    float forceXDir,forceZDir;
+    if( mouseOn )
+    {
       // check if the mouse can move 
       if(mouseCanMove)
       {
@@ -705,91 +712,58 @@ void update()
           mouseCanMove = false;
         }
 
-      if (player2POV)
-      {
-        if(mouseXAxis < (w/2))
+        if (player2POV)
         {
-          forceXDir = -force;
-        }
-        else if (mouseXAxis > (2*w/3))
-        {
-            forceXDir = force;
-        }
-        else
-        {
-          forceXDir = 0;
-        }
-        if(mouseYAxis < (h/2))
-        {
-          forceZDir = -force;
-        }
-        else if (mouseYAxis > (2*h/3))
-        {
-          forceZDir = force;
-        }
-        else
-        {
-          forceZDir = 0;
-        }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-      }
-     
-
-      if (leftSidePOV)
-      {
-        if(mouseXAxis < (w/2))
-        {
-            forceZDir = force;
-        }
-        else if (mouseXAxis > (2*w/3))
-        {
-          forceZDir = -force;
-        }
-        else
-        {
-          forceZDir = 0;
-        }
-        if(mouseYAxis < (h/2))
-        {
-            forceXDir = -force;
-        }
-        else if (mouseYAxis > (2*h/3))
-        {
-          forceXDir = force;
-        }
-
-        else
-        {
-            forceXDir = 0;
-        }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-      }
-
-
-      if (rightSidePOV)
-      {
           if(mouseXAxis < (w/2))
           {
-              forceZDir = -force;
+            forceXDir = -force;
           }
           else if (mouseXAxis > (2*w/3))
           {
-              forceZDir = force;
+              forceXDir = force;
           }
           else
           {
-              forceZDir = 0;
-           }
-
+            forceXDir = 0;
+          }
           if(mouseYAxis < (h/2))
           {
-              forceXDir = force;
+            forceZDir = -force;
           }
           else if (mouseYAxis > (2*h/3))
           {
+            forceZDir = force;
+          }
+          else
+          {
+            forceZDir = 0;
+          }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+        }
+       
+
+        if (leftSidePOV)
+        {
+          if(mouseXAxis < (w/2))
+          {
+              forceZDir = force;
+          }
+          else if (mouseXAxis > (2*w/3))
+          {
+            forceZDir = -force;
+          }
+          else
+          {
+            forceZDir = 0;
+          }
+          if(mouseYAxis < (h/2))
+          {
               forceXDir = -force;
+          }
+          else if (mouseYAxis > (2*h/3))
+          {
+            forceXDir = force;
           }
 
           else
@@ -798,9 +772,42 @@ void update()
           }
           rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
           mouseCanMove = false;
-          }
+        }
+
+
+        if (rightSidePOV)
+        {
+            if(mouseXAxis < (w/2))
+            {
+                forceZDir = -force;
+            }
+            else if (mouseXAxis > (2*w/3))
+            {
+                forceZDir = force;
+            }
+            else
+            {
+                forceZDir = 0;
+             }
+
+            if(mouseYAxis < (h/2))
+            {
+                forceXDir = force;
+            }
+            else if (mouseYAxis > (2*h/3))
+            {
+                forceXDir = -force;
+            }
+
+            else
+            {
+                forceXDir = 0;
+            }
+            rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+            mouseCanMove = false;
         }
       }
+    }
 
       // add the forces to the paddlePlayer1 for movement
       if(forward)
@@ -857,31 +864,39 @@ void update()
       images[2].model = glm::make_mat4(m2);
 
       //set the puck to it's respective model
-      rigidBodyPuck->getMotionState()->getWorldTransform(trans);
-      trans.getOpenGLMatrix(m3);
-      images[3].model = glm::make_mat4(m3);
-      glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
+        rigidBodyPuck->getMotionState()->getWorldTransform(trans);
+        trans.getOpenGLMatrix(m3);
+        images[3].model = glm::make_mat4(m3);
+        glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
 
-      if (puckPos.z < -9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
-      {
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
-          t1score = t1score + 1;                                              
-          if (t1score == 5)
-          {
-            newGame = true;
-          }
-      }
-      if (puckPos.z > 9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
-      {
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));       
-          t2score = t2score + 1;     
-          if (t2score == 5)
-          {
-            newGame = true;
-          }          
-      }
+        if (puckPos.z < -9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5 )
+        {
+            rigidBodyPuck->setWorldTransform(puckStart);
+            rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+              t1score = t1score + 1;                                            
+              if (t1score == 5)
+              {
+                newGame = true;
+              }
+              else
+              {
+                timer = 20;
+              }
+        }
+        if (puckPos.z > 9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
+        {
+            rigidBodyPuck->setWorldTransform(puckStart);
+            rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+            t2score = t2score + 1;
+            if (t2score == 5)
+            {
+              newGame = true;
+            }    
+            else
+            {      
+              timer = 20;
+            }
+        }
 
       // step simluation
       dynamicsWorld->stepSimulation(dt, 10);
@@ -890,8 +905,6 @@ void update()
       rotationAngle = dt * rotationSpeed;
       images[numImages-1].model = glm::rotate( images[numImages-1].model, rotationAngle, glm::vec3(0.0, 1.0, 0.0));
   }
-
-
   // update the state of the scene
   glutPostRedisplay();//call the display callback
 
@@ -1016,8 +1029,11 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       if( newGame )
       {
         newGame = false;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));  
         t1score = 0;
         t2score = 0;
+        timer = 15;
       }
       timeflag = !timeflag;
     }
@@ -1350,6 +1366,8 @@ void mainMenu(int num)
       if( newGame )
       {
         newGame = false;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));         
         t1score = 0;
         t2score = 0;
       }
