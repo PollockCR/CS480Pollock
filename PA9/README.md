@@ -52,6 +52,10 @@ The following features were added beyond project requirements:
 
 - 2D Text Display
 - Toggle Menu Display On/Off
+- 2 Humans or Human/AI
+- Toggle for AI/Player 2 Control
+- Multiple AI Levels
+- Game Replay
 
 Ubuntu Dependencies
 -------------------
