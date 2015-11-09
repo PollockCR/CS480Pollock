@@ -187,9 +187,6 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodyPuck;///
   btTransform puckStart;
 
-
-
-
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
@@ -1052,8 +1049,6 @@ void update()
         aiCanMove = false;
         } 
 
-
-
         if (rightSidePOV)
         {
         if( paddlePos.x < puckPos.x )
@@ -1153,11 +1148,6 @@ void update()
   // clean up!
   rigidBodySphere->clearForces();
 }
-
-
-
-
-
 
 // resize window
 void reshape(int n_w, int n_h)
