@@ -119,6 +119,7 @@ const char* blankTexture = "../../Resources/white.png";
 
   //mouse stuff
   bool mouseCanMove = false;///
+  bool mouseOn = true;
   int mouseXAxis, mouseYAxis;///
 
   //ai stuff
@@ -129,21 +130,20 @@ const char* blankTexture = "../../Resources/white.png";
   bool level3 = false; 
 
   //scores
-  int player1Counter = 0;///
-  int player2Counter =0;///
   int t1score = 0;
   int t2score = 0;
+  bool justScored = false;
+  int timer = 0;
 
+  // current view positions
   static float* source = new float[3];
   static float* dest = new float[3];
 
-  
-  ////point of view
+  // current point of view
   bool player1POV = false;
   bool player2POV = false;
   bool leftSidePOV = false;
   bool rightSidePOV = false;
-
 
 // FUNCTION PROTOTYPES
 
@@ -564,16 +564,31 @@ void render()
     
     if (menuflag && !newGame && started)
     {
-      sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      if( mouseOn )
+      {
+        sPrint(-0.95,0.9,(char*)"Use Mouse to Move Player 1 Paddle", 12);        
+      }
+      else
+      {
+        sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
+      }
       sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
       sPrint(-0.95,0.7,(char*)"K to Pan to Player 1 POV (Default)", 12);
       sPrint(-0.95,0.6,(char*)"I to Pan to Player 2 POV", 12);
       sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
       sPrint(-0.95,0.4,(char*)"L to Pan to Right Side of Board", 12);
       sPrint(-0.95,0.3,(char*)"Spacebar to Pause/Resume", 12);
-      sPrint(-0.95,0.2,(char*)"Right Click for More Options", 12);      
-      sPrint(-0.95,0.1,(char*)"H to Hide Menu", 12);
-      sPrint(-0.95,0.0,(char*)"Esc to Quit", 12);
+      if( mouseOn )
+      {
+        sPrint(-0.95,0.2,(char*)"G to Use WASD for Player 1 Controls", 12);
+      }
+      else
+      {
+        sPrint(-0.95,0.2,(char*)"G to Use Mouse for Player 1 Controls", 12);        
+      }
+      sPrint(-0.95,0.1,(char*)"Right Click for More Options", 12);      
+      sPrint(-0.95,0.0,(char*)"H to Hide Menu", 12);
+      sPrint(-0.95,-0.1,(char*)"Esc to Quit", 12);
     }
 
     // display scores
@@ -645,38 +660,37 @@ void moveMouse(int x, int y)
 
 }
 
-
-
-
-
-
-
 // called on idle to update display
 void update()
 {
-
-  if (timeflag)
+  if( timer > 0 )
   {
-
+    timer = timer - 1;
+    float dt = getDT();
+    rigidBodyPuck->setWorldTransform(puckStart);
+    rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+    dynamicsWorld->stepSimulation(dt, 10);
+  }
+  else if ( timeflag )
+  {
     // update object
-      float dt = getDT();
-      float force = 10.0;
-      btTransform trans;
-      float rotationAngle = 0.00;
-      float rotationSpeed = 0.03;
+    float dt = getDT();
+    float force = 10.0;
+    btTransform trans;
+    float rotationAngle = 0.00;
+    float rotationSpeed = 0.03;
 
-
-      btScalar m[16];
-      btScalar m2[16];
-      btScalar m3[16];
+    btScalar m[16];
+    btScalar m2[16];
+    btScalar m3[16];
  
-
-     float forceXDir,forceZDir;
-
-    /////////// mouse motion 
-    if(mouseCanMove)
+    float forceXDir,forceZDir;
+    if( mouseOn )
     {
-      if (player1POV)
+      // check if the mouse can move 
+      if(mouseCanMove)
+      {
+        if (player1POV)
         {
         if(mouseXAxis < (w/2.1))
             {
@@ -706,106 +720,102 @@ void update()
         mouseCanMove = false;
         }
 
-    if (player2POV)
+        if (player2POV)
         {
-        if(mouseXAxis < (w/2))
+          if(mouseXAxis < (w/2))
+          {
+            forceXDir = -force;
+          }
+          else if (mouseXAxis > (2*w/3))
+          {
+              forceXDir = force;
+          }
+          else
+          {
+            forceXDir = 0;
+          }
+          if(mouseYAxis < (h/2))
+          {
+            forceZDir = -force;
+          }
+          else if (mouseYAxis > (2*h/3))
+          {
+            forceZDir = force;
+          }
+          else
+          {
+            forceZDir = 0;
+          }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+        }
+       
+
+        if (leftSidePOV)
+        {
+          if(mouseXAxis < (w/2))
+          {
+              forceZDir = force;
+          }
+          else if (mouseXAxis > (2*w/3))
+          {
+            forceZDir = -force;
+          }
+          else
+          {
+            forceZDir = 0;
+          }
+          if(mouseYAxis < (h/2))
+          {
+              forceXDir = -force;
+          }
+          else if (mouseYAxis > (2*h/3))
+          {
+            forceXDir = force;
+          }
+
+          else
+          {
+              forceXDir = 0;
+          }
+          rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+          mouseCanMove = false;
+        }
+
+
+        if (rightSidePOV)
+        {
+            if(mouseXAxis < (w/2))
             {
-                forceXDir = -force;
+                forceZDir = -force;
             }
-        else if (mouseXAxis > (2*w/3))
+            else if (mouseXAxis > (2*w/3))
+            {
+                forceZDir = force;
+            }
+            else
+            {
+                forceZDir = 0;
+             }
+
+            if(mouseYAxis < (h/2))
             {
                 forceXDir = force;
             }
-        else
-            {
-                forceXDir = 0;
-            }
-        if(mouseYAxis < (h/2))
-            {
-                forceZDir = -force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-                forceZDir = force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-        }
-   
-
-    if (leftSidePOV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceZDir = force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceZDir = -force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-
-       if(mouseYAxis < (h/2))
+            else if (mouseYAxis > (2*h/3))
             {
                 forceXDir = -force;
             }
-        else if (mouseYAxis > (2*h/3))
-            {
-               forceXDir = force;
-            }
 
-        else
+            else
             {
                 forceXDir = 0;
             }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
+            rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
+            mouseCanMove = false;
         }
-
-
-    if (rightSidePOV)
-        {
-        if(mouseXAxis < (w/2))
-            {
-                forceZDir = -force;
-            }
-        else if (mouseXAxis > (2*w/3))
-            {
-                forceZDir = force;
-            }
-        else
-            {
-                forceZDir = 0;
-            }
-
-       if(mouseYAxis < (h/2))
-            {
-                forceXDir = force;
-            }
-        else if (mouseYAxis > (2*h/3))
-            {
-               forceXDir = -force;
-            }
-
-        else
-            {
-                forceXDir = 0;
-            }
-        rigidBodySphere->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        mouseCanMove = false;
-        }
-
+      }
     }
-
-   
-
 
       // add the forces to the paddlePlayer1 for movement
       if(forward)
@@ -856,9 +866,6 @@ void update()
           //cylgoRight = false;
       }
 
-      
-      dynamicsWorld->stepSimulation(dt, 10);
-
       //set the paddleplayer2 to it's respective model
       rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
       trans.getOpenGLMatrix(m2);
@@ -866,10 +873,10 @@ void update()
       glm::vec4 paddlePos = images[2].model * glm::vec4(1.0f);
 
       //set the puck to it's respective model
-      rigidBodyPuck->getMotionState()->getWorldTransform(trans);
-      trans.getOpenGLMatrix(m3);
-      images[3].model = glm::make_mat4(m3);
-      glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
+        rigidBodyPuck->getMotionState()->getWorldTransform(trans);
+        trans.getOpenGLMatrix(m3);
+        images[3].model = glm::make_mat4(m3);
+        glm::vec4 puckPos = images[3].model * glm::vec4(1.0f);
 
 
     ///// artificial intelligence motion
@@ -1104,36 +1111,42 @@ void update()
         } 
     }
 
+        if (puckPos.z < -9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5 )
+        {
+            rigidBodyPuck->setWorldTransform(puckStart);
+            rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+              t1score = t1score + 1;                                            
+              if (t1score == 5)
+              {
+                newGame = true;
+              }
+              else
+              {
+                timer = 20;
+              }
+        }
+        if (puckPos.z > 9.7 &&  puckPos.x < 1.5 && puckPos.x > -1.5)
+        {
+            rigidBodyPuck->setWorldTransform(puckStart);
+            rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
+            t2score = t2score + 1;
+            if (t2score == 5)
+            {
+              newGame = true;
+            }    
+            else
+            {      
+              timer = 20;
+            }
+        }
 
+      // step simluation
+      dynamicsWorld->stepSimulation(dt, 10);
 
-      if (puckPos.z < -9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
-      {
-          t1score++;                                              
-          if (t1score == 5)
-          {
-            newGame = true;
-          }
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));
-      }
-      if (puckPos.z > 9.3 &&  puckPos.x < 2.0 && puckPos.x > -2.0)
-      {
-          t2score++;     
-          if (t2score == 5)
-          {
-            newGame = true;
-          }
-          rigidBodyPuck->setWorldTransform(puckStart);
-          rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));          
-      }
-
+      // background rotation
       rotationAngle = dt * rotationSpeed;
-
       images[numImages-1].model = glm::rotate( images[numImages-1].model, rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-
   }
-
-
   // update the state of the scene
   glutPostRedisplay();//call the display callback
 
@@ -1273,11 +1286,18 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       if( newGame )
       {
         newGame = false;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));  
         t1score = 0;
         t2score = 0;
+        timer = 15;
       }
       timeflag = !timeflag;
     }
+    if((key == 'g')||(key == 'G'))
+    {
+      mouseOn = !mouseOn;
+    }    
     if((key == 'h')||(key == 'H'))
     {
       menuflag = !menuflag;
@@ -1466,7 +1486,6 @@ void cleanUp()
 
   // clean up programs
   glDeleteProgram(program);   
-
     // clean up each planet
     for( index = 0; index < numImages; index++ )
     {
@@ -1480,6 +1499,7 @@ void cleanUp()
 void manageMenus( bool quitCall )
 {
   int index = 0;
+  int mainIndex = 0;
 
   // upon initialization
   if( !quitCall )
@@ -1490,11 +1510,12 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Player 2 POV", 2);
     glutAddMenuEntry("Left Side View", 3);
     glutAddMenuEntry("Right Side View", 4);
-    glutCreateMenu(mainMenu);
+    mainIndex = glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
     glutAddMenuEntry("Restart Game", 2);
-    glutAddMenuEntry("Pause/Resume Game", 3);
-    glutAddMenuEntry("Exit Program", 4);
+    glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
+    glutAddMenuEntry("Pause/Resume Game", 4);
+    glutAddMenuEntry("Exit Program", 5);
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -1502,7 +1523,9 @@ void manageMenus( bool quitCall )
   else
   {
     // clean up after ourselves
-    glutDestroyMenu(index);
+
+    glutDestroyMenu(mainIndex);
+        glutDestroyMenu(index);
   }
 
   // update display
@@ -1593,24 +1616,27 @@ void mainMenu(int num)
       rigidBodyPuck->setWorldTransform(puckStart);
       rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));      
       break;
-    case 3: // pause
+    case 3: // swap controls for player 1
+      mouseOn = !mouseOn;
+      break;
+    case 4: // pause
       if( newGame )
       {
         newGame = false;
+        rigidBodyPuck->setWorldTransform(puckStart);
+        rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));         
         t1score = 0;
         t2score = 0;
       }
       timeflag = !timeflag;
       break;
-    case 4: // quit program
-      exit(0);
+    case 5: // quit program
+      glutLeaveMainLoop();
+      //exit(0);
       break;
     }
   glutPostRedisplay();
 }
-
-
-
 
 //returns the time delta
 float getDT()
