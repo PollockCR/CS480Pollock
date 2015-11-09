@@ -123,21 +123,18 @@ const char* blankTexture = "../../Resources/white.png";
   int mouseXAxis, mouseYAxis;///
 
   //scores
-  int player1Counter = 0;///
-  int player2Counter =0;///
   int t1score = 0;
   int t2score = 0;
 
+  // current view positions
   static float* source = new float[3];
   static float* dest = new float[3];
 
-  
-  ////point of view
+  // current point of view
   bool player1POV = false;
   bool player2POV = false;
   bool leftSidePOV = false;
   bool rightSidePOV = false;
-
 
 // FUNCTION PROTOTYPES
 
@@ -889,10 +886,9 @@ void update()
           rigidBodyPuck->setLinearVelocity(btVector3(0.0,0.0,0.0));          
       }
 
+      // background rotation
       rotationAngle = dt * rotationSpeed;
-
       images[numImages-1].model = glm::rotate( images[numImages-1].model, rotationAngle, glm::vec3(0.0, 1.0, 0.0));
-
   }
 
 
@@ -1217,7 +1213,6 @@ void cleanUp()
 
   // clean up programs
   glDeleteProgram(program);   
-
     // clean up each planet
     for( index = 0; index < numImages; index++ )
     {
@@ -1231,6 +1226,7 @@ void cleanUp()
 void manageMenus( bool quitCall )
 {
   int index = 0;
+  int mainIndex = 0;
 
   // upon initialization
   if( !quitCall )
@@ -1241,7 +1237,7 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Player 2 POV", 2);
     glutAddMenuEntry("Left Side View", 3);
     glutAddMenuEntry("Right Side View", 4);
-    glutCreateMenu(mainMenu);
+    mainIndex = glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
     glutAddMenuEntry("Restart Game", 2);
     glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
@@ -1254,7 +1250,9 @@ void manageMenus( bool quitCall )
   else
   {
     // clean up after ourselves
-    glutDestroyMenu(index);
+
+    glutDestroyMenu(mainIndex);
+        glutDestroyMenu(index);
   }
 
   // update display
@@ -1358,14 +1356,12 @@ void mainMenu(int num)
       timeflag = !timeflag;
       break;
     case 5: // quit program
-      exit(0);
+      glutLeaveMainLoop();
+      //exit(0);
       break;
     }
   glutPostRedisplay();
 }
-
-
-
 
 //returns the time delta
 float getDT()
