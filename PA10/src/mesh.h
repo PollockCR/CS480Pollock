@@ -24,6 +24,7 @@ struct Vertex
 {
    GLfloat position[3];
    GLfloat uv[2];
+   GLfloat normals[3];
 };
 
 // Mesh class represents interface between Assimp and OpenGL program

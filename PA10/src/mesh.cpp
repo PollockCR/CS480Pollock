@@ -54,12 +54,22 @@ bool Mesh::loadMesh( const char * objectFilename )
         tempVertex.uv[0] = tempTex.x;
         tempVertex.uv[1] = tempTex.y;
       }
+
       // if no texture, save 0 for uv values
       else 
       {
         aiVector3D tempTex(0.0f, 0.0f, 0.0f);
         tempVertex.uv[0] = tempTex.x;
         tempVertex.uv[1] = tempTex.y;
+      }
+
+      // if has texture, save uv values
+      if( mesh->HasNormals() )
+      {
+        aiVector3D tempNormals = mesh -> mNormals[face.mIndices[vertexNum]];
+        tempVertex.normals[0] = tempNormals.x;
+        tempVertex.normals[1] = tempNormals.y;
+        tempVertex.normals[2] = tempNormals.z;
       }
 
       // push vertex to geometry

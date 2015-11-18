@@ -1,7 +1,7 @@
 4
 ../bin/table.obj
 ../bin/metal.jpg
-../bin/sphere.obj
+../bin/planet.obj
 ../bin/glass.jpg
 ../bin/cube.obj
 ../bin/bricks.jpg

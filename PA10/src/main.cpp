@@ -49,7 +49,7 @@ const char* blankTexture = "../../Resources/white.png";
   // The GLSL program handle
   GLuint program;
   //GLuint vbo_geometry;
-  
+  GLuint normalbuffer; // Normal Buffer
   GLuint texture;
 
   // rotations
@@ -58,10 +58,13 @@ const char* blankTexture = "../../Resources/white.png";
 
   // uniform locations
   GLint loc_mvpmat;// Location of the modelviewprojection matrix in the shader
+  GLint viewMatrixID;
+  GLint modelMatrixID;
 
   // attribute locations
   GLint loc_position;
   GLint loc_texture;
+  GLint vertexNormal_modelspaceID;
 
   // transform matrices
   glm::mat4 view;// world->eye
@@ -454,6 +457,8 @@ void render()
 
   // enable the shader program
   glUseProgram(program);
+  GLuint lightID = glGetUniformLocation(program, "LightPosition_worldspace");
+
 
  // loop through each planet
     for( int index = 0; index < numImages; index++ )
@@ -463,6 +468,12 @@ void render()
 
       // upload the matrix to the shader
       glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(images[index].mvp[0][0])); 
+      glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &(images[index].model[0][0]));
+      glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &(images[index].mvp[0][0]));    
+
+      // light
+      glm::vec3 lightPos = glm::vec3(0,8,0);
+      glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
 
       // set up the Vertex Buffer Object so it can be drawn
       glEnableVertexAttribArray(loc_position);
@@ -486,12 +497,26 @@ void render()
                              sizeof(Vertex),
                              (void*)offsetof(Vertex,uv));
 
+
+      glEnableVertexAttribArray(vertexNormal_modelspaceID);
+      glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+
+        // 3rd attribute buffer : normals  
+        glVertexAttribPointer( vertexNormal_modelspaceID,
+                               3,
+                               GL_FLOAT,
+                               GL_FALSE,
+                               sizeof(Vertex),
+                               (void*)0
+                              );       
+
       glDrawArrays(GL_TRIANGLES, 0, images[index].geometrySize);//mode, starting index, count
     }
 
   //clean up
   glDisableVertexAttribArray(loc_position);
   glDisableVertexAttribArray(loc_texture);
+  glDisableVertexAttribArray(vertexNormal_modelspaceID);   
                
   //swap the buffers
   glutSwapBuffers();
@@ -668,6 +693,20 @@ bool initialize( const char* filename)
         return false;
       }       
 
+    viewMatrixID = glGetUniformLocation(program, "V");
+      if(viewMatrixID == -1)
+      {
+        std::cerr << "[F] VIEW NOT FOUND" << std::endl;
+        return false;
+      }  
+
+    modelMatrixID = glGetUniformLocation(program, "M");
+      if(modelMatrixID == -1)
+      {
+        std::cerr << "[F] MODEL NOT FOUND" << std::endl;
+        return false;
+      }    
+/*
     // Get a handle for our buffers
     loc_position = glGetAttribLocation(program, "v_position");
       if(loc_position == -1)
@@ -681,13 +720,38 @@ bool initialize( const char* filename)
       {
         std::cerr << "[F] COLOR NOT FOUND" << std::endl;
         return false;
-      }      
+      }    
+*/  
+
+    // Get a handle for our buffers
+    loc_position = glGetAttribLocation(program, "v_position");
+      if(loc_position == -1)
+      {
+        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
+        return false;
+      }
+    
+    loc_texture = glGetAttribLocation(program, "v_color");
+      if(loc_texture == -1)
+      {
+        std::cerr << "[F] UV NOT FOUND" << std::endl;
+        return false;
+      }
+
+    vertexNormal_modelspaceID = glGetAttribLocation(program, "vertexNormal_modelspace");
+      if(vertexNormal_modelspaceID == -1)
+      {
+        std::cerr << "[F] NORMAL NOT FOUND" << std::endl;
+        return false;
+      }
+
+
 
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 5.0, -10.0), //Eye Position
+    view = glm::lookAt( glm::vec3(0.0, 7.0, -23.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -792,7 +856,8 @@ void cleanUp()
     for( index = 0; index < numImages; index++ )
     {
       glDeleteBuffers(1, &(images[index].vbo_geometry));
-      glDeleteBuffers(1, &(images[index].texture));      
+      glDeleteBuffers(1, &(images[index].texture));
+      glDeleteBuffers(1, &normalbuffer);        
     }
 
 }
