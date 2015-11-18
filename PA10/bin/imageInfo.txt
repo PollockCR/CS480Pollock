@@ -1,10 +1,10 @@
 4
-../bin/table.obj
+../bin/table_normals.obj
 ../bin/metal.jpg
-../bin/planet.obj
+../bin/sphere_normals.obj
 ../bin/glass.jpg
-../bin/cube.obj
+../bin/cube_normals.obj
 ../bin/bricks.jpg
-../bin/cylinder.obj
+../bin/cylinder_normals.obj
 ../bin/marble.jpg
 
