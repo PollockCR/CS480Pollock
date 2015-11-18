@@ -1,5 +1,5 @@
-Bullet, Part 1
-==============
+Lighting
+========
 
 Project Authors
 ---------------
@@ -7,7 +7,7 @@ This is the repository for the group Catherine Pollock, Conor Sullivan, and Pete
 
 Program Function
 ----------------
-The program models a table with interactive objects. An information file can be passed through the command line, or default ones will be used. Object information file must be in the following format:
+The program models a table with interactive objects. Various types of lighting can be shown on the objects. An information file can be passed through the command line, or default ones will be used. Object information file must be in the following format:
 
 ```
 int numberOfObjects
@@ -18,20 +18,20 @@ string filepathToTexture2
 ...
 ```
 
-Planet information files must be in correct format or undesired results will occur. All files mentioned must be in location specified in info file. 
+Information file must be in correct format or undesired results will occur. All files mentioned must be in location specified in info file. 
 
 When the program is running, the following commands can be used:
 
 - To quit: *Esc*
 - To interact with cylinder: *Arrow keys*
 - To interact with the sphere: *WASD*
+- To change lighting type: *1 2 3 4*
 
-Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA08/PA8.php
+Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA10/PA10.php
 
 Extra Credit
 ------------
-The following features were added beyond project requirements:
-- Textures were loaded onto objects
+No extra credit achieved.
 
 Ubuntu Dependencies
 -------------------

@@ -34,7 +34,10 @@
 
 // GLOBAL CONSTANTS
 const char* vsFileName = "../bin/shader.vs";
-const char* fsFileName = "../bin/shader.fs";
+const char* fsFileName1 = "../bin/shader1.fs";
+const char* fsFileName2 = "../bin/shader2.fs";
+const char* fsFileName3 = "../bin/shader3.fs";
+const char* fsFileName4 = "../bin/shader4.fs";
 const char* defaultInfo = "../bin/imageInfo.txt";
 const char* blankTexture = "../../Resources/white.png";
 
@@ -74,6 +77,7 @@ const char* blankTexture = "../../Resources/white.png";
   // Images
   std::vector<Image> images;
   int numImages = 0;
+  int viewType = 1;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
@@ -106,7 +110,7 @@ const char* blankTexture = "../../Resources/white.png";
   //Load Image info
   bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
 
-  void Sprint( float x, float y, char *st);
+  void Sprint( float x, float y, const char *st);
 
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
@@ -137,7 +141,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
     
     // Name and create the Window
-    glutCreateWindow("Bullet Project");
+    glutCreateWindow("Dope Lighting Demo");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -451,17 +455,47 @@ void render()
 
     glUseProgram(0);
     char* Text = new char[100];
+    std::string viewText;
+
     
-    Text = (char*) "WASD to move sphere, Arrow keys to move cylinder";
-    Sprint(-0.7,0.9,Text);
+    Text = (char*) "WASD to move sphere, Arrow keys to move cylinder, 1-4 to change light";
+    Sprint(-0.9,0.9,Text);
+
+    if( viewType == 1 )
+    {
+      viewText = "Light source: Ambient";
+    }
+    else if( viewType == 2 )
+    {
+      viewText = "Light source: Spotlight";
+    }
+    else if( viewType == 3 )
+    {
+      viewText = "Light source: Point";
+    }
+    else if( viewType == 4 )
+    {
+      viewText = "Light source: Distance";
+    }    
+
+    Sprint(-0.9,0.8,viewText.c_str());
 
   // enable the shader program
   glUseProgram(program);
   GLuint lightID = glGetUniformLocation(program, "LightPosition_worldspace");
 
+
+    if( viewType == 2 || viewType == 3 )
+    {
       // light
-      glm::vec3 lightPos = glm::vec3(0,8,0);
+      glm::vec3 lightPos = glm::vec3(0,4,0);
       glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
+    }
+    else if( viewType == 4 )
+    {
+      glm::vec3 lightPos = glm::vec3(0,1,-5);
+      glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
+    }
 
  // loop through each planet
     for( int index = 0; index < numImages; index++ )
@@ -621,27 +655,48 @@ void reshape(int n_w, int n_h)
 // called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
+        ShaderLoader programLoad;
   // Handle keyboard input - end program
     if((key == 27)||(key == 'q')||(key == 'Q'))
-        {
-        glutLeaveMainLoop();
-        }
+    {
+      glutLeaveMainLoop();
+    }
     else if((key == 'w')||(key == 'W'))
-        {
-        forward = true;
-        }
+    {
+      forward = true;
+    }
     else if((key == 'a')||(key == 'A'))
-        {
-        goLeft = true;
-        }
+    {
+      goLeft = true;
+    }
     else if((key == 's')||(key == 'S'))
-        {
-        backward = true;
-        }
+    {
+      backward = true;
+    }
     else if((key == 'd')||(key == 'D'))
-        {
-        goRight = true;
-        }
+    {
+      goRight = true;
+    }
+    else if(key == '1')
+    {
+      programLoad.loadShader( vsFileName, fsFileName1, program );
+      viewType = 1;
+    }         
+    else if(key == '2')
+    {
+      programLoad.loadShader( vsFileName, fsFileName2, program );
+      viewType = 2;
+    }  
+    else if(key == '3')
+    {
+      programLoad.loadShader( vsFileName, fsFileName3, program );
+      viewType = 3;
+    }  
+    else if(key == '4')
+    {
+      programLoad.loadShader( vsFileName, fsFileName4, program );
+      viewType = 4;
+    }      
 }
 
 // initialize basic geometry and shaders for this example
@@ -680,13 +735,23 @@ bool initialize( const char* filename)
 
         glGenBuffers(1, &(images[index].normalbuffer));
         glBindBuffer(GL_ARRAY_BUFFER, images[index].normalbuffer);
-        glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size() * sizeof(Vertex), &(meshes[index].geometry[offsetof(Vertex,normals)]), GL_STATIC_DRAW);    
+        glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size() * sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);    
+        //glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size() * sizeof(Vertex), &(meshes[index].geometry[offsetof(Vertex,normals)]), GL_STATIC_DRAW);    
+
       }      
 
-    // loads shaders to program
-    programLoad.loadShader( vsFileName, fsFileName, program );
-
-
+      //if( viewType == 0 )
+      //{
+        // loads shaders to program
+        programLoad.loadShader( vsFileName, fsFileName1, program );
+      //}
+      /*
+      else
+      {
+        // loads shaders to program
+        programLoad.loadShader( vsFileName, fsFileName1, program );        
+      }
+*/
     // Get a handle for our "MVP" uniform
     loc_mvpmat = glGetUniformLocation(program, "mvpMatrix");
       if(loc_mvpmat == -1)
@@ -951,7 +1016,7 @@ void ArrowKeys(int button, int x_pos, int y_pos)
 }
 
 // This prints a string to the screen
-void Sprint( float x, float y, char *st)
+void Sprint( float x, float y, const char *st)
 {
     int l,i;
 
@@ -959,6 +1024,6 @@ void Sprint( float x, float y, char *st)
     glRasterPos2f(x, y); // location to start printing text
     for( i=0; i < l; i++) // loop until i is greater then l
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, st[i]); // Print a character on the screen
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, st[i]); // Print a character on the screen
     }
 }
