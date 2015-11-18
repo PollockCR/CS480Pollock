@@ -49,8 +49,8 @@ const char* blankTexture = "../../Resources/white.png";
   // The GLSL program handle
   GLuint program;
   //GLuint vbo_geometry;
-  GLuint normalbuffer; // Normal Buffer
-  GLuint texture;
+  //GLuint normalbuffer; // Normal Buffer
+  //GLuint texture;
 
   // rotations
   int orbit = -1;
@@ -459,6 +459,9 @@ void render()
   glUseProgram(program);
   GLuint lightID = glGetUniformLocation(program, "LightPosition_worldspace");
 
+      // light
+      glm::vec3 lightPos = glm::vec3(0,8,0);
+      glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
 
  // loop through each planet
     for( int index = 0; index < numImages; index++ )
@@ -469,11 +472,7 @@ void render()
       // upload the matrix to the shader
       glUniformMatrix4fv(loc_mvpmat, 1, GL_FALSE, &(images[index].mvp[0][0])); 
       glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &(images[index].model[0][0]));
-      glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &(images[index].mvp[0][0]));    
-
-      // light
-      glm::vec3 lightPos = glm::vec3(0,8,0);
-      glUniform3f(lightID, lightPos.x, lightPos.y, lightPos.z);
+      glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, &(images[index].view[0][0]));    
 
       // set up the Vertex Buffer Object so it can be drawn
       glEnableVertexAttribArray(loc_position);
@@ -499,7 +498,7 @@ void render()
 
 
       glEnableVertexAttribArray(vertexNormal_modelspaceID);
-      glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+      glBindBuffer(GL_ARRAY_BUFFER, images[index].normalbuffer);
 
         // 3rd attribute buffer : normals  
         glVertexAttribPointer( vertexNormal_modelspaceID,
@@ -507,8 +506,7 @@ void render()
                                GL_FLOAT,
                                GL_FALSE,
                                sizeof(Vertex),
-                               (void*)0
-                              );       
+                               (void*)offsetof(Vertex,normals));       
 
       glDrawArrays(GL_TRIANGLES, 0, images[index].geometrySize);//mode, starting index, count
     }
@@ -670,7 +668,7 @@ bool initialize( const char* filename)
         // Create a Vertex Buffer object to store this vertex info on the GPU
         glGenBuffers(1, &(images[index].vbo_geometry));
         glBindBuffer(GL_ARRAY_BUFFER, images[index].vbo_geometry);
-        glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size()*sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size()* sizeof(Vertex), &(meshes[index].geometry[0]), GL_STATIC_DRAW);
 
         // Create Texture object
         glGenTextures(1, &(images[index].texture));
@@ -678,7 +676,11 @@ bool initialize( const char* filename)
         glBindTexture(GL_TEXTURE_2D, images[index].texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, images[index].imageCols, images[index].imageRows, 0, GL_RGBA, GL_UNSIGNED_BYTE, images[index].m_blob.data());
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);        
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);      
+
+        glGenBuffers(1, &(images[index].normalbuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, images[index].normalbuffer);
+        glBufferData(GL_ARRAY_BUFFER, meshes[index].geometry.size() * sizeof(Vertex), &(meshes[index].geometry[offsetof(Vertex,normals)]), GL_STATIC_DRAW);    
       }      
 
     // loads shaders to program
@@ -857,7 +859,7 @@ void cleanUp()
     {
       glDeleteBuffers(1, &(images[index].vbo_geometry));
       glDeleteBuffers(1, &(images[index].texture));
-      glDeleteBuffers(1, &normalbuffer);        
+      glDeleteBuffers(1, &(images[index].normalbuffer));        
     }
 
 }

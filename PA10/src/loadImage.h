@@ -30,10 +30,12 @@ public:
    ~Image();
    bool loadImage( const char* imageFilepath );
    glm::mat4 model;
+   glm::mat4 view;
    glm::mat4 mvp;
    Magick::Blob m_blob;
    GLuint vbo_geometry;
-   GLuint texture;	
+   GLuint texture;
+   GLuint normalbuffer;	
    GLuint imageCols;
    GLuint imageRows;
    int geometrySize;
