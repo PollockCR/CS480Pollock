@@ -48,6 +48,10 @@ const char* blankTexture = "../../Resources/white.png";
 
 // GLOBAL VARIABLES
 
+  static float* source = new float[6];
+  static float* dest = new float[6];
+  static int counter = 0;
+
   // Window size
   int w = 640, h = 480;
 
@@ -111,12 +115,20 @@ const char* blankTexture = "../../Resources/white.png";
   //--Time function
   float getDT();
 
+  void pan(float source[], float dest[]);
+
 
 // MAIN FUNCTION
 int main(int argc, char **argv)
 {
     bool init = false;
 
+    source[0] = 0.0;
+    source[1] = 15.0;
+    source[2] = -30.0;
+    source[3] = 0.0;
+    source[4] = 0.0; 
+    source[5] = 0.0;
     // Initialize glut
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
@@ -209,6 +221,7 @@ void render()
     // enable the shader program
     glUseProgram(program[mode]);  
 
+
     // loop through each planet
     for( index = 0; index < numPlanets; index++ )
     {
@@ -242,6 +255,8 @@ void render()
 
       glDrawArrays(GL_TRIANGLES, 0, planets[index+offset].geometrySize);//mode, starting index, count
     }
+
+    
 
     //clean up
     glDisableVertexAttribArray(loc_position[mode]);
@@ -306,6 +321,7 @@ void update()
     int orbit = 0;
     int offset = 0;
 
+
     //total time
     dt = getDT(); 
 
@@ -363,21 +379,28 @@ void changeView()
 {
   //int index;
   int offset = 0;
+  int zoom = 4;
+
   if( mode == 1 )
   {
+    zoom = 2.2;
     offset = numPlanets;
   }
   int index = offset + currentView;
 
   //static float currentPos[3];
   //static float currentFocus[3];
-  static float destPos[3];
-  static float destFocus[3];
 
   // default view of entire solar system
   if( currentView == 0 || currentView == numPlanets - 1 )
   {
     updateViewFlag = false;
+    source[0] = 0.0;
+    source[1] = 15.0;
+    source[2] = -30.0;
+    source[3] = 0.0;
+    source[4] = 0.0; 
+    source[5] = 0.0;
     view = glm::lookAt( glm::vec3(0.0, 15.0, -30.0), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
@@ -385,64 +408,15 @@ void changeView()
   // view of each planet or moon
   else 
   {
-    destPos[0] = (4 + planets[index].orbitPath.x) * sin(planets[index].orbitAngle);
-    destPos[1] = planets[index].orbitPath.y;        
-    destPos[2] = (4 + planets[index].orbitPath.z) * cos(planets[index].orbitAngle);        
-    destFocus[0] = planets[index].orbitPath.x * sin(planets[index].orbitAngle);        
-    destFocus[1] = planets[index].orbitPath.y;        
-    destFocus[2] = planets[index].orbitPath.z * cos(planets[index].orbitAngle);            
-  /*
-    currentPos[0] = (4 + planets[currentView+offset-1].orbitPath.x) * sin(planets[currentView+offset].orbitAngle);
-    currentPos[1] = planets[currentView+offset-1].orbitPath.y;
-    currentPos[2] = (4 + planets[currentView+offset-1].orbitPath.z) * cos(planets[currentView+offset].orbitAngle);
-    currentFocus[0] = planets[currentView+offset-1].orbitPath.x * sin(planets[currentView+offset].orbitAngle);
-    currentFocus[1] = planets[currentView+offset-1].orbitPath.y; 
-    currentFocus[2] = planets[currentView+offset-1].orbitPath.z * cos(planets[currentView+offset].orbitAngle);
+    dest[0] = (zoom + planets[index].orbitPath.x) * sin(planets[index].orbitAngle);
+    dest[1] = planets[index].orbitPath.y;        
+    dest[2] = (zoom + planets[index].orbitPath.z) * cos(planets[index].orbitAngle);        
+    dest[3] = planets[index].orbitPath.x * sin(planets[index].orbitAngle);        
+    dest[4] = planets[index].orbitPath.y;        
+    dest[5] = planets[index].orbitPath.z * cos(planets[index].orbitAngle);            
+    
+    pan(source, dest);
 
-    if( updateViewFlag )
-    {
-      for( index = 0; index < 3; index++ )
-      {
-        if( currentPos[index] < destPos[index] )
-        {
-          currentPos[index] += 0.15;
-        }
-        if( currentFocus[index] > destFocus[index] )
-        {
-          currentPos[index] -= 0.15;
-        }
-
-        if( currentFocus[index] < destFocus[index] )
-        {
-          currentFocus[index] += 0.15;
-        }
-        if( currentFocus[index] > destFocus[index] )
-        {
-          currentFocus[index] -= 0.15;
-        }          
-      }
-
-      if( (currentPos[0] - destPos[0]) <= 0.5 && (currentPos[0] - destPos[0]) >= -0.5 &&
-          (currentPos[1] - destPos[1]) <= 0.5 && (currentPos[1] - destPos[1]) >= -0.5 &&            
-          (currentPos[2] - destPos[2]) <= 0.5 && (currentPos[2] - destPos[2]) >= -0.5 &&
-          (currentFocus[0] - destFocus[0]) <= 0.5 && (currentFocus[0] - destFocus[0]) >= -0.5 &&
-          (currentFocus[1] - destFocus[1]) <= 0.5 && (currentFocus[1] - destFocus[1]) >= -0.5 &&            
-          (currentFocus[2] - destFocus[2]) <= 0.5 && (currentFocus[2] - destFocus[2]) >= -0.5 )
-      {
-        updateViewFlag = false;
-        view = temp;
-      }
-
-      view = glm::lookAt( glm::vec3(currentPos[0], currentPos[1], currentPos[2]), 
-                    glm::vec3(currentFocus[0], currentFocus[1], currentFocus[2]), 
-                    glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up          
-    }
-    else
-    {
-  */
-    view = glm::lookAt(glm::vec3(destPos[0], destPos[1], destPos[2]), 
-                         glm::vec3(destFocus[0], destFocus[1], destFocus[2]), 
-                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
   }
 
   // update the state of the scene
@@ -514,7 +488,6 @@ void special(int key, int xPos, int yPos)
   {
     // increment planet view index
     currentView++;
-
     // skip moons
     while( planets[currentView].orbitIndex != 0 )
     {
@@ -852,3 +825,118 @@ float getDT()
     return ret;
 }
 
+void pan(float source[], float dest[])
+{
+    // pre pan movement
+    // only do if changing view
+    if (counter < 75 && updateViewFlag)
+    {
+        // increment y pos/focus of source view for time determined by counter
+        source[1] += 0.1;
+        source[4] += 0.08;
+
+      counter++;
+
+      // update view coordinates
+      view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+      glm::vec3(source[3], source[4], source[5]), //Focus point
+      glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+    }
+
+    // pan
+    else
+    {
+      // make sure we want to move
+      if (updateViewFlag)
+      {
+        paused = true;
+        // check source vs dest coords
+        // increment accordingly
+        for (int i = 0; i < 6; i++)
+        {
+          if (mode == 1)
+          {
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+
+          }
+          else
+          {
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.12;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.12; 
+                glutPostRedisplay(); 
+            }
+          }
+        }
+          
+        // check acceptable ranges
+        if (((dest[0] - source[0] <= 0.5) && (dest[0] - source[0] >= -0.5))&&
+            ((dest[1] - source[1] <= 0.5) && (dest[1] - source[1] >= -0.5))&&
+            ((dest[2] - source[2] <= 0.5) && (dest[2] - source[2] >= -0.5))&&
+            ((dest[3] - source[3] <= 0.5) && (dest[3] - source[3] >= -0.5))&&
+            ((dest[4] - source[4] <= 0.5) && (dest[4] - source[4] >= -0.5))&&
+            ((dest[5] - source[5] <= 0.5) && (dest[5] - source[5] >= -0.5)))
+        {
+          // done with pan
+          updateViewFlag = false;
+          // ready for next move
+          counter = 0;
+          // update view to dest
+          view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                  glm::vec3(dest[3], dest[4], dest[5]), //Focus point
+                  glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          paused = false;
+        }
+        else
+        {
+          // update to incremented view
+          view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+                glm::vec3(source[3], source[4], source[5]), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          glutPostRedisplay();  
+        } 
+      }
+      
+      else
+      {
+        // keep source data current
+        for (int i = 0; i < 6; i++)
+        {
+            if (source[i] < dest[i]) 
+                source[i] += 0.35;
+            if (source[i] > dest[i]) 
+                source[i] -= 0.35;
+        }
+        // locked view
+        view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                glm::vec3(dest[3], dest[4], dest[5]), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+      }
+    }
+}
