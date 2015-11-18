@@ -1,0 +1,37 @@
+4
+../bin/ground.obj
+2.3
+../bin/metal.jpg
+Ground
+0.0
+0.0
+0.0 1.0 0.0
+0.0 0.0 0.0
+0
+../bin/sphere.obj
+1.0
+../bin/glass.jpg
+Sphere
+0.5
+0.5
+0.0 1.0 0.0
+2.0 2.0 2.0
+0
+../bin/cube.obj
+1.0
+../bin/bricks.jpg
+Cube
+0.2
+0.2
+0.0 1.0 0.0
+6.0 2.0 6.0
+0
+../bin/cylinder.obj
+1.0
+../bin/marble.jpg
+Cylinder
+0.4
+0.4
+0.0 1.0 0.0
+10.0 2.0 10.0
+0
