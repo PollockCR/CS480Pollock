@@ -123,11 +123,12 @@ const char* blankTexture = "../../Resources/white.png";
   int mouseXAxis, mouseYAxis;///
 
   //ai stuff
-  bool aiCanMove = true;
+  bool aiCanMove = false;
   int aiXAxis, aiYAxis;
-  bool level1 = false;
+  bool level1 = true;
   bool level2 = false;
   bool level3 = false; 
+  bool keyTPressed = false;
 
   //scores
   int t1score = 0;
@@ -158,7 +159,7 @@ const char* blankTexture = "../../Resources/white.png";
   void keyboard(unsigned char key, int x_pos, int y_pos);
   void keyboardUP(unsigned char key, int x_pos, int y_pos );
   void manageMenus(bool quitCall);
-  void subMenu(int id);
+  void subMenu2 (int num);
   void subMenu(int num);
   void mainMenu(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
@@ -569,7 +570,14 @@ void render()
       {
         sPrint(-0.95,0.9,(char*)"WASD to Move Player 1 Paddle", 12);
       }
-      sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      if(aiCanMove)
+      {
+        sPrint(-0.95,0.8,(char*)"AI Moves Player 2 Paddle", 12);
+      }
+      else
+      {
+        sPrint(-0.95,0.8,(char*)"Arrow Keys to Move Player 2 Paddle", 12);
+      }
       sPrint(-0.95,0.7,(char*)"K to Pan to Player 1 POV (Default)", 12);
       sPrint(-0.95,0.6,(char*)"I to Pan to Player 2 POV", 12);
       sPrint(-0.95,0.5,(char*)"J to Pan to Left Side of Board", 12);
@@ -885,34 +893,34 @@ void update()
             {
             if (level1)
                 {
-                forceXDir = force*2;
+                forceXDir = force*1;
                 }
 
             if (level2)
                 {
-                forceXDir = force*3;
+                forceXDir = force*2;
                 }
 
             if (level3)
                 {
-                forceXDir = force*5;
+                forceXDir = force*4;
                 }
             }
         else if (paddlePos.x > puckPos.x)
             {
             if (level1)
                 { 
-                forceXDir = -force*2;
+                forceXDir = -force*1;
                 }
 
             if (level2)
                 { 
-                forceXDir = -force*3;
+                forceXDir = -force*2;
                 }
 
             if (level3)
                 { 
-                forceXDir = -force*5;
+                forceXDir = -force*4;
                 }
             }
         else
@@ -932,7 +940,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         }    
 
 
@@ -989,7 +996,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         }  
 
 
@@ -1046,7 +1052,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         } 
 
         if (rightSidePOV)
@@ -1102,7 +1107,6 @@ void update()
                 forceZDir = 0;
             }
         rigidBodyCylinder->applyCentralImpulse(btVector3(forceXDir,0.0,forceZDir));
-        aiCanMove = false;
         } 
     }
 
@@ -1166,6 +1170,8 @@ void reshape(int n_w, int n_h)
 
 void keyboardUP(unsigned char key, int x_pos, int y_pos )
 {
+  if (mouseCanMove)
+  {
     if((key == 'w')||(key == 'W'))
     {
       forward = false;
@@ -1182,6 +1188,7 @@ void keyboardUP(unsigned char key, int x_pos, int y_pos )
     {
       goRight = false;
     }
+  }
 }
 
 // called on keyboard input
@@ -1214,9 +1221,9 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       }
     }
     
+ 
 
-
-    if (!aiCanMove)
+    if (mouseCanMove)
         {
 
         if((key == 'w')||(key == 'W'))
@@ -1287,6 +1294,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'g')||(key == 'G'))
     {
       mouseOn = !mouseOn;
+      mouseCanMove = !mouseCanMove;
     }    
     if((key == 'h')||(key == 'H'))
     {
@@ -1489,6 +1497,7 @@ void cleanUp()
 void manageMenus( bool quitCall )
 {
   int index = 0;
+  int index2 = 0;
   int mainIndex = 0;
 
   // upon initialization
@@ -1500,8 +1509,16 @@ void manageMenus( bool quitCall )
     glutAddMenuEntry("Player 2 POV", 2);
     glutAddMenuEntry("Left Side View", 3);
     glutAddMenuEntry("Right Side View", 4);
+
+    index2 = glutCreateMenu(subMenu2);
+    glutAddMenuEntry("Start/Stop AI", 1);
+    glutAddMenuEntry("AI Difficulty Level 1", 2);
+    glutAddMenuEntry("AI Difficulty Level 2", 3);
+    glutAddMenuEntry("AI Difficulty Level 3", 4);
+
     mainIndex = glutCreateMenu(mainMenu);
     glutAddSubMenu("View Options", index);
+    glutAddSubMenu("View AI Menu", index2);
     glutAddMenuEntry("Restart Game", 2);
     glutAddMenuEntry("WASD/Mouse Player 1 Controls", 3);    
     glutAddMenuEntry("Pause/Resume Game", 4);
@@ -1513,14 +1530,45 @@ void manageMenus( bool quitCall )
   else
   {
     // clean up after ourselves
-
+    glutDestroyMenu(index2);
     glutDestroyMenu(mainIndex);
-        glutDestroyMenu(index);
+    glutDestroyMenu(index);
   }
 
   // update display
   glutPostRedisplay();
 }
+
+
+void subMenu2 (int num)
+{
+  switch(num)
+    {
+    case 1: 
+      aiCanMove = !aiCanMove;
+      break;
+    case 2:
+      level1 = true;
+      level2 = false;
+      level3 = false;
+      break;
+    case 3: 
+      level1 = false;
+      level2 = true;
+      level3 = false;
+      break;
+    case 4: 
+      level1 = false;
+      level2 = false;
+      level3 = true;
+      break;      
+    }
+
+}
+
+
+
+
 
 
 //the first menu that appears
@@ -1649,47 +1697,53 @@ float getDT()
 
 void arrowKeysUp(int button, int x_pos, int y_pos)
 {
-    if (button == GLUT_KEY_LEFT)
+  if (!aiCanMove)
     {
+    if (button == GLUT_KEY_LEFT)
+        {
         cylgoLeft = false;
-    }
+        }
 
     if (button == GLUT_KEY_RIGHT)
-    {
+        {
         cylgoRight = false;
-    }
+        }
 
     if (button == GLUT_KEY_UP)
-    {
+        {
         cylforward = false;
-    }
+        }
 
     if (button == GLUT_KEY_DOWN)
-    {
+        {
         cylbackward = false;
+        }
     }
 }
 
 void arrowKeys(int button, int x_pos, int y_pos)
 {
+  if (!aiCanMove)
+    {
     if (button == GLUT_KEY_LEFT)
-    {
+        {
         cylgoLeft = true;
-    }
-
+        }
+    
     if (button == GLUT_KEY_RIGHT)
-    {
+        {
         cylgoRight = true;
-    }
+        }
 
     if (button == GLUT_KEY_UP)
-    {
+        {
         cylforward = true;
-    }
+        }
 
     if (button == GLUT_KEY_DOWN)
-    {
+        {
         cylbackward = true;
+        }
     }
 }
 

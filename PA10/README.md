@@ -1,5 +1,5 @@
-Air Hockey
-==========
+Lighting
+========
 
 Project Authors
 ---------------
@@ -7,7 +7,7 @@ This is the repository for the group Catherine Pollock, Conor Sullivan, and Pete
 
 Program Function
 ----------------
-The program is an interactive air hockey game. An information file can be passed through the command line, or default ones will be used. Object information file must be in the following format:
+The program models a table with interactive objects. Various types of lighting can be shown on the objects. An information file can be passed through the command line, or default ones will be used. Object information file must be in the following format:
 
 ```
 int numberOfObjects
@@ -18,45 +18,20 @@ string filepathToTexture2
 ...
 ```
 
-Object information files must be in correct format or undesired results will occur. All files mentioned must be in location specified in info file. 
-
-When the program starts, press spacebar to start or Esc to quit.
+Information file must be in correct format or undesired results will occur. All files mentioned must be in location specified in info file. 
 
 When the program is running, the following commands can be used:
 
-- Mouse/WASD to Move Player 1 Paddle
-- Arrow Keys to Move Player 2 Paddle (When AI is disabled)
-- K to Pan to Player 1 POV (Default)
-- I to Pan to Player 2 POV
-- J to Pan to Left Side of Board
-- L to Pan to Right Side of Board
-- Spacebar to Pause/Resume
-- G to Switch Player 1 Controls (Mouse/WASD)
-- T to Toggle Between AI/Player 2
-- Right Click for:
-  - Change View 
-  - Pause/Resume Game
-  - Switch Player 1 Controls
-  - Enable/Disable AI
-  - Restart Game
-  - Quit
-- H to Hide Menu
-- Esc to Quit
+- To quit: *Esc*
+- To interact with cylinder: *Arrow keys*
+- To interact with the sphere: *WASD*
+- To change lighting type: *1 2 3 4*
 
-Note: The keyboard controls do not change with the view. The mouse controls changes with view. AI only works from Player 1 POV.
-
-Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA09/PA9.php
+Project discripton found here: http://www.cse.unr.edu/~fredh/class/480/F2015/proj/PA10/PA10.php
 
 Extra Credit
 ------------
-The following features were added beyond project requirements:
-
-- 2D Text Display
-- Toggle Menu Display On/Off
-- 2 Humans or Human/AI
-- Toggle for AI/Player 2 Control
-- Multiple AI Levels
-- Game Replay
+No extra credit achieved.
 
 Ubuntu Dependencies
 -------------------
@@ -112,13 +87,7 @@ Additionally, ensure that the latest version of the Developer Tools is installed
 Building this Project
 ---------------------
 
-To clean repository:
-
->$ cd build
-
->$ make clean
-
-To build project:
+To build this project just 
 
 >$ cd build
 
@@ -128,10 +97,14 @@ If you are using a Mac you will need to edit the makefile in the build directory
 
 The excutable will be put in bin. The program must be ran from inside build or bin.
 
-To run the program, execute these commands, replacing with your program's object information filepath:
+To run the program, execute these commands, replacing with your object filepath and your object's texture filepath:
 
->$ ../bin/Model
+>$ cd ../bin/
+
+>$ ./Model
 
 *or*
 
->$ ../bin/Model ../bin/imageInfo.txt 
+>$ cd ../bin/
+
+>$ ./Model ./objectinfo.txt 
