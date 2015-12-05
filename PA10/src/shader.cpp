@@ -6,6 +6,10 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp> 
 
 // resources used to create shader loader:
 // http://www.nexcius.net/2012/11/20/how-to-load-a-glsl-shader-in-opengl-using-c/

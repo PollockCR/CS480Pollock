@@ -14,8 +14,8 @@ void main( void )
 {
    // Light emission properties
    // You probably want to put them as uniforms
-   vec3 LightColor = vec3(1,1,1);
-   float LightPower = 01.0f;
+   vec3 LightColor = vec3(1.0,1.0,1.0);
+   float LightPower = 01.0;
 
    // Material properties
    vec3 MaterialDiffuseColor = texture2D( gSampler, color ).rgb;
@@ -36,7 +36,7 @@ void main( void )
    //  - light is at the vertical of the triangle -> 1
    //  - light is perpendicular to the triangle -> 0
    //  - light is behind the triangle -> 0
-   float cosTheta = clamp( dot( n,l ), 0,1 );
+   float cosTheta = clamp( dot( n,l ), 0.0, 1.0 );
    
    // Eye vector (towards the camera)
    vec3 E = normalize(EyeDirection_cameraspace);
@@ -48,7 +48,7 @@ void main( void )
    // clamped to 0
    //  - Looking into the reflection -> 1
    //  - Looking elsewhere -> < 1
-   float cosAlpha = clamp( dot( E,R ), 0,1 );
+   float cosAlpha = clamp( dot( E,R ), 0.0, 1.0 );
    
    gl_FragColor.rgb = 
       // Ambient : simulates indirect lighting
@@ -56,6 +56,6 @@ void main( void )
       // Diffuse : "color" of the object
       MaterialDiffuseColor * LightColor * LightPower * cosTheta / (distance*distance) +
       // Specular : reflective highlight, like a mirror
-      MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance);
+      MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5.0) / (distance*distance);
 
 }
