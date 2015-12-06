@@ -131,6 +131,9 @@ const char* blankTexture = "../../Resources/white.png";
   int ballBouncesOff = wall | win;
   int wallDeflects = ball;
   
+  //pan
+  void pan();
+  
 
   //directions
   bool forward = false;
@@ -142,6 +145,13 @@ const char* blankTexture = "../../Resources/white.png";
   bool cylbackward = false;
   bool cylgoLeft = false;
   bool cylgoRight = false;
+  
+  //current view position
+  static float* source = new float[3];
+  static float* dest = new float[3];
+  
+  // Update view flag
+  bool updateViewFlag = false;
 
 
 // MAIN FUNCTION
@@ -236,7 +246,7 @@ int main(int argc, char **argv)
   // After we create collision shapes we have to se the default motion state 
     // for the ground
     btDefaultMotionState* groundMotionState = NULL;
-    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     //here we construct the ground using the motion state and shape
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, mazeShape, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
@@ -263,7 +273,7 @@ int main(int argc, char **argv)
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
-    rigidBodySphere->setFriction(100);
+    rigidBodySphere->setFriction(50);
     rigidBodySphere->setRestitution(0);
 
     //display dynamic body in our world
@@ -558,7 +568,42 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     {
       programLoad.loadShader( vsFileName, fsFileName4, program );
       viewType = 4;
-    }      
+    }   
+    
+    
+    // pan
+    if((key == 'i')||(key == 'I'))
+    {
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = 18.0;
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'j')||(key == 'J'))
+    {
+      dest[0] = 18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0; 
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'k')||(key == 'K'))
+    {
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = -18.0; 
+      updateViewFlag = true;        
+      pan();
+    }
+    if((key == 'l')||(key == 'L'))
+    {
+      dest[0] = -18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0; 
+      updateViewFlag = true;        
+      pan(); 
+    }   
 }
 
 // initialize basic geometry and shaders for this example
@@ -675,12 +720,20 @@ bool initialize( const char* filename)
       }
 
 
+    // set view variables
+    source[0] = 0.0;
+    source[1] = 18.0;
+    source[2] = -18.0;  
+    dest[0] = 0.0;
+    dest[1] = 18.0;
+    dest[2] = -18.0;
+
 
     //--Init the view and projection matrices
     //  if you will be having a moving camera the view matrix will need to more dynamic
     //  ...Like you should update it before you render more dynamic 
     //  for this project having them static will be fine
-    view = glm::lookAt( glm::vec3(0.0, 7.0, -23.0), //Eye Position
+    view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
                         glm::vec3(0.0, 0.0, 0.0), //Focus point
                         glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
 
@@ -688,6 +741,9 @@ bool initialize( const char* filename)
                                    float(w)/float(h), //Aspect Ratio, so Circles stay Circular
                                    0.01f, //Distance to the near plane, normally a small value like this
                                    100.0f); //Distance to the far plane
+                                   
+    
+    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(25, 25, 25));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -854,6 +910,50 @@ void menu(int id)
     case 1:
       glutLeaveMainLoop();
       break;
+      
+    case 2: // Player 1 POV 
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = -18.0;
+      source[0] = 0.0;
+      source[1] = 18.0;
+      source[2] = -18.0; 
+      updateViewFlag = true;   
+      pan();
+      break;
+    case 3: // Player 2 POV
+
+      dest[0] = 0.0;
+      dest[1] = 18.0;
+      dest[2] = 18.0;
+      source[0] = 0.0;
+      source[1] = 18.0;
+      source[2] = 18.0;   
+      updateViewFlag = true;    
+      pan();
+      break;
+    case 4: // Left side POV
+  
+      dest[0] = 18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0;
+      source[0] = 18.0;
+      source[1] = 18.0;
+      source[2] = 0.0;  
+      updateViewFlag = true;     
+      pan();
+      break;
+    case 5: // Right side POV
+      
+      dest[0] = -18.0;
+      dest[1] = 18.0;
+      dest[2] = 0.0;
+      source[0] = -18.0;
+      source[1] = 18.0;
+      source[2] = 0.0;     
+      updateViewFlag = true;    
+      pan();
+      break;      
 
     // default do nothing
     default:
@@ -917,3 +1017,121 @@ void Sprint( float x, float y, const char *st)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, st[i]); // Print a character on the screen
     }
 }
+
+
+void pan()
+{
+    // pre pan movement
+      // make sure we want to move
+      if (updateViewFlag)
+      {
+
+
+/*
+        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == -18.0) )
+            {
+            player1POV = true;
+            player2POV = false;  
+            leftSidePOV = false; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == 18.0) )
+            {
+            player1POV = false;
+            player2POV = true;  
+            leftSidePOV = false; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == 18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
+            {
+            player1POV = false;
+            player2POV = false;  
+            leftSidePOV = true; 
+            rightSidePOV = false; 
+            }
+
+        if ( (dest[0] == -18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
+            {
+            player1POV = false;
+            player2POV = false;  
+            leftSidePOV = false; 
+            rightSidePOV = true; 
+            }
+*/
+
+
+        //paused = true;
+        // check source vs dest coords
+        // increment accordingly
+        for (int i = 0; i < 3; i++)
+        {
+
+            if (i < 3)
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.18;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.18; 
+                glutPostRedisplay(); 
+            }
+            else
+            {
+              if (source[i] < dest[i]) 
+                  source[i] += 0.18;
+              if (source[i] > dest[i]) 
+                  source[i] -= 0.18; 
+                glutPostRedisplay(); 
+            }
+        }
+          
+        // check acceptable ranges
+        if (((dest[0] - source[0] <= 0.5) && (dest[0] - source[0] >= -0.5))&&
+            ((dest[1] - source[1] <= 0.5) && (dest[1] - source[1] >= -0.5))&&
+            ((dest[2] - source[2] <= 0.5) && (dest[2] - source[2] >= -0.5)))
+        {
+          // done with pan
+          updateViewFlag = false;
+
+          // update view to dest
+          view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                  glm::vec3(0.0, 0.0, 0.0), //Focus point
+                  glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+
+        }
+        else
+        {
+          // update to incremented view
+          view = glm::lookAt( glm::vec3(source[0], source[1], source[2]), //Eye Position
+                glm::vec3(0.0, 0.0, 0.0), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+          glutPostRedisplay();  
+        } 
+      }
+      
+      else
+      {
+        // keep source data current
+        for (int i = 0; i < 3; i++)
+        {
+            if (source[i] < dest[i]) 
+                source[i] += 0.35;
+            if (source[i] > dest[i]) 
+                source[i] -= 0.35;
+        }
+        // locked view
+        view = glm::lookAt( glm::vec3(dest[0], dest[1], dest[2]), //Eye Position
+                glm::vec3(0.0, 0.0, 0.0), //Focus point
+                glm::vec3(0.0, 1.0, 0.0)); //Positive Y is up
+      }
+    //}
+}
+
+
+
+
+
+
+
+
