@@ -44,7 +44,7 @@ const char* blankTexture = "../../Resources/white.png";
 // GLOBAL VARIABLES
 
   // Window size
-  int w = 640, h = 480;
+  int w = 1280, h = 768;
 
   // geomerty size
   int geometrySize;
@@ -253,7 +253,7 @@ int main(int argc, char **argv)
     sphereMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0)));
 
     // the sphere must have a mass
-    btScalar mass = 1;
+    btScalar mass = 50;
 
     //we need the inertia of the sphere and we need to calculate it
     btVector3 sphereInertia(0, 0, 0);
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
     rigidBodySphere->setFriction(100);
-    rigidBodySphere->setRestitution(2.0);
+    rigidBodySphere->setRestitution(0);
 
     //display dynamic body in our world
     dynamicsWorld->addRigidBody(rigidBodySphere, ball, ballBouncesOff);
