@@ -1,5 +1,5 @@
 4
-../bin/table_normals.obj
+../bin/maze_floor.obj
 ../bin/metal.jpg
 ../bin/sphere_normals.obj
 ../bin/glass.jpg

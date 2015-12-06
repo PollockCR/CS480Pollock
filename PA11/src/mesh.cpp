@@ -11,13 +11,16 @@ Mesh::~Mesh()
 {
 }
 
-bool Mesh::loadMesh( const char * objectFilename )
+bool Mesh::loadMesh( const char * objectFilename, int &numOfMeshes )
 {
   Assimp::Importer importer;
   unsigned int index, vertexNum;
 
   //read from file
   const aiScene* pScene = importer.ReadFile( objectFilename, aiProcess_Triangulate );
+  
+  // get number of meshes
+  numOfMeshes = pScene -> mNumMeshes;
 
   // if scene is not good
   if( !pScene )

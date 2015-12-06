@@ -117,6 +117,7 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
+  btTriangleMesh *trimesh;
 
   //directions
   bool forward = false;
@@ -840,9 +841,11 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfIma
 {
   // initialize variables
   std::ifstream ifs(infoFilepath, std::ifstream::in);
-  bool geometryLoadedCorrectly;
-  bool imageLoadedCorrectly;
-  int index;
+  bool geometryLoadedCorrectly = false;
+  bool imageLoadedCorrectly = false;
+  bool trimeshLoadedCorrectly = false;
+  int index = 0;
+  int numOfMeshes = 0;
 
   // check for open file
   if( !ifs.is_open() )
@@ -877,13 +880,39 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfIma
       // load obj file
       std::string objFilepath;
       ifs >> objFilepath;
-      geometryLoadedCorrectly = meshes[index].loadMesh( objFilepath.c_str());
+      geometryLoadedCorrectly = meshes[index].loadMesh( objFilepath.c_str(), numOfMeshes);
 
         // return false if not loaded
         if( !geometryLoadedCorrectly )
         {
           std::cerr << "[F] GEOMETRY NOT LOADED CORRECTLY" << std::endl;
           return false;
+        }
+        
+       // set number of vertices
+       unsigned int numOfVertices = meshes[index].geometry.size(); 
+        std::cerr << numOfMeshes << std::endl;
+       //check if we are reading in the maze 
+       if (index == 0)
+        {
+            //load trimesh for maze
+            for ( int index2 = 0; index2 < numOfMeshes; index2++)
+            {
+                for (unsigned int index3 = 0; index3 < numOfVertices; index3 += 3)
+                {
+                trimesh->addTriangle(btVector3(meshes[index2].geometry[index3].position[0], 
+                                               meshes[index2].geometry[index3].position[1], 
+                                               meshes[index2].geometry[index3].position[2]), 
+                                           
+                                     btVector3(meshes[index2].geometry[index3+1].position[0], 
+                                               meshes[index2].geometry[index3+1].position[1], 
+                                               meshes[index2].geometry[index3+1].position[2]), 
+                                            
+                                     btVector3(meshes[index2].geometry[index3+2].position[0], 
+                                               meshes[index2].geometry[index3+2].position[1], 
+                                               meshes[index2].geometry[index3+2].position[2]), false);  
+                }
+            }
         }
 
       // load texture
