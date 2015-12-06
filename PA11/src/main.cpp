@@ -118,6 +118,19 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
   btTriangleMesh *trimesh = new btTriangleMesh();
+  
+  //Bullet collisions
+  #define BIT(x) (1<<(x))
+  enum collisionObject 
+  {
+    ball = BIT(0), 
+    wall = BIT(1), 
+    win = BIT(2), 
+  };
+
+  int ballBouncesOff = wall | win;
+  int wallDeflects = ball;
+  
 
   //directions
   bool forward = false;
@@ -205,21 +218,18 @@ int main(int argc, char **argv)
      //set the gravity
      dynamicsWorld->setGravity(btVector3(0, -10, 0));
 
-    //create a game board which the objects will be on
+    /*//create a game board which the objects will be on
     btCollisionShape* ground = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
     btCollisionShape* wallOne = new btStaticPlaneShape(btVector3(-1, 0, 0), 1);
     btCollisionShape* wallTwo = new btStaticPlaneShape(btVector3(1, 0, 0), 1);
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
-    btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
+    btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);*/
+    
+    // now we can make the maze in one line
+     btBvhTriangleMeshShape* mazeShape = new btBvhTriangleMeshShape(trimesh, false);
 
     //create sphere and set radius to 1
-    btCollisionShape* sphere = new btSphereShape(1);
-
-    //create cube and set extents to 0.5 each
-    btCollisionShape* cube = new btBoxShape(btVector3(0.5,0.5,0.5));
-
-    //create a cylinder and set radius of each axis to 1.0
-    btCollisionShape* cylinder = new btCylinderShape(btVector3(1.0,1.0,1.0));
+    btCollisionShape* sphere = new btSphereShape(.3);
 
 
 /*----------------------this is the gameboard--------------------------------*/        
@@ -228,50 +238,11 @@ int main(int argc, char **argv)
     btDefaultMotionState* groundMotionState = NULL;
     groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
     //here we construct the ground using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, ground, btVector3(0, 0, 0));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, mazeShape, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(groundRigidBody);
-        
-    ////make the first wall
-    btDefaultMotionState* wallOneMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(5.6, 0, 0)));
-    //here we construct the first wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallOneRigidBodyCI(0, wallOneMotionState, wallOne, btVector3(0, 0, 0));
-    btRigidBody* wallOneRigidBody = new btRigidBody(wallOneRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallOneRigidBody);
-
-
-    ////make the second wall
-    btDefaultMotionState* wallTwoMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(-5.6, 0, 0)));
-    //here we construct the second wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallTwoRigidBodyCI(0, wallTwoMotionState, wallTwo, btVector3(0, 0, 0));
-    btRigidBody* wallTwoRigidBody = new btRigidBody(wallTwoRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallTwoRigidBody);
-
-
-    ////make the third wall FRONTBACK
-    btDefaultMotionState* wallThreeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -5.6)));
-    //here we construct the third wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallThreeRigidBodyCI(0, wallThreeMotionState, wallThree, btVector3(0, 0, 0));
-    btRigidBody* wallThreeRigidBody = new btRigidBody(wallThreeRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallThreeRigidBody);
-
-
-    ////make the fouth wall FRONTBACK
-    btDefaultMotionState* wallFourMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 5.6)));
-    //here we construct the fourth wall using the motion state and shape
-    btRigidBody::btRigidBodyConstructionInfo wallFourRigidBodyCI(0, wallFourMotionState, wallFour, btVector3(0, 0, 0));
-    btRigidBody* wallFourRigidBody = new btRigidBody(wallFourRigidBodyCI);
-        
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(wallFourRigidBody);
+    dynamicsWorld->addRigidBody(groundRigidBody, wall, wallDeflects );
 /*-----------------------------------------------------------------------------*/
 
 
@@ -292,62 +263,13 @@ int main(int argc, char **argv)
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphere, sphereInertia);
     rigidBodySphere = new btRigidBody(sphereRigidBodyCI);
     rigidBodySphere->setActivationState(DISABLE_DEACTIVATION);
+    rigidBodySphere->setFriction(100);
+    rigidBodySphere->setRestitution(2.0);
 
     //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodySphere);
+    dynamicsWorld->addRigidBody(rigidBodySphere, ball, ballBouncesOff);
 /*-----------------------------------------------------------------------------*/
         
-/*----------------------this is the cube--------------------------------*/        
-  // After we create collision shapes we have to se the default motion state 
-    // for the cube
-    btDefaultMotionState* cubeMotionState = NULL;
-    cubeMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 1, 0)));
-
-    //the cube must have a mass
-    mass = 0;
-
-    //we need the inertia of the cube and we need to calculate it
-    btVector3 cubeInertia(0, 0, 0);
-    cube->calculateLocalInertia(mass, cubeInertia);
-
-    //Here we construct the cube with a mass, motion state, and inertia
-    btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyCI(mass, cubeMotionState, sphere, sphereInertia);
-    rigidBodyCube = new btRigidBody(cubeRigidBodyCI);
-
-    // this is where we make a static object (like the cube) into a kinematic object
-    rigidBodyCube->setCollisionFlags(rigidBodyCube->getCollisionFlags() |  btCollisionObject::CF_KINEMATIC_OBJECT);
-    rigidBodyCube->setActivationState(DISABLE_DEACTIVATION);
-
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodyCube);
-/*-----------------------------------------------------------------------------*/
-        
-/*----------------------this is the cylinder--------------------------------*/        
-  // After we create collision shapes we have to se the default motion state 
-    // for the cylinder
-    btDefaultMotionState* cylinderMotionState = NULL;
-    cylinderMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(1, 20, 1)));
-
-    //the cylinder must have a mass
-    mass = 1;
-
-    //we need the inertia of the cylinder and we need to calculate it
-    btVector3 cylinderInertia(0, 0, 0);
-    cylinder->calculateLocalInertia(mass, cylinderInertia);
-
-    //Here we construct the cylinder with a mass, motion state, and inertia
-    btRigidBody::btRigidBodyConstructionInfo cylinderRigidBodyCI(mass, cylinderMotionState, cylinder, sphereInertia);
-    rigidBodyCylinder = new btRigidBody(cylinderRigidBodyCI);
-    rigidBodyCylinder->setActivationState(DISABLE_DEACTIVATION);
-
-    //display dynamic body in our world
-    dynamicsWorld->addRigidBody(rigidBodyCylinder);
-/*-----------------------------------------------------------------------------*/
-
-/////////////////////////////////////////////////////////////////////////////
-
-
-
 
 
 
@@ -370,39 +292,7 @@ int main(int argc, char **argv)
     dynamicsWorld->removeRigidBody(rigidBodySphere);
     delete rigidBodySphere->getMotionState();
     delete rigidBodySphere;
-        
-    dynamicsWorld->removeRigidBody(rigidBodyCube);
-    delete rigidBodyCube->getMotionState();
-    delete rigidBodyCube;
-        
-    dynamicsWorld->removeRigidBody(rigidBodyCylinder);
-    delete rigidBodyCylinder->getMotionState();
-    delete rigidBodyCylinder;
-        
-    dynamicsWorld->removeRigidBody(wallOneRigidBody);
-    delete wallOneRigidBody->getMotionState();
-    delete wallOneRigidBody;
-
-    dynamicsWorld->removeRigidBody(wallTwoRigidBody);
-    delete wallTwoRigidBody->getMotionState();
-    delete wallTwoRigidBody;
-      
-    dynamicsWorld->removeRigidBody(wallThreeRigidBody);
-    delete wallThreeRigidBody->getMotionState();
-    delete wallThreeRigidBody;
-        
-    dynamicsWorld->removeRigidBody(wallFourRigidBody);
-    delete wallFourRigidBody->getMotionState();
-    delete wallFourRigidBody;
-
-    delete ground;
-    delete wallOne;
-    delete wallTwo;
-    delete wallThree;
-    delete wallFour;
     delete sphere;
-    delete cube;
-    delete cylinder;
     delete dynamicsWorld;
     delete solver;
     delete collisionConfiguration;
@@ -586,26 +476,6 @@ void update()
         rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
         goRight = false;
     }
-    if(cylforward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,force));
-        cylforward = false;
-    }
-    if(cylbackward)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        cylbackward = false;
-    }
-    if(cylgoLeft)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(force,0.0,0.0));
-        cylgoLeft = false;
-    }
-    if(cylgoRight)
-    {
-        rigidBodyCylinder->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        cylgoRight = false;
-    }
 
     
     dynamicsWorld->stepSimulation(dt, 10);
@@ -614,8 +484,6 @@ void update()
     btTransform trans;
 
     btScalar m[16];
-    btScalar m1[16];
-    btScalar m2[16];
 
     //set the sphere to it's respective model
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
@@ -623,15 +491,6 @@ void update()
     images[1].model = glm::make_mat4(m);
 
    
-    //set the cube to it's respective model
-    rigidBodyCube->getMotionState()->getWorldTransform(trans);
-    trans.getOpenGLMatrix(m1);
-    images[2].model = glm::make_mat4(m1);
-   
-    //set the cylinder to it's respective model
-    rigidBodyCylinder->getMotionState()->getWorldTransform(trans);
-    trans.getOpenGLMatrix(m2);
-    images[3].model = glm::make_mat4(m2);
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
