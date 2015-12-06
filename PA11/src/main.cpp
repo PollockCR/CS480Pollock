@@ -117,7 +117,7 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodySphere;
   btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
-  btTriangleMesh *trimesh;
+  btTriangleMesh *trimesh = new btTriangleMesh();
 
   //directions
   bool forward = false;
@@ -173,13 +173,25 @@ int main(int argc, char **argv)
 
     // add menus
     manageMenus( false );
+    
+    // Initialize all of our resources(shaders, geometry)
+    // pass default planet info if not given one 
+    if( argc != 3 )
+    {
+      init = initialize( defaultInfo );
+    }
+    // or, pass planet info given from command line argument
+    else
+    {
+      init = initialize( argv[1] );
+    }
 
 //////////////////////////////////////////////////////////////////////////
     //create brodphase
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
     //create collision configuration
-    btDefaultCollisionConfiguration* collisionConfiguration = new       btDefaultCollisionConfiguration();
+    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
     //create a dispatcher
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -200,7 +212,7 @@ int main(int argc, char **argv)
     btCollisionShape* wallThree = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
     btCollisionShape* wallFour = new btStaticPlaneShape(btVector3(0, 0, -1), 1);
 
-  //create sphere and set radius to 1
+    //create sphere and set radius to 1
     btCollisionShape* sphere = new btSphereShape(1);
 
     //create cube and set extents to 0.5 each
@@ -337,17 +349,7 @@ int main(int argc, char **argv)
 
 
 
- // Initialize all of our resources(shaders, geometry)
-    // pass default planet info if not given one 
-    if( argc != 3 )
-    {
-      init = initialize( defaultInfo );
-    }
-    // or, pass planet info given from command line argument
-    else
-    {
-      init = initialize( argv[1] );
-    }
+
 
     // if initialized, begin glut main loop
     if(init)
