@@ -743,7 +743,7 @@ bool initialize( const char* filename)
                                    100.0f); //Distance to the far plane
                                    
     
-    images[numImages-1].model = glm::scale(images[numImages-1].model, glm::vec3(25, 25, 25));
+    images[numImages].model = glm::scale(images[numImages].model, glm::vec3(25, 25, 25));
 
     //enable depth testing
     glEnable(GL_DEPTH_TEST);

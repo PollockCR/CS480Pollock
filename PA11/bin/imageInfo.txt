@@ -1,6 +1,15 @@
-2
+7
 ../bin/maze_floor.obj
 ../bin/metal.jpg
 ../bin/sphere.obj
 ../bin/glass.jpg
-
+../bin/boxFloor.obj
+../bin/glass.jpg
+../bin/backWall.obj
+../bin/glass.jpg
+../bin/frontWall.obj
+../bin/glass.jpg
+../bin/rightWall.obj
+../bin/glass.jpg
+../bin/leftWall.obj
+../bin/glass.jpg
