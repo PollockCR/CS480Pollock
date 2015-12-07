@@ -12,6 +12,7 @@
 #include <cstring>
 #include <vector>
 #include <math.h>
+#include <ctime>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
@@ -81,7 +82,8 @@ const char* blankTexture = "../../Resources/white.png";
   int viewType = 3;
 
   // time information
-  std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
+  std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2, start;
+  float duration;
   bool timeflag = true;
 
 // FUNCTION PROTOTYPES
@@ -169,6 +171,8 @@ const char* blankTexture = "../../Resources/white.png";
   float zRotation = 0.0f;
   float xTilt = 0.0f;
   float zTilt = 0.0f;
+
+
 
 
 // MAIN FUNCTION
@@ -291,7 +295,7 @@ int main(int argc, char **argv)
     // if initialized, begin glut main loop
     if(init)
     {
-        t1 = std::chrono::high_resolution_clock::now();
+        start = t1 = std::chrono::high_resolution_clock::now();
         glutMainLoop();
     }
 
@@ -356,6 +360,10 @@ void render()
     sPrint(-0.95,0.4,(char*)"Right Click for More Options", 12);      
     sPrint(-0.95,0.3,(char*)"H to Hide Menu", 12);
     sPrint(-0.95,0.2,(char*)"Esc to Quit", 12);
+    std::string timerText;
+    duration = duration + (getDT()*10);
+    timerText = "Time Elapsed: " + std::to_string(duration);
+    sPrint(-0.95,-0.9,timerText.c_str(), 18);
 
   // enable the shader program
   glUseProgram(program);
