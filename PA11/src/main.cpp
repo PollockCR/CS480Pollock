@@ -483,7 +483,6 @@ void update()
 {
   // update object
     float dt = getDT();
-    float force = 10.0;
     
     // add the forces to the sphere for movement
     if(forward && !backward && !goLeft && !goRight)
@@ -860,7 +859,6 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfIma
   std::ifstream ifs(infoFilepath, std::ifstream::in);
   bool geometryLoadedCorrectly = false;
   bool imageLoadedCorrectly = false;
-  bool trimeshLoadedCorrectly = false;
   int index = 0;
   int numOfMeshes = 0;
 
