@@ -120,6 +120,7 @@ const char* blankTexture = "../../Resources/white.png";
   btRigidBody *rigidBodyCube;
   btRigidBody *rigidBodyCylinder;
   btTriangleMesh *trimesh = new btTriangleMesh();
+  btTransform startPos(btQuaternion(0, 0, 0, 1), btVector3(2, 1, 0));
   
   //Bullet collisions
   #define BIT(x) (1<<(x))
@@ -518,10 +519,17 @@ void update()
     rigidBodySphere->getMotionState()->getWorldTransform(trans);
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
+    glm::vec4 spherePos = images[1].model * glm::vec4(1.0f);
 
     //give ball same tilt as table
     images[1].model = glm::rotate(images[1].model, zTilt, glm::vec3(1.0f, 0.0f, 0.0f));
     images[1].model = glm::rotate(images[1].model, -xTilt, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    if (spherePos.y < -20.0)
+    {
+        rigidBodySphere->setWorldTransform(startPos);
+        rigidBodySphere->setLinearVelocity(btVector3(0.0,0.0,0.0));
+    }
   }
 
   // update the state of the scene
