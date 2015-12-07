@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <math.h>
 
 // Assimp
 #include <assimp/Importer.hpp> // C++ importer interface
@@ -93,6 +94,7 @@ const char* blankTexture = "../../Resources/white.png";
 
   // called upon input
   void keyboard(unsigned char key, int x_pos, int y_pos);
+  void keyboardUP(unsigned char key, int x_pos, int y_pos );
   void manageMenus(bool quitCall);
   void menu(int id);
   void Menu1(int num);
@@ -152,6 +154,21 @@ const char* blankTexture = "../../Resources/white.png";
   
   // Update view flag
   bool updateViewFlag = false;
+  
+  //need gravity vectors to change as board moves
+  btVector3 earthGravity = btVector3(0.0,-10.0,0.0);
+  btVector3 gravityAwayViewer = btVector3(0.0,-10.0,10.0);
+  btVector3 gravityTowardViewer = btVector3(0.0,-10.0,-10.0);
+  btVector3 gravityLeftViewer = btVector3(10.0,-10.0,0.0);
+  btVector3 gravityRightViewer = btVector3(-10.0,-10.0,0.0);
+  btVector3 gravityTowardLeft = btVector3(10.0,-10.0,-10.0);
+  btVector3 gravityTowardRight = btVector3(-10.0,-10.0,-10.0);
+  btVector3 gravityAwayLeft = btVector3(10.0,-10.0,10.0);
+  btVector3 gravityAwayRight = btVector3(-10.0,-10.0,10.0);
+  
+  //rotation directions
+  float xRotation = 0.0f;
+  float zRotation = 0.0f;
 
 
 // MAIN FUNCTION
@@ -182,6 +199,7 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);// Called if the window is resized
     glutIdleFunc(update);// Called if there is nothing else to do
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
+    glutKeyboardUpFunc(keyboardUP);
     glutMouseFunc(mouse);//Called if there is mouse input
     glutSpecialFunc(ArrowKeys);
 	int index = glutCreateMenu(Menu1);
@@ -466,25 +484,55 @@ void update()
     float force = 10.0;
     
     // add the forces to the sphere for movement
-    if(forward)
+    if(forward && !backward && !goLeft && !goRight)
     {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,force));
-        forward = false;
+        zRotation = (1 - 0.03f)*(zRotation);
+        dynamicsWorld->setGravity(gravityAwayViewer);
+        //forward = false;
     }
-    if(backward)
+    else if(backward && !forward && !goLeft && !goRight)
     {
-        rigidBodySphere->applyCentralImpulse(btVector3(0.0,0.0,-force));
-        backward = false;
+        zRotation = (1 - 0.03f)*(zRotation);
+        dynamicsWorld->setGravity(gravityTowardViewer);
+        //backward = false;
     }
-    if(goLeft)
+    else if(goLeft && !backward && !forward && !goRight)
     {
-        rigidBodySphere->applyCentralImpulse(btVector3(force,0.0,0.0));
-        goLeft = false;
+        xRotation = (1 - 0.03f)*(xRotation);
+        dynamicsWorld->setGravity(gravityLeftViewer);
+        //goLeft = false;
     }
-    if(goRight)
+    else if(goRight && !goLeft && !backward && !forward)
     {
-        rigidBodySphere->applyCentralImpulse(btVector3(-force,0.0,0.0));
-        goRight = false;
+        xRotation = (1 - 0.03f)*(xRotation);
+        dynamicsWorld->setGravity(gravityRightViewer);
+        //goRight = false;
+    }
+    else if(goRight && !goLeft && !backward && forward)
+    {
+        dynamicsWorld->setGravity(gravityAwayRight);
+        //goRight = false;
+    }
+    else if(!goRight && goLeft && !backward && forward)
+    {
+        dynamicsWorld->setGravity(gravityAwayLeft);
+        //goRight = false;
+    }
+    else if(goRight && !goLeft && backward && !forward)
+    {
+        dynamicsWorld->setGravity(gravityTowardRight);
+        //goRight = false;
+    }
+    else if(!goRight && goLeft && backward && !forward)
+    {
+        dynamicsWorld->setGravity(gravityTowardLeft);
+        //goRight = false;
+    }
+    else 
+    {
+        dynamicsWorld->setGravity(earthGravity);
+        xRotation = (1 - 0.03f)*(xRotation);
+        zRotation = (1 - 0.03f)*(zRotation);
     }
 
     
@@ -523,6 +571,32 @@ void reshape(int n_w, int n_h)
     projection = glm::perspective(45.0f, float(w)/float(h), 0.01f, 100.0f);
 
 }
+
+
+// reset keys
+void keyboardUP(unsigned char key, int x_pos, int y_pos )
+{
+
+    if((key == 'w')||(key == 'W'))
+    {
+      forward = false;
+    }
+    if((key == 'a')||(key == 'A'))
+    {
+      goLeft = false;
+    }
+    if((key == 's')||(key == 'S'))
+    {
+      backward = false;
+    }
+    if((key == 'd')||(key == 'D'))
+    {
+      goRight = false;
+    }
+
+}
+
+
 
 // called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
