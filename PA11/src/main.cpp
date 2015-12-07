@@ -631,7 +631,10 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
       programLoad.loadShader( vsFileName, fsFileName4, program );
       viewType = 4;
     }   
-    
+    else if(key == ' ')
+    {
+      timeflag = !timeflag;
+    }
     
     // pan
     if((key == 'i')||(key == 'I'))
