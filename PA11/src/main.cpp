@@ -172,6 +172,10 @@ const char* blankTexture = "../../Resources/white.png";
   float zRotation = 0.0f;
   float xTilt = 0.0f;
   float zTilt = 0.0f;
+  
+  //score
+  int score;
+  int highScore;
 
 
 
@@ -361,6 +365,9 @@ void render()
     sPrint(-0.95,0.4,(char*)"Right Click for More Options", 12);      
     sPrint(-0.95,0.3,(char*)"H to Hide Menu", 12);
     sPrint(-0.95,0.2,(char*)"Esc to Quit", 12);
+    std::string viewScore;
+    viewScore = "High Score: " + std::to_string(highScore);
+    sPrint(-0.95,0.1,viewScore.c_str(), 12);
     std::string timerText;
     duration = duration + (getDT()*10);
     timerText = "Time Elapsed: " + std::to_string(duration);
@@ -529,6 +536,9 @@ void update()
     {
         rigidBodySphere->setWorldTransform(startPos);
         rigidBodySphere->setLinearVelocity(btVector3(0.0,0.0,0.0));
+        score++;
+        highScore = score;    
+
     }
   }
 
