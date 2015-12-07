@@ -614,7 +614,7 @@ void keyboardUP(unsigned char key, int x_pos, int y_pos )
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
     ShaderLoader programLoad;
-    float tiltBoard = 0.07;
+    float tiltBoard = 0.02;
     
   // Handle keyboard input - end program
     if((key == 27)||(key == 'q')||(key == 'Q'))
