@@ -169,6 +169,8 @@ const char* blankTexture = "../../Resources/white.png";
   //rotation directions
   float xRotation = 0.0f;
   float zRotation = 0.0f;
+  float xTilt = 0.0f;
+  float zTilt = 0.0f;
 
 
 // MAIN FUNCTION
@@ -486,25 +488,25 @@ void update()
     // add the forces to the sphere for movement
     if(forward && !backward && !goLeft && !goRight)
     {
-        zRotation = (1 - 0.03f)*(zRotation);
+        zRotation = (1 - 0.03f) * zRotation + 0.0f*0.03;
         dynamicsWorld->setGravity(gravityAwayViewer);
         //forward = false;
     }
     else if(backward && !forward && !goLeft && !goRight)
     {
-        zRotation = (1 - 0.03f)*(zRotation);
+        zRotation = (1 - 0.03f)*zRotation + 0.0f*0.03;
         dynamicsWorld->setGravity(gravityTowardViewer);
         //backward = false;
     }
     else if(goLeft && !backward && !forward && !goRight)
     {
-        xRotation = (1 - 0.03f)*(xRotation);
+        xRotation = (1 - 0.03f)*xRotation + 0.0f*0.03;
         dynamicsWorld->setGravity(gravityLeftViewer);
         //goLeft = false;
     }
     else if(goRight && !goLeft && !backward && !forward)
     {
-        xRotation = (1 - 0.03f)*(xRotation);
+        xRotation = (1 - 0.03f)*xRotation + 0.0f*0.03;
         dynamicsWorld->setGravity(gravityRightViewer);
         //goRight = false;
     }
@@ -531,10 +533,17 @@ void update()
     else 
     {
         dynamicsWorld->setGravity(earthGravity);
-        xRotation = (1 - 0.03f)*(xRotation);
-        zRotation = (1 - 0.03f)*(zRotation);
+        xRotation = (1 - 0.03f)*xRotation + 0.0f*0.03;
+        zRotation = (1 - 0.03f)*zRotation + 0.0f*0.03;
     }
 
+    //find angle of tilt
+    xTilt = xRotation * 100.0 * M_PI / 180.0;
+    zTilt = zRotation * 100.0 * M_PI / 180.0;
+
+    // tilt mazew 
+    images[0].model = glm::rotate(glm::mat4(1.0f), zTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+    images[0].model = glm::rotate(images[0].model, -xTilt, glm::vec3(0.0f, 0.0f, 1.0f));
     
     dynamicsWorld->stepSimulation(dt, 10);
 
@@ -548,6 +557,9 @@ void update()
     trans.getOpenGLMatrix(m);
     images[1].model = glm::make_mat4(m);
 
+    //give ball same tilt as table
+    images[1].model = glm::rotate(images[1].model, zTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+    images[1].model = glm::rotate(images[1].model, -xTilt, glm::vec3(0.0f, 0.0f, 1.0f));
    
 
   // update the state of the scene
@@ -601,7 +613,9 @@ void keyboardUP(unsigned char key, int x_pos, int y_pos )
 // called on keyboard input
 void keyboard(unsigned char key, int x_pos, int y_pos )
 {
-        ShaderLoader programLoad;
+    ShaderLoader programLoad;
+    float tiltBoard = 0.07;
+    
   // Handle keyboard input - end program
     if((key == 27)||(key == 'q')||(key == 'Q'))
     {
@@ -609,18 +623,30 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     }
     else if((key == 'w')||(key == 'W'))
     {
+      zRotation += tiltBoard;
+      if (zRotation > 1.0f)
+        {
+            zRotation = 1.0f;
+        }
       forward = true;
     }
     else if((key == 'a')||(key == 'A'))
     {
+      xRotation += tiltBoard;
+      if (xRotation > 1.0f)
+        {
+            xRotation = 1.0f;
+        }
       goLeft = true;
     }
     else if((key == 's')||(key == 'S'))
     {
+      zRotation -= tiltBoard;
       backward = true;
     }
     else if((key == 'd')||(key == 'D'))
     {
+      xRotation -= tiltBoard;
       goRight = true;
     }
     else if(key == '1')
