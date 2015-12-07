@@ -78,10 +78,11 @@ const char* blankTexture = "../../Resources/white.png";
   // Images
   std::vector<Image> images;
   int numImages = 0;
-  int viewType = 1;
+  int viewType = 3;
 
   // time information
   std::chrono::time_point<std::chrono::high_resolution_clock> t1, t2;
+  bool timeflag = true;
 
 // FUNCTION PROTOTYPES
 
@@ -97,10 +98,7 @@ const char* blankTexture = "../../Resources/white.png";
   void keyboardUP(unsigned char key, int x_pos, int y_pos );
   void manageMenus(bool quitCall);
   void menu(int id);
-  void Menu1(int num);
-  void Menu2(int num);
   void mouse(int button, int state, int x_pos, int y_pos);
-  void ArrowKeys(int button, int x_pos, int y_pos);
 
   //--Resource management
   bool initialize( const char* filename);
@@ -112,7 +110,7 @@ const char* blankTexture = "../../Resources/white.png";
   //Load Image info
   bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfImages );
 
-  void Sprint( float x, float y, const char *st);
+  void sPrint( float xPos, float yPos, const char *str, int fontSize);
 
   //Bullet 
   btDiscreteDynamicsWorld *dynamicsWorld;
@@ -184,7 +182,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(w, h);
     
     // Name and create the Window
-    glutCreateWindow("Dope Lighting Demo");
+    glutCreateWindow("Labyrinth");
 
     // Now that the window is created the GL context is fully set up
     // Because of that we can now initialize GLEW to prepare work with shaders
@@ -203,16 +201,6 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyboard);// Called if there is keyboard input
     glutKeyboardUpFunc(keyboardUP);
     glutMouseFunc(mouse);//Called if there is mouse input
-    glutSpecialFunc(ArrowKeys);
-	int index = glutCreateMenu(Menu1);
-	glutAddMenuEntry("Rotate Clockwise", 1);
-	glutAddMenuEntry("Rotate Counterclockwise", 2);
-	glutAddMenuEntry("Don't Rotate", 3);
-	glutCreateMenu(Menu2);
-	glutAddSubMenu("Rotation options", index);
-	glutAddMenuEntry("Exit Program", 2);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
-	srand(getDT());
 
     // add menus
     manageMenus( false );
@@ -300,9 +288,6 @@ int main(int argc, char **argv)
     dynamicsWorld->addRigidBody(rigidBodySphere, ball, ballBouncesOff);
 /*-----------------------------------------------------------------------------*/
         
-
-
-
     // if initialized, begin glut main loop
     if(init)
     {
@@ -335,55 +320,21 @@ int main(int argc, char **argv)
 
 // FUNCTION IMPLEMENTATION
 
-//the first menu that appears
-void Menu1(int num)
-    {
-	switch(num)
-		{
-		case 1: 
-			rotationDegrees = 45.0;
-			break;
-		case 2: 
-			rotationDegrees =-45.0;
-			break;
-		case 3: 
-			rotationDegrees = 0.0;
-			break;
-		}
-	glutPostRedisplay();
-	}
-
-//the second sub-menu
-void Menu2(int num)
-    {
-	switch (num)
-		{
-		case 1:
-			Menu1(num);
-			break;
-		case 2:
-			exit(0);
-			break;
-		}
-	glutPostRedisplay();
-	}
 
 
 // render the scene
 void render()
 {
   // clear the screen
-  glClearColor(0.0, 0.0, 0.2, 1.0);
+  glClearColor(0.3, 0.3, 0.3, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(0);
-    char* Text = new char[100];
+
+    sPrint(-0.95,0.9,(char*)"WASD to Move Table", 12);
+    sPrint(-0.95,0.8,(char*)"IJKL to Pan", 12);
+    sPrint(-0.95,0.7,(char*)"1234 to Change Lighting", 12);
     std::string viewText;
-
-    
-    Text = (char*) "WASD to move sphere, Arrow keys to move cylinder, 1-4 to change light";
-    Sprint(-0.9,0.9,Text);
-
     if( viewType == 1 )
     {
       viewText = "Light source: Ambient";
@@ -400,13 +351,15 @@ void render()
     {
       viewText = "Light source: Distance";
     }    
-
-    Sprint(-0.9,0.8,viewText.c_str());
+    sPrint(-0.95,0.6,viewText.c_str(), 12);
+    sPrint(-0.95,0.5,(char*)"Spacebar to Pause/Resume", 12);
+    sPrint(-0.95,0.4,(char*)"Right Click for More Options", 12);      
+    sPrint(-0.95,0.3,(char*)"H to Hide Menu", 12);
+    sPrint(-0.95,0.2,(char*)"Esc to Quit", 12);
 
   // enable the shader program
   glUseProgram(program);
   GLuint lightID = glGetUniformLocation(program, "LightPosition_worldspace");
-
 
     if( viewType == 2 || viewType == 3 )
     {
@@ -481,6 +434,8 @@ void render()
 // called on idle to update display
 void update()
 {
+  if( timeflag )
+  {
   // update object
     float dt = getDT();
     
@@ -559,7 +514,7 @@ void update()
     //give ball same tilt as table
     images[1].model = glm::rotate(images[1].model, zTilt, glm::vec3(1.0f, 0.0f, 0.0f));
     images[1].model = glm::rotate(images[1].model, -xTilt, glm::vec3(0.0f, 0.0f, 1.0f));
-   
+  }
 
   // update the state of the scene
   glutPostRedisplay();//call the display callback
@@ -674,7 +629,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'i')||(key == 'I'))
     {
       dest[0] = 0.0;
-      dest[1] = 18.0;
+      dest[1] = 24.0;
       dest[2] = 18.0;
       updateViewFlag = true;        
       pan();
@@ -682,7 +637,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'j')||(key == 'J'))
     {
       dest[0] = 18.0;
-      dest[1] = 18.0;
+      dest[1] = 24.0;
       dest[2] = 0.0; 
       updateViewFlag = true;        
       pan();
@@ -690,7 +645,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'k')||(key == 'K'))
     {
       dest[0] = 0.0;
-      dest[1] = 18.0;
+      dest[1] = 24.0;
       dest[2] = -18.0; 
       updateViewFlag = true;        
       pan();
@@ -698,7 +653,7 @@ void keyboard(unsigned char key, int x_pos, int y_pos )
     if((key == 'l')||(key == 'L'))
     {
       dest[0] = -18.0;
-      dest[1] = 18.0;
+      dest[1] = 24.0;
       dest[2] = 0.0; 
       updateViewFlag = true;        
       pan(); 
@@ -746,18 +701,9 @@ bool initialize( const char* filename)
 
       }      
 
-      //if( viewType == 0 )
-      //{
         // loads shaders to program
-        programLoad.loadShader( vsFileName, fsFileName1, program );
-      //}
-      /*
-      else
-      {
-        // loads shaders to program
-        programLoad.loadShader( vsFileName, fsFileName1, program );        
-      }
-*/
+        programLoad.loadShader( vsFileName, fsFileName3, program );
+
     // Get a handle for our "MVP" uniform
     loc_mvpmat = glGetUniformLocation(program, "mvpMatrix");
       if(loc_mvpmat == -1)
@@ -779,22 +725,6 @@ bool initialize( const char* filename)
         std::cerr << "[F] MODEL NOT FOUND" << std::endl;
         return false;
       }    
-/*
-    // Get a handle for our buffers
-    loc_position = glGetAttribLocation(program, "v_position");
-      if(loc_position == -1)
-      {
-        std::cerr << "[F] POSITION NOT FOUND" << std::endl;
-        return false;
-      }
-
-    loc_texture = glGetAttribLocation(program, "v_color");
-      if(loc_texture == -1)
-      {
-        std::cerr << "[F] COLOR NOT FOUND" << std::endl;
-        return false;
-      }    
-*/  
 
     // Get a handle for our buffers
     loc_position = glGetAttribLocation(program, "v_position");
@@ -821,11 +751,11 @@ bool initialize( const char* filename)
 
     // set view variables
     source[0] = 0.0;
-    source[1] = 18.0;
-    source[2] = -18.0;  
+    source[1] = 24.0;
+    source[2] = -3.0;  
     dest[0] = 0.0;
-    dest[1] = 18.0;
-    dest[2] = -18.0;
+    dest[1] = 24.0;
+    dest[2] = -3.0;
 
 
     //--Init the view and projection matrices
@@ -906,7 +836,7 @@ bool loadInfo( const char* infoFilepath, std::vector<Mesh> &meshes, int numOfIma
         
        // set number of vertices
        unsigned int numOfVertices = meshes[index].geometry.size(); 
-        std::cerr << numOfMeshes << std::endl;
+
        //check if we are reading in the maze 
        if (index == 0)
         {
@@ -983,7 +913,9 @@ void manageMenus( bool quitCall )
   {
     // create main menu
     main_menu = glutCreateMenu(menu); // Call menu function
-    glutAddMenuEntry("Quit", 1);
+    glutAddMenuEntry("Pause/Resume Game", 1);
+    glutAddMenuEntry("Exit Program", 2);;
+
     glutAttachMenu(GLUT_RIGHT_BUTTON); //Called if there is a mouse click (right)
   }
 
@@ -1004,55 +936,14 @@ void menu(int id)
   // switch case for menu options
   switch(id)
   {
-    // call the rotation menu function
     case 1:
+      timeflag = !timeflag;
+      break;
+    // call the rotation menu function
+    case 2:
       glutLeaveMainLoop();
       break;
       
-    case 2: // Player 1 POV 
-      dest[0] = 0.0;
-      dest[1] = 18.0;
-      dest[2] = -18.0;
-      source[0] = 0.0;
-      source[1] = 18.0;
-      source[2] = -18.0; 
-      updateViewFlag = true;   
-      pan();
-      break;
-    case 3: // Player 2 POV
-
-      dest[0] = 0.0;
-      dest[1] = 18.0;
-      dest[2] = 18.0;
-      source[0] = 0.0;
-      source[1] = 18.0;
-      source[2] = 18.0;   
-      updateViewFlag = true;    
-      pan();
-      break;
-    case 4: // Left side POV
-  
-      dest[0] = 18.0;
-      dest[1] = 18.0;
-      dest[2] = 0.0;
-      source[0] = 18.0;
-      source[1] = 18.0;
-      source[2] = 0.0;  
-      updateViewFlag = true;     
-      pan();
-      break;
-    case 5: // Right side POV
-      
-      dest[0] = -18.0;
-      dest[1] = 18.0;
-      dest[2] = 0.0;
-      source[0] = -18.0;
-      source[1] = 18.0;
-      source[2] = 0.0;     
-      updateViewFlag = true;    
-      pan();
-      break;      
-
     // default do nothing
     default:
       break;
@@ -1077,43 +968,48 @@ float getDT()
     t2 = std::chrono::high_resolution_clock::now();
     ret = std::chrono::duration_cast< std::chrono::duration<float> >(t2-t1).count();
     t1 = std::chrono::high_resolution_clock::now();
+
+    // check if paused
+    if( !timeflag )
+    {
+      return 0.0;
+    }
+
     return ret;
 }
 
-void ArrowKeys(int button, int x_pos, int y_pos)
+// prints a string to the screen
+void sPrint( float xPos, float yPos, const char *str, int fontSize)
 {
-    if (button == GLUT_KEY_LEFT)
-    {
-        cylgoLeft = true;
-    }
+  int length;
+  int index;
 
-    if (button == GLUT_KEY_RIGHT)
-    {
-        cylgoRight = true;
-    }
+  // see how many characters are in text string.
+  length = strlen( str ); 
 
-    if (button == GLUT_KEY_UP)
-    {
-        cylforward = true;
-    }
+  // location to start printing text
+  glRasterPos2f(xPos, yPos); 
 
-    if (button == GLUT_KEY_DOWN)
+  if( fontSize <= 12 )
+  {
+    // loop for small text
+    // until index is greater then length
+    for( index = 0; index < length; index++) 
     {
-        cylbackward = true;
+      // Print a character on the screen
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, str[index]); 
     }
-}
-
-// This prints a string to the screen
-void Sprint( float x, float y, const char *st)
-{
-    int l,i;
-
-    l=strlen( st ); // see how many characters are in text string.
-    glRasterPos2f(x, y); // location to start printing text
-    for( i=0; i < l; i++) // loop until i is greater then l
+  }
+  else
+  {
+    // loop for large text
+    // until index is greater then length
+    for( index = 0; index < length; index++) 
     {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, st[i]); // Print a character on the screen
-    }
+      // Print a character on the screen
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, str[index]); 
+    }  
+  }
 }
 
 
@@ -1123,42 +1019,6 @@ void pan()
       // make sure we want to move
       if (updateViewFlag)
       {
-
-
-/*
-        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == -18.0) )
-            {
-            player1POV = true;
-            player2POV = false;  
-            leftSidePOV = false; 
-            rightSidePOV = false; 
-            }
-
-        if ( (dest[0] == 0.0) && (dest[1] == 18.0) && (dest[2] == 18.0) )
-            {
-            player1POV = false;
-            player2POV = true;  
-            leftSidePOV = false; 
-            rightSidePOV = false; 
-            }
-
-        if ( (dest[0] == 18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
-            {
-            player1POV = false;
-            player2POV = false;  
-            leftSidePOV = true; 
-            rightSidePOV = false; 
-            }
-
-        if ( (dest[0] == -18.0) && (dest[1] == 18.0) && (dest[2] == 0.0) )
-            {
-            player1POV = false;
-            player2POV = false;  
-            leftSidePOV = false; 
-            rightSidePOV = true; 
-            }
-*/
-
 
         //paused = true;
         // check source vs dest coords
