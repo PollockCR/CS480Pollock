@@ -19,5 +19,12 @@ PA6 loads and displays a model with a texture using assimp.
 
 PA7 is an interactive model of the solar system.
 
-Resources directory contains old files and some object files for testing. This directory is not needed for grading or use.
+PA8 models a table with interactive objects.
 
+PA9 is an interactive air hockey game.
+
+PA10 models a table with interactive objects. Various types of lighting can be shown on the objects.
+
+PA11 is an interactive labyrinth game.
+
+Resources directory contains old files and some object files for testing. This directory is not needed for grading or use.
